@@ -100,8 +100,8 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
     workarea.Name = "workarea"
     workarea.Parent = main
     workarea.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
-    workarea.Position = UDim2.new(0.28, 0, 0, 0)
-    workarea.Size = UDim2.new(0, 432, 0, 380)
+    workarea.Position = UDim2.new(0.28, 0, 0.16, 0)
+    workarea.Size = UDim2.new(0, 432, 0, 320)
 
     local uc_2 = Instance.new("UICorner")
     uc_2.CornerRadius = UDim.new(0, 18)
@@ -115,53 +115,6 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
     workareacornerhider.Size = UDim2.new(0, 18, 0.99895674, 0)
 
 
-    -- searchbar
-
-    local search = Instance.new("Frame")
-    search.Name = "search"
-    search.Parent = main
-    search.BackgroundColor3 = Color3.fromRGB(38, 38, 38)
-    search.Position = UDim2.new(0.025, 0, 0.13, 0)
-    search.Size = UDim2.new(0, 150, 0, 28)
-
-    local uc_8 = Instance.new("UICorner")
-    uc_8.CornerRadius = UDim.new(0, 9)
-    uc_8.Parent = search
-
-    local searchicon = Instance.new("ImageButton")
-    searchicon.Name = "searchicon"
-    searchicon.Parent = search
-    searchicon.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    searchicon.BackgroundTransparency = 1
-    searchicon.BorderColor3 = Color3.fromRGB(27, 42, 53)
-    searchicon.Position = UDim2.new(0.05, 0, 0.15, 0)
-    searchicon.Size = UDim2.new(0, 18, 0, 18)
-    searchicon.Image = "rbxassetid://2804603863"
-    searchicon.ImageColor3 = Color3.fromRGB(160, 160, 160)
-    searchicon.ScaleType = Enum.ScaleType.Fit
-
-    local searchtextbox = Instance.new("TextBox")
-    searchtextbox.Name = "searchtextbox"
-    searchtextbox.Parent = search
-    searchtextbox.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    searchtextbox.BackgroundTransparency = 1
-    searchtextbox.ClipsDescendants = true
-    searchtextbox.Position = UDim2.new(0.20, 0, 0, 0)
-    searchtextbox.Size = UDim2.new(0, 110, 0, 28)
-    searchtextbox.Font = Enum.Font.Gotham
-    searchtextbox.LineHeight = 0.870
-    searchtextbox.PlaceholderText = "Search"
-    searchtextbox.Text = ""
-    searchtextbox.TextColor3 = Color3.fromRGB(220, 220, 220)
-    searchtextbox.TextSize = 16
-    searchtextbox.TextXAlignment = Enum.TextXAlignment.Left
-
-    searchicon.MouseButton1Click:Connect(function()
-        searchtextbox:CaptureFocus()
-    end)
-
-    -- sidebar
-
     local sidebar = Instance.new("ScrollingFrame")
     sidebar.Name = "sidebar"
     sidebar.Parent = main
@@ -169,8 +122,8 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
     sidebar.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     sidebar.BackgroundTransparency = 1
     sidebar.BorderSizePixel = 0
-    sidebar.Position = UDim2.new(0.025, 0, 0.24, 0)
-    sidebar.Size = UDim2.new(0, 150, 0, 270)
+    sidebar.Position = UDim2.new(0.025, 0, 0.16, 0)
+    sidebar.Size = UDim2.new(0, 150, 0, 305)
     sidebar.AutomaticCanvasSize = "Y"
     sidebar.CanvasSize = UDim2.new(0, 0, 0, 0)
     sidebar.ScrollBarThickness = 2
@@ -179,25 +132,6 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
     ull_2.Parent = sidebar
     ull_2.SortOrder = Enum.SortOrder.LayoutOrder
     ull_2.Padding = UDim.new(0, 5)
-
-    game:GetService("RunService"):BindToRenderStep("search", 1, function() -- i sure do love skidding
-        if not searchtextbox:IsFocused() then 
-            for b,v in next, sidebar:GetChildren() do
-                if not v:IsA("TextButton") then return end
-                v.Visible = true
-            end
-        end
-        local InputText=string.upper(searchtextbox.Text)
-        for _,button in pairs(sidebar:GetChildren())do
-            if button:IsA("TextButton")then
-                if InputText==""or string.find(string.upper(button.Text),InputText)~=nil then
-                    button.Visible=true
-                else
-                    button.Visible=false
-                end
-            end
-        end
-    end)
     -- macos style buttons
 
 
@@ -293,22 +227,29 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
 
     -- title text at topbar
 
-
     local title = Instance.new("TextLabel")
     title.Name = "title"
     title.Parent = main
     title.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     title.BackgroundTransparency = 1
     title.BorderSizePixel = 2
-    title.Position = UDim2.new(0.025, 0, 0.03, 0)
-    title.Size = UDim2.new(0, 150, 0, 25)
+    title.Position = UDim2.new(0.025, 0, 0.04, 0)
+    title.Size = UDim2.new(0, 150, 0, 30)
     title.Font = Enum.Font.GothamBold
     title.LineHeight = 1.180
     title.Text = "METAN"
     title.TextColor3 = Color3.fromRGB(255, 255, 255)
-    title.TextSize = 20
+    title.TextSize = 26
     title.TextWrapped = true
     title.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local titlegradient = Instance.new("UIGradient")
+    titlegradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 180, 180))
+    }
+    titlegradient.Rotation = 90
+    titlegradient.Parent = title
 
     -- notif1
     local notif = Instance.new("Frame")
@@ -522,6 +463,40 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
     uc_17.Parent = notif2button2
 
     tp(main, UDim2.new(0.5, 0, 0.5, 0), 1)
+    
+    -- Show notification about keybind
+    task.wait(0.5)
+    local keynotif = Instance.new("Frame")
+    keynotif.Name = "keynotif"
+    keynotif.Parent = scrgui
+    keynotif.AnchorPoint = Vector2.new(0.5, 0.5)
+    keynotif.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+    keynotif.BackgroundTransparency = 0.050
+    keynotif.Position = UDim2.new(0.5, 0, 0.1, 0)
+    keynotif.Size = UDim2.new(0, 350, 0, 80)
+    keynotif.ZIndex = 50
+    
+    local keynotifc = Instance.new("UICorner")
+    keynotifc.CornerRadius = UDim.new(0, 12)
+    keynotifc.Parent = keynotif
+    
+    local keynotiftext = Instance.new("TextLabel")
+    keynotiftext.Parent = keynotif
+    keynotiftext.BackgroundTransparency = 1
+    keynotiftext.Position = UDim2.new(0.05, 0, 0.2, 0)
+    keynotiftext.Size = UDim2.new(0.9, 0, 0.6, 0)
+    keynotiftext.Font = Enum.Font.GothamBold
+    keynotiftext.Text = "Press LEFT CONTROL to toggle UI"
+    keynotiftext.TextColor3 = Color3.fromRGB(255, 255, 255)
+    keynotiftext.TextSize = 16
+    keynotiftext.TextWrapped = true
+    keynotiftext.ZIndex = 50
+    
+    task.wait(3)
+    keynotif:TweenPosition(UDim2.new(0.5, 0, -0.1, 0), "Out", "Quad", 0.5)
+    task.wait(0.5)
+    keynotif:Destroy()
+    
     window = {}
 
     function window:ToggleVisible()
@@ -529,12 +504,88 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
         visible = not visible
         dbcooper = true
         if visible then
+            if scrgui:FindFirstChild("minimizedcircle") then
+                scrgui.minimizedcircle:Destroy()
+            end
             tp(main, UDim2.new(0.5, 0, 0.5, 0), 0.5)
             task.wait(0.5)
             dbcooper = false
         else
             tp(main, main.Position + UDim2.new(0,0,2,0), 0.5)
             task.wait(0.5)
+            
+            -- Create minimized circle
+            local circle = Instance.new("Frame")
+            circle.Name = "minimizedcircle"
+            circle.Parent = scrgui
+            circle.AnchorPoint = Vector2.new(0.5, 0.5)
+            circle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            circle.Position = UDim2.new(0.9, 0, 0.1, 0)
+            circle.Size = UDim2.new(0, 50, 0, 50)
+            circle.ZIndex = 100
+            
+            local circlecorner = Instance.new("UICorner")
+            circlecorner.CornerRadius = UDim.new(1, 0)
+            circlecorner.Parent = circle
+            
+            local circletext = Instance.new("TextLabel")
+            circletext.Parent = circle
+            circletext.BackgroundTransparency = 1
+            circletext.Size = UDim2.new(1, 0, 1, 0)
+            circletext.Font = Enum.Font.GothamBold
+            circletext.Text = "M"
+            circletext.TextColor3 = Color3.fromRGB(20, 20, 20)
+            circletext.TextSize = 24
+            circletext.ZIndex = 100
+            
+            -- Make circle draggable
+            local dragging2
+            local dragInput2
+            local dragStart2
+            local startPos2
+            
+            local function update2(input)
+                local delta = input.Position - dragStart2
+                circle.Position = UDim2.new(startPos2.X.Scale, startPos2.X.Offset + delta.X, startPos2.Y.Scale, startPos2.Y.Offset + delta.Y)
+            end
+            
+            circle.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                    dragging2 = true
+                    dragStart2 = input.Position
+                    startPos2 = circle.Position
+                    
+                    input.Changed:Connect(function()
+                        if input.UserInputState == Enum.UserInputState.End then
+                            dragging2 = false
+                        end
+                    end)
+                end
+            end)
+            
+            circle.InputChanged:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+                    dragInput2 = input
+                end
+            end)
+            
+            game:GetService("UserInputService").InputChanged:Connect(function(input)
+                if input == dragInput2 and dragging2 then
+                    update2(input)
+                end
+            end)
+            
+            -- Click to open
+            local clickdetect = Instance.new("TextButton")
+            clickdetect.Parent = circle
+            clickdetect.BackgroundTransparency = 1
+            clickdetect.Size = UDim2.new(1, 0, 1, 0)
+            clickdetect.Text = ""
+            clickdetect.ZIndex = 101
+            clickdetect.MouseButton1Click:Connect(function()
+                window:ToggleVisible()
+            end)
+            
             dbcooper = false
         end
     end
@@ -544,7 +595,7 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
             window:ToggleVisible()
         end)
         game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
-            if input.KeyCode == visiblekey then
+            if input.KeyCode == Enum.KeyCode.LeftControl then
                 window:ToggleVisible()
             end
         end)
@@ -684,11 +735,11 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
         sidebar2.Parent = sidebar
         sidebar2.BackgroundColor3 = Color3.fromRGB(220, 220, 220)
         sidebar2.BackgroundTransparency = 1
-        sidebar2.Size = UDim2.new(0, 145, 0, 32)
+        sidebar2.Size = UDim2.new(0, 145, 0, 36)
         sidebar2.ZIndex = 2
         sidebar2.AutoButtonColor = false
-        sidebar2.Font = Enum.Font.Gotham
-        sidebar2.Text = "  " .. name
+        sidebar2.Font = Enum.Font.GothamSemibold
+        sidebar2.Text = "      " .. name
         sidebar2.TextColor3 = Color3.fromRGB(200, 200, 200)
         sidebar2.TextSize = 15
         sidebar2.TextXAlignment = Enum.TextXAlignment.Left
@@ -697,7 +748,7 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
         tabicon.Name = "tabicon"
         tabicon.Parent = sidebar2
         tabicon.BackgroundTransparency = 1
-        tabicon.Position = UDim2.new(0.02, 0, 0.15, 0)
+        tabicon.Position = UDim2.new(0.05, 0, 0.18, 0)
         tabicon.Size = UDim2.new(0, 22, 0, 22)
         tabicon.Image = icon or "rbxassetid://4871684504"
         tabicon.ImageColor3 = Color3.fromRGB(200, 200, 200)
@@ -714,8 +765,8 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
         workareamain.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
         workareamain.BackgroundTransparency = 1
         workareamain.BorderSizePixel = 0
-        workareamain.Position = UDim2.new(0.04, 0, 0.05, 0)
-        workareamain.Size = UDim2.new(0, 400, 0, 350)
+        workareamain.Position = UDim2.new(0.04, 0, 0.03, 0)
+        workareamain.Size = UDim2.new(0, 400, 0, 305)
         workareamain.ZIndex = 3
         workareamain.CanvasSize = UDim2.new(0, 0, 0, 0)
         workareamain.ScrollBarThickness = 2
@@ -755,12 +806,12 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
             section.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
             section.BackgroundTransparency = 1
             section.BorderSizePixel = 2
-            section.Size = UDim2.new(0, 390, 0, 35)
-            section.Font = Enum.Font.Gotham
+            section.Size = UDim2.new(0, 390, 0, 32)
+            section.Font = Enum.Font.GothamBold
             section.LineHeight = 1.180
             section.Text = name
-            section.TextColor3 = Color3.fromRGB(200, 200, 200)
-            section.TextSize = 18
+            section.TextColor3 = Color3.fromRGB(220, 220, 220)
+            section.TextSize = 16
             section.TextWrapped = true
             section.TextXAlignment = Enum.TextXAlignment.Left
             section.TextYAlignment = Enum.TextYAlignment.Bottom
@@ -771,20 +822,20 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
             button.Text = name
             button.Parent = workareamain
             button.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-            button.BackgroundTransparency = 1
-            button.Size = UDim2.new(0, 390, 0, 32)
+            button.BackgroundTransparency = 0
+            button.Size = UDim2.new(0, 390, 0, 34)
             button.ZIndex = 2
-            button.Font = Enum.Font.Gotham
+            button.Font = Enum.Font.GothamSemibold
             button.TextColor3 = Color3.fromRGB(220, 220, 220)
-            button.TextSize = 16
+            button.TextSize = 15
 
             local uc_3 = Instance.new("UICorner")
-            uc_3.CornerRadius = UDim.new(0, 9)
+            uc_3.CornerRadius = UDim.new(0, 8)
             uc_3.Parent = button
 
             local us = Instance.new("UIStroke", button)
             us.ApplyStrokeMode = "Border"
-            us.Color = Color3.fromRGB(200, 200, 200)
+            us.Color = Color3.fromRGB(60, 60, 60)
             us.Thickness = 1
 
 
@@ -807,10 +858,10 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
             label.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
             label.BackgroundTransparency = 1
             label.BorderSizePixel = 2
-            label.Size = UDim2.new(0, 390, 0, 32)
+            label.Size = UDim2.new(0, 390, 0, 34)
             label.Font = Enum.Font.Gotham
-            label.TextColor3 = Color3.fromRGB(200, 200, 200)
-            label.TextSize = 16
+            label.TextColor3 = Color3.fromRGB(180, 180, 180)
+            label.TextSize = 14
             label.TextWrapped = true
             label.Text = name
         end
@@ -823,18 +874,18 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
             toggleswitch.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
             toggleswitch.BackgroundTransparency = 1
             toggleswitch.BorderSizePixel = 2
-            toggleswitch.Size = UDim2.new(0, 390, 0, 32)
-            toggleswitch.Font = Enum.Font.Gotham
+            toggleswitch.Size = UDim2.new(0, 390, 0, 34)
+            toggleswitch.Font = Enum.Font.GothamSemibold
             toggleswitch.Text = name
             toggleswitch.TextColor3 = Color3.fromRGB(200, 200, 200)
-            toggleswitch.TextSize = 16
+            toggleswitch.TextSize = 15
             toggleswitch.TextWrapped = true
             toggleswitch.TextXAlignment = Enum.TextXAlignment.Left
 
             local Frame = Instance.new("TextButton")
             Frame.Parent = toggleswitch
-            Frame.Position = UDim2.new(0.82, 0, 0.1, 0)
-            Frame.Size = UDim2.new(0, 55, 0, 28)
+            Frame.Position = UDim2.new(0.82, 0, 0.15, 0)
+            Frame.Size = UDim2.new(0, 55, 0, 26)
             Frame.Text=""
             Frame.AutoButtonColor = false
 
@@ -845,7 +896,7 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
             local TextButton = Instance.new("TextButton")
             TextButton.Parent = Frame
             TextButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            TextButton.Size = UDim2.new(0, 26, 0, 26)
+            TextButton.Size = UDim2.new(0, 24, 0, 24)
             TextButton.AutoButtonColor = false
             TextButton.Text = ""
 
@@ -855,9 +906,9 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
 
             if defaultmode == false then
                 TextButton.Position = UDim2.new(0, 1, 0, 1)
-                Frame.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+                Frame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
             else
-                TextButton.Position = UDim2.new(0, 28, 0, 1)
+                TextButton.Position = UDim2.new(0, 30, 0, 1)
                 Frame.BackgroundColor3 = Color3.fromRGB(220, 220, 220)
             end
 
@@ -869,11 +920,11 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
                 end
 
                 if mode then
-                    TextButton:TweenPosition(UDim2.new(0, 28, 0, 1), "In", "Sine", 0.1, true)
+                    TextButton:TweenPosition(UDim2.new(0, 30, 0, 1), "In", "Sine", 0.1, true)
                     Frame.BackgroundColor3 = Color3.fromRGB(220, 220, 220)
                 else
                     TextButton:TweenPosition(UDim2.new(0,1,0,1), "In", "Sine", 0.1, true)
-                    Frame.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+                    Frame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
                 end
             end)
             TextButton.MouseButton1Click:Connect(function()
@@ -884,11 +935,11 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
                 end
 
                 if mode then
-                    TextButton:TweenPosition(UDim2.new(0, 28, 0, 1), "In", "Sine", 0.1, true)
+                    TextButton:TweenPosition(UDim2.new(0, 30, 0, 1), "In", "Sine", 0.1, true)
                     Frame.BackgroundColor3 = Color3.fromRGB(220, 220, 220)
                 else
                     TextButton:TweenPosition(UDim2.new(0,1,0,1), "In", "Sine", 0.1, true)
-                    Frame.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+                    Frame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
                 end
             end)
         end
@@ -900,33 +951,38 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
             textfield.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
             textfield.BackgroundTransparency = 1
             textfield.BorderSizePixel = 2
-            textfield.Size = UDim2.new(0, 390, 0, 32)
-            textfield.Font = Enum.Font.Gotham
+            textfield.Size = UDim2.new(0, 390, 0, 34)
+            textfield.Font = Enum.Font.GothamSemibold
             textfield.Text = name
             textfield.TextColor3 = Color3.fromRGB(200, 200, 200)
-            textfield.TextSize = 16
+            textfield.TextSize = 15
             textfield.TextWrapped = true
             textfield.TextXAlignment = Enum.TextXAlignment.Left
 
             local Frame_2 = Instance.new("Frame")
             Frame_2.Parent = textfield
-            Frame_2.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-            Frame_2.Position = UDim2.new(0.48, 0, 0.1, 0)
-            Frame_2.Size = UDim2.new(0, 190, 0, 28)
+            Frame_2.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+            Frame_2.Position = UDim2.new(0.48, 0, 0.15, 0)
+            Frame_2.Size = UDim2.new(0, 190, 0, 26)
 
             local uc_6 = Instance.new("UICorner")
-            uc_6.CornerRadius = UDim.new(0, 9)
+            uc_6.CornerRadius = UDim.new(0, 8)
             uc_6.Parent = Frame_2
+            
+            local us2 = Instance.new("UIStroke", Frame_2)
+            us2.ApplyStrokeMode = "Border"
+            us2.Color = Color3.fromRGB(60, 60, 60)
+            us2.Thickness = 1
 
             local TextBox = Instance.new("TextBox")
             TextBox.Parent = Frame_2
-            TextBox.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+            TextBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
             TextBox.BackgroundTransparency = 1
             TextBox.BorderColor3 = Color3.fromRGB(27, 42, 53)
             TextBox.BorderSizePixel = 0
             TextBox.ClipsDescendants = true
-            TextBox.Position = UDim2.new(0.064, 0, 0, -2)
-            TextBox.Size = UDim2.new(0, 220, 0, 34)
+            TextBox.Position = UDim2.new(0.05, 0, 0, 0)
+            TextBox.Size = UDim2.new(0, 175, 0, 26)
             TextBox.ClearTextOnFocus = false
             TextBox.Font = Enum.Font.Gotham
             TextBox.LineHeight = 0.870
