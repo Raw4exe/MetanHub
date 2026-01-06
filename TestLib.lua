@@ -352,7 +352,7 @@ function lib:Create(title)
         page.ScrollBarThickness = 3
         page.ScrollBarImageColor3 = Color3.fromRGB(60, 60, 60)
         page.Visible = false
-        page.AutomaticCanvasSize = Enum.AutomaticSize.Y
+        page.AutomaticCanvasSize = "Y"
         
         local pageList = Instance.new("UIListLayout")
         pageList.Parent = page
