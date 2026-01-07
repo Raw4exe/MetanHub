@@ -375,8 +375,10 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
         -- Удаление через 5 секунд с анимацией
         task.spawn(function()
             task.wait(5)
-            -- Анимация ухода вправо (обратно откуда пришла)
-            tempnotif:TweenPosition(UDim2.new(1, 300, 0, 10), "InOut", "Quart", 0.5, true)
+            -- Получаем текущую Y-позицию перед удалением
+            local currentYPos = tempnotif.Position.Y.Offset
+            -- Анимация ухода вправо с текущей Y-позиции
+            tempnotif:TweenPosition(UDim2.new(1, 300, 0, currentYPos), "InOut", "Quart", 0.5, true)
             task.wait(0.5)
             tempnotif:Destroy()
         end)
