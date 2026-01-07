@@ -186,13 +186,13 @@ function Library:CreateUI()
     -- Logo/Title
     local logo = Instance.new("TextLabel")
     logo.Name = "Logo"
-    logo.Text = "March"
+    logo.Text = "Metan"
     logo.Font = Enum.Font.GothamBold
-    logo.TextSize = 13
+    logo.TextSize = 16
     logo.TextColor3 = Color3.fromRGB(152, 181, 255)
     logo.TextTransparency = 0.2
     logo.TextXAlignment = Enum.TextXAlignment.Left
-    logo.Size = UDim2.new(0, 100, 0, 13)
+    logo.Size = UDim2.new(0, 100, 0, 16)
     logo.Position = UDim2.new(0.056, 0, 0.055, 0)
     logo.AnchorPoint = Vector2.new(0, 0.5)
     logo.BackgroundTransparency = 1
@@ -216,6 +216,41 @@ function Library:CreateUI()
     logoIcon.ImageColor3 = Color3.fromRGB(152, 181, 255)
     logoIcon.ScaleType = Enum.ScaleType.Fit
     logoIcon.Parent = handler
+    
+    -- Close Button
+    local closeButton = Instance.new("TextButton")
+    closeButton.Name = "CloseButton"
+    closeButton.Size = UDim2.new(0, 20, 0, 20)
+    closeButton.Position = UDim2.new(0.97, 0, 0.055, 0)
+    closeButton.AnchorPoint = Vector2.new(1, 0.5)
+    closeButton.BackgroundColor3 = Color3.fromRGB(152, 181, 255)
+    closeButton.BackgroundTransparency = 0.9
+    closeButton.BorderSizePixel = 0
+    closeButton.Text = "X"
+    closeButton.Font = Enum.Font.GothamBold
+    closeButton.TextSize = 14
+    closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    closeButton.TextTransparency = 0.2
+    closeButton.AutoButtonColor = false
+    closeButton.Parent = handler
+    
+    local closeCorner = Instance.new("UICorner")
+    closeCorner.CornerRadius = UDim.new(0, 4)
+    closeCorner.Parent = closeButton
+    
+    closeButton.MouseEnter:Connect(function()
+        Tween(closeButton, {BackgroundTransparency = 0.7}, 0.2)
+    end)
+    
+    closeButton.MouseLeave:Connect(function()
+        Tween(closeButton, {BackgroundTransparency = 0.9}, 0.2)
+    end)
+    
+    closeButton.MouseButton1Click:Connect(function()
+        Tween(container, {Size = UDim2.new(0, 0, 0, 0)}, 0.3)
+        task.wait(0.3)
+        screenGui.Enabled = false
+    end)
     
     -- Tab Selection Pin
     local pin = Instance.new("Frame")
@@ -715,7 +750,11 @@ function Library:CreateModule(tab, options)
     -- Keybind handler
     local savedKeybind = self.config:GetKeybind(module.flag)
     if savedKeybind then
-        keybindLabel.Text = savedKeybind:gsub("Enum.KeyCode.", "")
+        local displayText = savedKeybind:gsub("Enum.KeyCode.", "")
+        keybindLabel.Text = displayText
+        
+        local textSize = TextService:GetTextSize(displayText, 10, Enum.Font.GothamBold, Vector2.new(1000, 15))
+        keybindFrame.Size = UDim2.new(0, textSize.X + 8, 0, 15)
         
         -- Connect keybind
         table.insert(self.connections, UserInputService.InputBegan:Connect(function(input, gameProcessed)
@@ -733,6 +772,7 @@ function Library:CreateModule(tab, options)
         
         self.choosingKeybind = true
         keybindLabel.Text = "..."
+        keybindFrame.Size = UDim2.new(0, 33, 0, 15)
         
         local connection
         connection = UserInputService.InputBegan:Connect(function(keyInput, processed)
@@ -745,12 +785,18 @@ function Library:CreateModule(tab, options)
             
             if keyInput.KeyCode == Enum.KeyCode.Backspace then
                 keybindLabel.Text = "None"
+                keybindFrame.Size = UDim2.new(0, 33, 0, 15)
                 self.config:SetKeybind(module.flag, nil)
                 return
             end
             
             local keycodeStr = tostring(keyInput.KeyCode)
-            keybindLabel.Text = keycodeStr:gsub("Enum.KeyCode.", "")
+            local displayText = keycodeStr:gsub("Enum.KeyCode.", "")
+            keybindLabel.Text = displayText
+            
+            local textSize = TextService:GetTextSize(displayText, 10, Enum.Font.GothamBold, Vector2.new(1000, 15))
+            keybindFrame.Size = UDim2.new(0, textSize.X + 8, 0, 15)
+            
             self.config:SetKeybind(module.flag, keycodeStr)
             
             -- Reconnect keybind
@@ -776,7 +822,8 @@ function Library:CreateModule(tab, options)
             CreateMultiDropdown = function(m, opts) return self:CreateMultiDropdown(m, opts) end,
             CreateTextbox = function(m, opts) return self:CreateTextbox(m, opts) end,
             CreateButton = function(m, opts) return self:CreateButton(m, opts) end,
-            CreateColorpicker = function(m, opts) return self:CreateColorpicker(m, opts) end
+            CreateColorpicker = function(m, opts) return self:CreateColorpicker(m, opts) end,
+            CreateKeybind = function(m, opts) return self:CreateKeybind(m, opts) end
         }
     })
 end
@@ -1121,6 +1168,8 @@ function Library:CreateDropdown(module, options)
                 optionsFrame.Visible = false
                 Tween(dropdownFrame, {Size = UDim2.new(0, 207, 0, 39)}, 0.3)
                 Tween(arrow, {Rotation = 0}, 0.3)
+                local newModuleSize = 93 + module.elementHeight + 8
+                Tween(module.frame, {Size = UDim2.new(0, 241, 0, newModuleSize)}, 0.3)
             end
         end)
     end
@@ -1133,10 +1182,14 @@ function Library:CreateDropdown(module, options)
             Tween(dropdownFrame, {Size = UDim2.new(0, 207, 0, 39 + optionHeight + 4)}, 0.3)
             Tween(optionsFrame, {Size = UDim2.new(0, 207, 0, optionHeight)}, 0.3)
             Tween(arrow, {Rotation = 180}, 0.3)
+            local newModuleSize = 93 + module.elementHeight + optionHeight + 8
+            Tween(module.frame, {Size = UDim2.new(0, 241, 0, newModuleSize)}, 0.3)
         else
             Tween(dropdownFrame, {Size = UDim2.new(0, 207, 0, 39)}, 0.3)
             Tween(optionsFrame, {Size = UDim2.new(0, 207, 0, 0)}, 0.3)
             Tween(arrow, {Rotation = 0}, 0.3)
+            local newModuleSize = 93 + module.elementHeight + 8
+            Tween(module.frame, {Size = UDim2.new(0, 241, 0, newModuleSize)}, 0.3)
         end
     end)
     UpdateText()
@@ -1240,6 +1293,7 @@ function Library:CreateColorpicker(module, options)
     colorpicker.default = options.default or Color3.fromRGB(255, 255, 255)
     colorpicker.color = self.config:GetFlag(colorpicker.flag, colorpicker.default)
     colorpicker.callback = options.callback or function() end
+    colorpicker.open = false
     module.elementHeight = module.elementHeight + 20
     local colorFrame = Instance.new("TextButton")
     colorFrame.Name = "Colorpicker"
@@ -1249,7 +1303,6 @@ function Library:CreateColorpicker(module, options)
     colorFrame.Text = ""
     colorFrame.AutoButtonColor = false
     colorFrame.Parent = module.optionsFrame
-
     local titleLabel = Instance.new("TextLabel")
     titleLabel.Text = colorpicker.title
     titleLabel.Font = Enum.Font.GothamBold
@@ -1262,13 +1315,15 @@ function Library:CreateColorpicker(module, options)
     titleLabel.AnchorPoint = Vector2.new(0, 0.5)
     titleLabel.BackgroundTransparency = 1
     titleLabel.Parent = colorFrame
-    local colorDisplay = Instance.new("Frame")
+    local colorDisplay = Instance.new("TextButton")
     colorDisplay.Name = "Display"
     colorDisplay.Size = UDim2.new(0, 30, 0, 15)
     colorDisplay.Position = UDim2.new(1, 0, 0.5, 0)
     colorDisplay.AnchorPoint = Vector2.new(1, 0.5)
     colorDisplay.BackgroundColor3 = colorpicker.color
     colorDisplay.BorderSizePixel = 0
+    colorDisplay.Text = ""
+    colorDisplay.AutoButtonColor = false
     colorDisplay.Parent = colorFrame
     local displayCorner = Instance.new("UICorner")
     displayCorner.CornerRadius = UDim.new(0, 4)
@@ -1278,18 +1333,150 @@ function Library:CreateColorpicker(module, options)
     displayStroke.Transparency = 0.7
     displayStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     displayStroke.Parent = colorDisplay
-    local function SetColor(color)
+    local pickerFrame = Instance.new("Frame")
+    pickerFrame.Name = "Picker"
+    pickerFrame.Size = UDim2.new(0, 180, 0, 150)
+    pickerFrame.Position = UDim2.new(0, 0, 0, 20)
+    pickerFrame.BackgroundColor3 = Color3.fromRGB(22, 28, 38)
+    pickerFrame.BackgroundTransparency = 0.1
+    pickerFrame.BorderSizePixel = 0
+    pickerFrame.Visible = false
+    pickerFrame.ZIndex = 100
+    pickerFrame.Parent = colorFrame
+    local pickerCorner = Instance.new("UICorner")
+    pickerCorner.CornerRadius = UDim.new(0, 6)
+    pickerCorner.Parent = pickerFrame
+    local pickerStroke = Instance.new("UIStroke")
+    pickerStroke.Color = Color3.fromRGB(52, 66, 89)
+    pickerStroke.Transparency = 0.5
+    pickerStroke.Parent = pickerFrame
+    local saturationFrame = Instance.new("ImageButton")
+    saturationFrame.Name = "Saturation"
+    saturationFrame.Size = UDim2.new(0, 140, 0, 120)
+    saturationFrame.Position = UDim2.new(0, 10, 0, 10)
+    saturationFrame.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+    saturationFrame.BorderSizePixel = 0
+    saturationFrame.AutoButtonColor = false
+    saturationFrame.Parent = pickerFrame
+    local satCorner = Instance.new("UICorner")
+    satCorner.CornerRadius = UDim.new(0, 4)
+    satCorner.Parent = saturationFrame
+    local satGradient1 = Instance.new("UIGradient")
+    satGradient1.Color = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255))}
+    satGradient1.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0, 0), NumberSequenceKeypoint.new(1, 1)}
+    satGradient1.Parent = saturationFrame
+    local satOverlay = Instance.new("Frame")
+    satOverlay.Size = UDim2.new(1, 0, 1, 0)
+    satOverlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    satOverlay.BorderSizePixel = 0
+    satOverlay.Parent = saturationFrame
+    local satCorner2 = Instance.new("UICorner")
+    satCorner2.CornerRadius = UDim.new(0, 4)
+    satCorner2.Parent = satOverlay
+    local satGradient2 = Instance.new("UIGradient")
+    satGradient2.Rotation = 90
+    satGradient2.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(1, 0)}
+    satGradient2.Parent = satOverlay
+    local hueFrame = Instance.new("ImageButton")
+    hueFrame.Name = "Hue"
+    hueFrame.Size = UDim2.new(0, 15, 0, 120)
+    hueFrame.Position = UDim2.new(0, 160, 0, 10)
+    hueFrame.BorderSizePixel = 0
+    hueFrame.AutoButtonColor = false
+    hueFrame.Parent = pickerFrame
+    local hueCorner = Instance.new("UICorner")
+    hueCorner.CornerRadius = UDim.new(0, 4)
+    hueCorner.Parent = hueFrame
+    local hueGradient = Instance.new("UIGradient")
+    hueGradient.Rotation = 90
+    hueGradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)),
+        ColorSequenceKeypoint.new(0.17, Color3.fromRGB(255, 255, 0)),
+        ColorSequenceKeypoint.new(0.33, Color3.fromRGB(0, 255, 0)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 255, 255)),
+        ColorSequenceKeypoint.new(0.67, Color3.fromRGB(0, 0, 255)),
+        ColorSequenceKeypoint.new(0.83, Color3.fromRGB(255, 0, 255)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 0))
+    }
+    hueGradient.Parent = hueFrame
+    local h, s, v = 0, 1, 1
+    local function UpdateColor()
+        local color = Color3.fromHSV(h, s, v)
         colorpicker.color = color
         colorDisplay.BackgroundColor3 = color
+        saturationFrame.BackgroundColor3 = Color3.fromHSV(h, 1, 1)
         self.config:SetFlag(colorpicker.flag, color)
         task.spawn(function() colorpicker.callback(color) end)
     end
-    colorFrame.MouseButton1Click:Connect(function()
-        local r = math.floor(colorpicker.color.R * 255)
-        local g = math.floor(colorpicker.color.G * 255)
-        local b = math.floor(colorpicker.color.B * 255)
-        print(string.format("Color: RGB(%d, %d, %d)", r, g, b))
+    local function ColorToHSV(color)
+        return color:ToHSV()
+    end
+    h, s, v = ColorToHSV(colorpicker.color)
+    saturationFrame.BackgroundColor3 = Color3.fromHSV(h, 1, 1)
+    local draggingSat = false
+    local draggingHue = false
+    saturationFrame.MouseButton1Down:Connect(function()
+        draggingSat = true
+        local function update()
+            local mousePos = UserInputService:GetMouseLocation()
+            local relativePos = mousePos - saturationFrame.AbsolutePosition
+            s = math.clamp(relativePos.X / saturationFrame.AbsoluteSize.X, 0, 1)
+            v = 1 - math.clamp(relativePos.Y / saturationFrame.AbsoluteSize.Y, 0, 1)
+            UpdateColor()
+        end
+        update()
+        local connection
+        connection = UserInputService.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                draggingSat = false
+                connection:Disconnect()
+            end
+        end)
     end)
+    saturationFrame.MouseMoved:Connect(function()
+        if not draggingSat then return end
+        local mousePos = UserInputService:GetMouseLocation()
+        local relativePos = mousePos - saturationFrame.AbsolutePosition
+        s = math.clamp(relativePos.X / saturationFrame.AbsoluteSize.X, 0, 1)
+        v = 1 - math.clamp(relativePos.Y / saturationFrame.AbsoluteSize.Y, 0, 1)
+        UpdateColor()
+    end)
+    hueFrame.MouseButton1Down:Connect(function()
+        draggingHue = true
+        local function update()
+            local mousePos = UserInputService:GetMouseLocation()
+            local relativePos = mousePos - hueFrame.AbsolutePosition
+            h = math.clamp(relativePos.Y / hueFrame.AbsoluteSize.Y, 0, 1)
+            UpdateColor()
+        end
+        update()
+        local connection
+        connection = UserInputService.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                draggingHue = false
+                connection:Disconnect()
+            end
+        end)
+    end)
+    hueFrame.MouseMoved:Connect(function()
+        if not draggingHue then return end
+        local mousePos = UserInputService:GetMouseLocation()
+        local relativePos = mousePos - hueFrame.AbsolutePosition
+        h = math.clamp(relativePos.Y / hueFrame.AbsoluteSize.Y, 0, 1)
+        UpdateColor()
+    end)
+    colorDisplay.MouseButton1Click:Connect(function()
+        colorpicker.open = not colorpicker.open
+        pickerFrame.Visible = colorpicker.open
+    end)
+    local function SetColor(color)
+        colorpicker.color = color
+        colorDisplay.BackgroundColor3 = color
+        h, s, v = ColorToHSV(color)
+        saturationFrame.BackgroundColor3 = Color3.fromHSV(h, 1, 1)
+        self.config:SetFlag(colorpicker.flag, color)
+        task.spawn(function() colorpicker.callback(color) end)
+    end
     colorpicker.SetColor = SetColor
     table.insert(module.elements, colorpicker)
     return colorpicker
@@ -1298,6 +1485,94 @@ end
 function Library:CreateMultiDropdown(module, options)
     options.multi_dropdown = true
     return self:CreateDropdown(module, options)
+end
+
+function Library:CreateKeybind(module, options)
+    options = options or {}
+    local keybind = {}
+    keybind.title = options.title or "Keybind"
+    keybind.flag = options.flag or keybind.title
+    keybind.default = options.default
+    keybind.key = self.config:GetKeybind(keybind.flag) or keybind.default
+    keybind.callback = options.callback or function() end
+    module.elementHeight = module.elementHeight + 20
+    local keybindFrame = Instance.new("TextButton")
+    keybindFrame.Name = "Keybind"
+    keybindFrame.Size = UDim2.new(0, 207, 0, 15)
+    keybindFrame.BackgroundTransparency = 1
+    keybindFrame.BorderSizePixel = 0
+    keybindFrame.Text = ""
+    keybindFrame.AutoButtonColor = false
+    keybindFrame.Parent = module.optionsFrame
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Text = keybind.title
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.TextSize = 11
+    titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    titleLabel.TextTransparency = 0.2
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    titleLabel.Size = UDim2.new(0, 142, 0, 13)
+    titleLabel.Position = UDim2.new(0, 0, 0.5, 0)
+    titleLabel.AnchorPoint = Vector2.new(0, 0.5)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Parent = keybindFrame
+    local keyDisplay = Instance.new("Frame")
+    keyDisplay.Name = "Display"
+    keyDisplay.Size = UDim2.new(0, 33, 0, 15)
+    keyDisplay.Position = UDim2.new(1, 0, 0.5, 0)
+    keyDisplay.AnchorPoint = Vector2.new(1, 0.5)
+    keyDisplay.BackgroundColor3 = Color3.fromRGB(152, 181, 255)
+    keyDisplay.BackgroundTransparency = 0.7
+    keyDisplay.BorderSizePixel = 0
+    keyDisplay.Parent = keybindFrame
+    local displayCorner = Instance.new("UICorner")
+    displayCorner.CornerRadius = UDim.new(0, 3)
+    displayCorner.Parent = keyDisplay
+    local keyLabel = Instance.new("TextLabel")
+    keyLabel.Text = keybind.key and keybind.key:gsub("Enum.KeyCode.", "") or "None"
+    keyLabel.Font = Enum.Font.GothamBold
+    keyLabel.TextSize = 10
+    keyLabel.TextColor3 = Color3.fromRGB(209, 222, 255)
+    keyLabel.Size = UDim2.new(1, -4, 1, 0)
+    keyLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
+    keyLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+    keyLabel.BackgroundTransparency = 1
+    keyLabel.Parent = keyDisplay
+    if keybind.key then
+        local textSize = TextService:GetTextSize(keyLabel.Text, 10, Enum.Font.GothamBold, Vector2.new(1000, 15))
+        keyDisplay.Size = UDim2.new(0, textSize.X + 8, 0, 15)
+    end
+    local function SetKey(keycode)
+        keybind.key = keycode
+        local displayText = keycode and keycode:gsub("Enum.KeyCode.", "") or "None"
+        keyLabel.Text = displayText
+        local textSize = TextService:GetTextSize(displayText, 10, Enum.Font.GothamBold, Vector2.new(1000, 15))
+        keyDisplay.Size = UDim2.new(0, textSize.X + 8, 0, 15)
+        self.config:SetKeybind(keybind.flag, keycode)
+        task.spawn(function() keybind.callback(keycode) end)
+    end
+    keybindFrame.MouseButton1Click:Connect(function()
+        if self.choosingKeybind then return end
+        self.choosingKeybind = true
+        keyLabel.Text = "..."
+        keyDisplay.Size = UDim2.new(0, 33, 0, 15)
+        local connection
+        connection = UserInputService.InputBegan:Connect(function(input, processed)
+            if processed then return end
+            if input.UserInputType ~= Enum.UserInputType.Keyboard then return end
+            if input.KeyCode == Enum.KeyCode.Unknown then return end
+            connection:Disconnect()
+            self.choosingKeybind = false
+            if input.KeyCode == Enum.KeyCode.Backspace then
+                SetKey(nil)
+            else
+                SetKey(tostring(input.KeyCode))
+            end
+        end)
+    end)
+    keybind.SetKey = SetKey
+    table.insert(module.elements, keybind)
+    return keybind
 end
 
 return Library
