@@ -1,3 +1,8 @@
+--[[
+    March UI Library - Clean Rewrite
+    Р’РёР·СѓР°Р»: March UI
+    РљРѕРґ: РџРѕР»РЅРѕСЃС‚СЊСЋ РїРµСЂРµРїРёСЃР°РЅ СЃ РЅСѓР»СЏ
+]]
 
 -- Services
 local UserInputService = game:GetService('UserInputService')
@@ -838,12 +843,13 @@ function Library:CreateModule(tab, options)
     local module = {}
     module.title = options.title or "Module"
     module.description = options.description or ""
-    module.flag = options.flag
+    module.flag = options.flag or module.title
     module.callback = options.callback or function() end
     module.section = options.section == "right" and tab.rightSection or tab.leftSection
-    module.state = self.config:GetFlag(options.flag, false)
+    module.state = self.config:GetFlag(module.flag, false)
     module.elements = {}
     module.elementHeight = 0
+    module.multiplier = 0
     
     -- Create module frame
     local moduleFrame = Instance.new("Frame")
@@ -1345,16 +1351,20 @@ function Library:CreateDropdown(module, options)
     dropdown.selected = self.config:GetFlag(dropdown.flag, dropdown.multi and {} or (options.default or nil))
     dropdown.callback = options.callback or function() end
     dropdown.open = false
+    dropdown.size = 0
+    
     local baseHeight = 44
     module.elementHeight = module.elementHeight + baseHeight
-    local dropdownFrame = Instance.new("Frame")
+    
+    local dropdownFrame = Instance.new("TextButton")
     dropdownFrame.Name = "Dropdown"
     dropdownFrame.Size = UDim2.new(0, 207, 0, 39)
     dropdownFrame.BackgroundTransparency = 1
     dropdownFrame.BorderSizePixel = 0
-    dropdownFrame.ClipsDescendants = true
+    dropdownFrame.Text = ""
+    dropdownFrame.AutoButtonColor = false
     dropdownFrame.Parent = module.optionsFrame
-
+    
     local titleLabel = Instance.new("TextLabel")
     titleLabel.Text = dropdown.title
     titleLabel.Font = Enum.Font.GothamBold
@@ -1365,73 +1375,101 @@ function Library:CreateDropdown(module, options)
     titleLabel.Size = UDim2.new(0, 207, 0, 13)
     titleLabel.BackgroundTransparency = 1
     titleLabel.Parent = dropdownFrame
-    local selectButton = Instance.new("TextButton")
-    selectButton.Name = "Select"
-    selectButton.Size = UDim2.new(0, 207, 0, 22)
-    selectButton.Position = UDim2.new(0, 0, 0, 17)
-    selectButton.BackgroundColor3 = Color3.fromRGB(152, 181, 255)
-    selectButton.BackgroundTransparency = 0.9
-    selectButton.BorderSizePixel = 0
-    selectButton.Text = ""
-    selectButton.AutoButtonColor = false
-    selectButton.Parent = dropdownFrame
-    local selectCorner = Instance.new("UICorner")
-    selectCorner.CornerRadius = UDim.new(0, 4)
-    selectCorner.Parent = selectButton
-    local selectLabel = Instance.new("TextLabel")
-    selectLabel.Text = "None"
-    selectLabel.Font = Enum.Font.GothamBold
-    selectLabel.TextSize = 10
-    selectLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    selectLabel.TextTransparency = 0.2
-    selectLabel.TextXAlignment = Enum.TextXAlignment.Left
-    selectLabel.Size = UDim2.new(1, -25, 1, 0)
-    selectLabel.Position = UDim2.new(0, 8, 0, 0)
-    selectLabel.BackgroundTransparency = 1
-    selectLabel.TextTruncate = Enum.TextTruncate.AtEnd
-    selectLabel.Parent = selectButton
-    local arrow = Instance.new("TextLabel")
-    arrow.Text = "▼"
-    arrow.Font = Enum.Font.GothamBold
-    arrow.TextSize = 8
-    arrow.TextColor3 = Color3.fromRGB(255, 255, 255)
-    arrow.TextTransparency = 0.2
-    arrow.Size = UDim2.new(0, 15, 1, 0)
-    arrow.Position = UDim2.new(1, -15, 0, 0)
+    
+    local box = Instance.new("Frame")
+    box.Name = "Box"
+    box.ClipsDescendants = true
+    box.AnchorPoint = Vector2.new(0.5, 0)
+    box.BackgroundTransparency = 0.9
+    box.Position = UDim2.new(0.5, 0, 1.2, 0)
+    box.Size = UDim2.new(0, 207, 0, 22)
+    box.BorderSizePixel = 0
+    box.BackgroundColor3 = Color3.fromRGB(152, 181, 255)
+    box.Parent = titleLabel
+    
+    local boxCorner = Instance.new("UICorner")
+    boxCorner.CornerRadius = UDim.new(0, 4)
+    boxCorner.Parent = box
+    
+    local header = Instance.new("Frame")
+    header.Name = "Header"
+    header.AnchorPoint = Vector2.new(0.5, 0)
+    header.BackgroundTransparency = 1
+    header.Position = UDim2.new(0.5, 0, 0, 0)
+    header.Size = UDim2.new(0, 207, 0, 22)
+    header.BorderSizePixel = 0
+    header.Parent = box
+    
+    local currentOption = Instance.new("TextLabel")
+    currentOption.Name = "CurrentOption"
+    currentOption.Font = Enum.Font.GothamBold
+    currentOption.TextSize = 10
+    currentOption.TextColor3 = Color3.fromRGB(255, 255, 255)
+    currentOption.TextTransparency = 0.2
+    currentOption.Text = "None"
+    currentOption.Size = UDim2.new(0, 161, 0, 13)
+    currentOption.AnchorPoint = Vector2.new(0, 0.5)
+    currentOption.Position = UDim2.new(0.05, 0, 0.5, 0)
+    currentOption.BackgroundTransparency = 1
+    currentOption.TextXAlignment = Enum.TextXAlignment.Left
+    currentOption.Parent = header
+    
+    local optionGradient = Instance.new("UIGradient")
+    optionGradient.Transparency = NumberSequence.new{
+        NumberSequenceKeypoint.new(0, 0),
+        NumberSequenceKeypoint.new(0.7, 0),
+        NumberSequenceKeypoint.new(0.87, 0.36),
+        NumberSequenceKeypoint.new(1, 1)
+    }
+    optionGradient.Parent = currentOption
+    
+    local arrow = Instance.new("ImageLabel")
+    arrow.Name = "Arrow"
+    arrow.AnchorPoint = Vector2.new(0, 0.5)
+    arrow.Image = "rbxassetid://84232453189324"
     arrow.BackgroundTransparency = 1
-    arrow.Parent = selectButton
+    arrow.Position = UDim2.new(0.91, 0, 0.5, 0)
+    arrow.Size = UDim2.new(0, 8, 0, 8)
+    arrow.Parent = header
+    
     local optionsFrame = Instance.new("ScrollingFrame")
     optionsFrame.Name = "Options"
+    optionsFrame.ScrollBarImageColor3 = Color3.fromRGB(0, 0, 0)
+    optionsFrame.Active = true
+    optionsFrame.ScrollBarImageTransparency = 1
+    optionsFrame.AutomaticCanvasSize = Enum.AutomaticSize.XY
+    optionsFrame.ScrollBarThickness = 0
     optionsFrame.Size = UDim2.new(0, 207, 0, 0)
-    optionsFrame.Position = UDim2.new(0, 0, 0, 40)
-    optionsFrame.BackgroundColor3 = Color3.fromRGB(22, 28, 38)
-    optionsFrame.BackgroundTransparency = 0.5
-    optionsFrame.BorderSizePixel = 0
-    optionsFrame.ScrollBarThickness = 4
-    optionsFrame.ScrollBarImageColor3 = Color3.fromRGB(152, 181, 255)
-    optionsFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-    optionsFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
-    optionsFrame.Visible = false
-    optionsFrame.Parent = dropdownFrame
-
-    local optionsCorner = Instance.new("UICorner")
-    optionsCorner.CornerRadius = UDim.new(0, 4)
-    optionsCorner.Parent = optionsFrame
+    optionsFrame.BackgroundTransparency = 1
+    optionsFrame.Position = UDim2.new(0, 0, 1, 0)
+    optionsFrame.CanvasSize = UDim2.new(0, 0, 0.5, 0)
+    optionsFrame.Parent = box
+    
     local optionsLayout = Instance.new("UIListLayout")
-    optionsLayout.Padding = UDim.new(0, 2)
     optionsLayout.SortOrder = Enum.SortOrder.LayoutOrder
     optionsLayout.Parent = optionsFrame
+    
+    local optionsPadding = Instance.new("UIPadding")
+    optionsPadding.PaddingTop = UDim.new(0, -1)
+    optionsPadding.PaddingLeft = UDim.new(0, 10)
+    optionsPadding.Parent = optionsFrame
+    
+    local boxLayout = Instance.new("UIListLayout")
+    boxLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    boxLayout.Parent = box
+    
     local function UpdateText()
         if dropdown.multi then
             if type(dropdown.selected) == "table" and #dropdown.selected > 0 then
-                selectLabel.Text = table.concat(dropdown.selected, ", ")
+                currentOption.Text = table.concat(dropdown.selected, ", ")
             else
-                selectLabel.Text = "None"
+                currentOption.Text = "None"
             end
         else
-            selectLabel.Text = dropdown.selected or "None"
+            currentOption.Text = dropdown.selected or "None"
         end
     end
+    
     local function Toggle(option)
         if dropdown.multi then
             if type(dropdown.selected) ~= "table" then dropdown.selected = {} end
@@ -1451,61 +1489,76 @@ function Library:CreateDropdown(module, options)
         self.config:SetFlag(dropdown.flag, dropdown.selected)
         task.spawn(function() dropdown.callback(dropdown.selected) end)
     end
-    for _, option in ipairs(dropdown.options) do
+    
+    dropdown.size = 3
+    for index, option in ipairs(dropdown.options) do
         local optionButton = Instance.new("TextButton")
-        optionButton.Name = option
-        optionButton.Size = UDim2.new(1, -4, 0, 20)
-        optionButton.BackgroundColor3 = Color3.fromRGB(32, 38, 51)
-        optionButton.BackgroundTransparency = 0.5
-        optionButton.BorderSizePixel = 0
-        optionButton.Text = ""
+        optionButton.Name = "Option"
+        optionButton.Font = Enum.Font.GothamBold
+        optionButton.Active = false
+        optionButton.TextTransparency = 0.6
+        optionButton.AnchorPoint = Vector2.new(0, 0.5)
+        optionButton.TextSize = 10
+        optionButton.Size = UDim2.new(0, 186, 0, 16)
+        optionButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        optionButton.Text = option
         optionButton.AutoButtonColor = false
+        optionButton.BackgroundTransparency = 1
+        optionButton.TextXAlignment = Enum.TextXAlignment.Left
+        optionButton.Selectable = false
         optionButton.Parent = optionsFrame
-        local optionCorner = Instance.new("UICorner")
-        optionCorner.CornerRadius = UDim.new(0, 3)
-        optionCorner.Parent = optionButton
-        local optionLabel = Instance.new("TextLabel")
-        optionLabel.Text = option
-        optionLabel.Font = Enum.Font.GothamBold
-        optionLabel.TextSize = 10
         optionLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-        optionLabel.TextTransparency = 0.3
-        optionLabel.TextXAlignment = Enum.TextXAlignment.Left
-        optionLabel.Size = UDim2.new(1, -8, 1, 0)
-        optionLabel.Position = UDim2.new(0, 8, 0, 0)
-        optionLabel.BackgroundTransparency = 1
-        optionLabel.Parent = optionButton
+        optionButton.Selectable = false
+        optionButton.Parent = optionsFrame
+        
+        local optionGradient = Instance.new("UIGradient")
+        optionGradient.Transparency = NumberSequence.new{
+            NumberSequenceKeypoint.new(0, 0),
+            NumberSequenceKeypoint.new(0.7, 0),
+            NumberSequenceKeypoint.new(0.87, 0.36),
+            NumberSequenceKeypoint.new(1, 1)
+        }
+        optionGradient.Parent = optionButton
+        
         optionButton.MouseButton1Click:Connect(function()
             Toggle(option)
             if not dropdown.multi then
                 dropdown.open = false
-                optionsFrame.Visible = false
-                Tween(dropdownFrame, {Size = UDim2.new(0, 207, 0, 39)}, 0.3)
-                Tween(arrow, {Rotation = 0}, 0.3)
-                local newModuleSize = 93 + module.elementHeight + 8
-                Tween(module.frame, {Size = UDim2.new(0, 241, 0, newModuleSize)}, 0.3)
+                Tween(dropdownFrame, {Size = UDim2.new(0, 207, 0, 39)}, 0.5)
+                Tween(box, {Size = UDim2.new(0, 207, 0, 22)}, 0.5)
+                Tween(arrow, {Rotation = 0}, 0.5)
+                module.multiplier = module.multiplier - dropdown.size
+                Tween(module.frame, {Size = UDim2.new(0, 241, 0, 93 + module.elementHeight + module.multiplier)}, 0.5)
+                Tween(module.optionsFrame, {Size = UDim2.new(0, 241, 0, module.elementHeight + module.multiplier)}, 0.5)
             end
         end)
+        
+        if index > dropdown.maxVisible then
+            continue
+        end
+        dropdown.size = dropdown.size + 16
+        optionsFrame.Size = UDim2.fromOffset(207, dropdown.size)
     end
-
-    selectButton.MouseButton1Click:Connect(function()
+    
+    dropdownFrame.MouseButton1Click:Connect(function()
         dropdown.open = not dropdown.open
-        optionsFrame.Visible = dropdown.open
         if dropdown.open then
-            local optionHeight = math.min(#dropdown.options, dropdown.maxVisible) * 22
-            Tween(dropdownFrame, {Size = UDim2.new(0, 207, 0, 39 + optionHeight + 4)}, 0.3)
-            Tween(optionsFrame, {Size = UDim2.new(0, 207, 0, optionHeight)}, 0.3)
-            Tween(arrow, {Rotation = 180}, 0.3)
-            local newModuleSize = 93 + module.elementHeight + optionHeight + 8
-            Tween(module.frame, {Size = UDim2.new(0, 241, 0, newModuleSize)}, 0.3)
+            module.multiplier = module.multiplier + dropdown.size
+            Tween(module.frame, {Size = UDim2.new(0, 241, 0, 93 + module.elementHeight + module.multiplier)}, 0.5)
+            Tween(module.optionsFrame, {Size = UDim2.new(0, 241, 0, module.elementHeight + module.multiplier)}, 0.5)
+            Tween(dropdownFrame, {Size = UDim2.new(0, 207, 0, 39 + dropdown.size)}, 0.5)
+            Tween(box, {Size = UDim2.new(0, 207, 0, 22 + dropdown.size)}, 0.5)
+            Tween(arrow, {Rotation = 180}, 0.5)
         else
-            Tween(dropdownFrame, {Size = UDim2.new(0, 207, 0, 39)}, 0.3)
-            Tween(optionsFrame, {Size = UDim2.new(0, 207, 0, 0)}, 0.3)
-            Tween(arrow, {Rotation = 0}, 0.3)
-            local newModuleSize = 93 + module.elementHeight + 8
-            Tween(module.frame, {Size = UDim2.new(0, 241, 0, newModuleSize)}, 0.3)
+            module.multiplier = module.multiplier - dropdown.size
+            Tween(module.frame, {Size = UDim2.new(0, 241, 0, 93 + module.elementHeight + module.multiplier)}, 0.5)
+            Tween(module.optionsFrame, {Size = UDim2.new(0, 241, 0, module.elementHeight + module.multiplier)}, 0.5)
+            Tween(dropdownFrame, {Size = UDim2.new(0, 207, 0, 39)}, 0.5)
+            Tween(box, {Size = UDim2.new(0, 207, 0, 22)}, 0.5)
+            Tween(arrow, {Rotation = 0}, 0.5)
         end
     end)
+    
     UpdateText()
     dropdown.SetValue = function(newOptions)
         if type(newOptions) == "table" then
@@ -1662,7 +1715,14 @@ function Library:CreateColorpicker(module, options)
     colorpicker.color = self.config:GetFlag(colorpicker.flag, colorpicker.default)
     colorpicker.callback = options.callback or function() end
     colorpicker.open = false
+    
+    local h, s, v = colorpicker.color:ToHSV()
+    colorpicker.hue = h
+    colorpicker.sat = s
+    colorpicker.vib = v
+    
     module.elementHeight = module.elementHeight + 20
+    
     local colorFrame = Instance.new("TextButton")
     colorFrame.Name = "Colorpicker"
     colorFrame.Size = UDim2.new(0, 207, 0, 15)
@@ -1671,6 +1731,7 @@ function Library:CreateColorpicker(module, options)
     colorFrame.Text = ""
     colorFrame.AutoButtonColor = false
     colorFrame.Parent = module.optionsFrame
+    
     local titleLabel = Instance.new("TextLabel")
     titleLabel.Text = colorpicker.title
     titleLabel.Font = Enum.Font.GothamBold
@@ -1683,6 +1744,7 @@ function Library:CreateColorpicker(module, options)
     titleLabel.AnchorPoint = Vector2.new(0, 0.5)
     titleLabel.BackgroundTransparency = 1
     titleLabel.Parent = colorFrame
+    
     local colorDisplay = Instance.new("TextButton")
     colorDisplay.Name = "Display"
     colorDisplay.Size = UDim2.new(0, 30, 0, 15)
@@ -1693,6 +1755,7 @@ function Library:CreateColorpicker(module, options)
     colorDisplay.Text = ""
     colorDisplay.AutoButtonColor = false
     colorDisplay.Parent = colorFrame
+    
     local displayCorner = Instance.new("UICorner")
     displayCorner.CornerRadius = UDim.new(0, 4)
     displayCorner.Parent = colorDisplay
@@ -1946,5 +2009,6 @@ function Library:CreateKeybind(module, options)
     table.insert(module.elements, keybind)
     return keybind
 end
+
 
 return Library
