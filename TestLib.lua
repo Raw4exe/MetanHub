@@ -266,32 +266,31 @@ function Library:SetupUIKeybind()
     local savedKeybind = self.config:GetKeybind("_UI_Toggle")
     if savedKeybind then
         self.uiKeybind = savedKeybind
-        table.insert(self.connections, UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        self.uiKeybindConnection = UserInputService.InputBegan:Connect(function(input, gameProcessed)
             if gameProcessed then return end
             if tostring(input.KeyCode) == savedKeybind then
                 self:ToggleUI()
             end
-        end))
+        end)
     end
 end
 
 function Library:SetUIKeybind(keycode)
     self.uiKeybind = keycode
     self.config:SetKeybind("_UI_Toggle", keycode)
-    for i = #self.connections, 1, -1 do
-        local conn = self.connections[i]
-        if conn and typeof(conn) == "RBXScriptConnection" then
-            conn:Disconnect()
-            table.remove(self.connections, i)
-        end
+    
+    if self.uiKeybindConnection then
+        self.uiKeybindConnection:Disconnect()
+        self.uiKeybindConnection = nil
     end
+    
     if keycode then
-        table.insert(self.connections, UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        self.uiKeybindConnection = UserInputService.InputBegan:Connect(function(input, gameProcessed)
             if gameProcessed then return end
             if tostring(input.KeyCode) == keycode then
                 self:ToggleUI()
             end
-        end))
+        end)
     end
 end
 
@@ -311,6 +310,31 @@ function Library:SetTheme(themeName)
     local theme = self.Themes[themeName]
     if not theme then return end
     self.currentTheme = theme
+    self:ApplyTheme()
+end
+
+function Library:ApplyTheme()
+    local theme = self.currentTheme
+    if not self.container then return end
+    
+    Tween(self.container, {BackgroundColor3 = theme.Background}, 0.3)
+    Tween(self.logo, {TextColor3 = theme.Primary}, 0.3)
+    Tween(self.logoIcon, {ImageColor3 = theme.Primary}, 0.3)
+    Tween(self.pin, {BackgroundColor3 = theme.Primary}, 0.3)
+    
+    for _, tab in ipairs(self.tabs) do
+        if tab.button then
+            Tween(tab.button, {BackgroundColor3 = theme.Secondary}, 0.3)
+        end
+        for _, module in ipairs(tab.modules) do
+            if module.toggleFrame then
+                if module.state then
+                    Tween(module.toggleFrame, {BackgroundColor3 = theme.Primary}, 0.3)
+                    Tween(module.toggleCircle, {BackgroundColor3 = theme.Primary}, 0.3)
+                end
+            end
+        end
+    end
 end
 
 function Library:CreateUI()
@@ -379,51 +403,21 @@ function Library:CreateUI()
     }
     logoGradient.Parent = logo
     
-    -- Logo Icon
-    local logoIcon = Instance.new("ImageLabel")
-    logoIcon.Name = "Icon"
-    logoIcon.Image = "rbxassetid://107819132007001"
-    logoIcon.Size = UDim2.new(0, 18, 0, 18)
-    logoIcon.Position = UDim2.new(0.025, 0, 0.055, 0)
-    logoIcon.AnchorPoint = Vector2.new(0, 0.5)
-    logoIcon.BackgroundTransparency = 1
-    logoIcon.ImageColor3 = Color3.fromRGB(152, 181, 255)
-    logoIcon.ScaleType = Enum.ScaleType.Fit
-    logoIcon.Parent = handler
+    -- Logo Icon (clickable to minimize)
+    local logoIconButton = Instance.new("ImageButton")
+    logoIconButton.Name = "Icon"
+    logoIconButton.Image = "rbxassetid://107819132007001"
+    logoIconButton.Size = UDim2.new(0, 18, 0, 18)
+    logoIconButton.Position = UDim2.new(0.025, 0, 0.055, 0)
+    logoIconButton.AnchorPoint = Vector2.new(0, 0.5)
+    logoIconButton.BackgroundTransparency = 1
+    logoIconButton.ImageColor3 = Color3.fromRGB(152, 181, 255)
+    logoIconButton.ScaleType = Enum.ScaleType.Fit
+    logoIconButton.AutoButtonColor = false
+    logoIconButton.Parent = handler
     
-    -- Close Button
-    local closeButton = Instance.new("TextButton")
-    closeButton.Name = "CloseButton"
-    closeButton.Size = UDim2.new(0, 20, 0, 20)
-    closeButton.Position = UDim2.new(0.97, 0, 0.055, 0)
-    closeButton.AnchorPoint = Vector2.new(1, 0.5)
-    closeButton.BackgroundColor3 = Color3.fromRGB(152, 181, 255)
-    closeButton.BackgroundTransparency = 0.9
-    closeButton.BorderSizePixel = 0
-    closeButton.Text = "X"
-    closeButton.Font = Enum.Font.GothamBold
-    closeButton.TextSize = 14
-    closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    closeButton.TextTransparency = 0.2
-    closeButton.AutoButtonColor = false
-    closeButton.Parent = handler
-    
-    local closeCorner = Instance.new("UICorner")
-    closeCorner.CornerRadius = UDim.new(0, 4)
-    closeCorner.Parent = closeButton
-    
-    closeButton.MouseEnter:Connect(function()
-        Tween(closeButton, {BackgroundTransparency = 0.7}, 0.2)
-    end)
-    
-    closeButton.MouseLeave:Connect(function()
-        Tween(closeButton, {BackgroundTransparency = 0.9}, 0.2)
-    end)
-    
-    closeButton.MouseButton1Click:Connect(function()
-        Tween(container, {Size = UDim2.new(0, 0, 0, 0)}, 0.3)
-        task.wait(0.3)
-        screenGui.Enabled = false
+    logoIconButton.MouseButton1Click:Connect(function()
+        self:ToggleUI()
     end)
     
     -- Tab Selection Pin
@@ -479,6 +473,8 @@ function Library:CreateUI()
     self.tabsFrame = tabsFrame
     self.sectionsFolder = sectionsFolder
     self.pin = pin
+    self.logo = logo
+    self.logoIcon = logoIconButton
     
     -- Setup dragging
     self:SetupDragging()
@@ -1706,15 +1702,16 @@ function Library:CreateColorpicker(module, options)
     displayStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     displayStroke.Parent = colorDisplay
     local pickerFrame = Instance.new("Frame")
-    pickerFrame.Name = "Picker"
+    pickerFrame.Name = "ColorPicker"
     pickerFrame.Size = UDim2.new(0, 180, 0, 150)
-    pickerFrame.Position = UDim2.new(0, 0, 0, 20)
+    pickerFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+    pickerFrame.AnchorPoint = Vector2.new(0.5, 0.5)
     pickerFrame.BackgroundColor3 = Color3.fromRGB(22, 28, 38)
     pickerFrame.BackgroundTransparency = 0.1
     pickerFrame.BorderSizePixel = 0
     pickerFrame.Visible = false
-    pickerFrame.ZIndex = 100
-    pickerFrame.Parent = colorFrame
+    pickerFrame.ZIndex = 1000
+    pickerFrame.Parent = self.ui
     local pickerCorner = Instance.new("UICorner")
     pickerCorner.CornerRadius = UDim.new(0, 6)
     pickerCorner.Parent = pickerFrame
@@ -1729,6 +1726,7 @@ function Library:CreateColorpicker(module, options)
     saturationFrame.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
     saturationFrame.BorderSizePixel = 0
     saturationFrame.AutoButtonColor = false
+    saturationFrame.ZIndex = 1001
     saturationFrame.Parent = pickerFrame
     local satCorner = Instance.new("UICorner")
     satCorner.CornerRadius = UDim.new(0, 4)
@@ -1741,6 +1739,7 @@ function Library:CreateColorpicker(module, options)
     satOverlay.Size = UDim2.new(1, 0, 1, 0)
     satOverlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
     satOverlay.BorderSizePixel = 0
+    satOverlay.ZIndex = 1002
     satOverlay.Parent = saturationFrame
     local satCorner2 = Instance.new("UICorner")
     satCorner2.CornerRadius = UDim.new(0, 4)
@@ -1755,6 +1754,7 @@ function Library:CreateColorpicker(module, options)
     hueFrame.Position = UDim2.new(0, 160, 0, 10)
     hueFrame.BorderSizePixel = 0
     hueFrame.AutoButtonColor = false
+    hueFrame.ZIndex = 1001
     hueFrame.Parent = pickerFrame
     local hueCorner = Instance.new("UICorner")
     hueCorner.CornerRadius = UDim.new(0, 4)
