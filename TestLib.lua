@@ -113,6 +113,41 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
     local uc = Instance.new("UICorner")
     uc.CornerRadius = UDim.new(0, 12)
     uc.Parent = main
+    
+    -- Top navigation bar (separate from main window)
+    local topNav = Instance.new("Frame")
+    topNav.Name = "topNav"
+    topNav.Parent = scrgui
+    topNav.AnchorPoint = Vector2.new(0.5, 0)
+    topNav.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    topNav.BackgroundTransparency = 0.150
+    topNav.Position = UDim2.new(0.5, 0, 0, 10)
+    topNav.Size = UDim2.new(0, 0, 0, 50)
+    topNav.ZIndex = 5
+    
+    local topNavCorner = Instance.new("UICorner")
+    topNavCorner.CornerRadius = UDim.new(0, 12)
+    topNavCorner.Parent = topNav
+    
+    local topNavLayout = Instance.new("UIListLayout")
+    topNavLayout.Parent = topNav
+    topNavLayout.FillDirection = Enum.FillDirection.Horizontal
+    topNavLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    topNavLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    topNavLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+    topNavLayout.Padding = UDim.new(0, 8)
+    
+    local topNavPadding = Instance.new("UIPadding")
+    topNavPadding.Parent = topNav
+    topNavPadding.PaddingLeft = UDim.new(0, 10)
+    topNavPadding.PaddingRight = UDim.new(0, 10)
+    topNavPadding.PaddingTop = UDim.new(0, 8)
+    topNavPadding.PaddingBottom = UDim.new(0, 8)
+    
+    -- Auto-resize topNav based on content
+    topNavLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        topNav.Size = UDim2.new(0, topNavLayout.AbsoluteContentSize.X + 20, 0, 50)
+    end)
 
     local UserInputService = game:GetService("UserInputService")
     local dragging
@@ -290,8 +325,8 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
     title.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     title.BackgroundTransparency = 1
     title.BorderSizePixel = 2
-    title.Position = UDim2.new(0.25, 0, 0.0351027399, 0)
-    title.Size = UDim2.new(0, 200, 0, 10)
+    title.Position = UDim2.new(0.15, 0, 0.0351027399, 0)
+    title.Size = UDim2.new(0, 267, 0, 10)
     title.Font = Enum.Font.Gotham
     title.LineHeight = 1.180
     title.TextColor3 = Color3.fromRGB(0, 0, 0)
@@ -304,24 +339,6 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
     else
         title.Text = ""
     end
-    
-    -- Tab bar in topbar (left side)
-    local tabBar = Instance.new("Frame")
-    tabBar.Name = "tabBar"
-    tabBar.Parent = main
-    tabBar.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    tabBar.BackgroundTransparency = 1
-    tabBar.Position = UDim2.new(0, 10, 0.02, 0)
-    tabBar.Size = UDim2.new(0, 100, 0, 30)
-    tabBar.BorderSizePixel = 0
-    
-    local tabBarLayout = Instance.new("UIListLayout")
-    tabBarLayout.Parent = tabBar
-    tabBarLayout.FillDirection = Enum.FillDirection.Horizontal
-    tabBarLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
-    tabBarLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    tabBarLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-    tabBarLayout.Padding = UDim.new(0, 5)
        tp(main, UDim2.new(0.5, 0, 0.5, 0), 1)
     window = {}
 
@@ -503,19 +520,19 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
     end
 
     function window:Section(name, icon)
-        -- Create tab button with icon in topbar
+        -- Create tab button in top navigation bar
         local tabButton = Instance.new("TextButton")
         tabButton.Name = "tabButton_" .. name
-        tabButton.Parent = tabBar
+        tabButton.Parent = topNav
         tabButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        tabButton.BackgroundTransparency = 1
-        tabButton.Size = UDim2.new(0, 28, 0, 28)
+        tabButton.BackgroundTransparency = 0.7
+        tabButton.Size = UDim2.new(0, 34, 0, 34)
         tabButton.AutoButtonColor = false
         tabButton.Text = ""
-        tabButton.ZIndex = 3
+        tabButton.ZIndex = 6
         
         local tabCorner = Instance.new("UICorner")
-        tabCorner.CornerRadius = UDim.new(0, 6)
+        tabCorner.CornerRadius = UDim.new(0, 8)
         tabCorner.Parent = tabButton
         
         local tabIcon = Instance.new("ImageLabel")
@@ -524,11 +541,11 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
         tabIcon.BackgroundTransparency = 1
         tabIcon.Position = UDim2.new(0.5, 0, 0.5, 0)
         tabIcon.AnchorPoint = Vector2.new(0.5, 0.5)
-        tabIcon.Size = UDim2.new(0, 18, 0, 18)
+        tabIcon.Size = UDim2.new(0, 20, 0, 20)
         tabIcon.Image = icon or "rbxassetid://12608259004"
         tabIcon.ImageColor3 = Color3.fromRGB(95, 95, 95)
         tabIcon.ScaleType = Enum.ScaleType.Fit
-        tabIcon.ZIndex = 4
+        tabIcon.ZIndex = 7
         
         local workareamain = Instance.new("ScrollingFrame")
         workareamain.Name = "workareamain"
@@ -564,19 +581,22 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
                 v.Visible = false
             end
             -- Reset all tab buttons
-            for _, btn in next, tabBar:GetChildren() do
+            for _, btn in next, topNav:GetChildren() do
                 if btn:IsA("TextButton") then
-                    btn.BackgroundTransparency = 1
+                    btn.BackgroundTransparency = 0.7
                     local ic = btn:FindFirstChild("icon")
                     if ic then
                         ic.ImageColor3 = Color3.fromRGB(95, 95, 95)
                     end
                 end
             end
-            -- Show selected workarea
+            -- Show selected workarea and main window
             workareamain.Visible = true
+            if main.Position.Y.Scale > 1 then
+                tp(main, UDim2.new(0.5, 0, 0.5, 0), 0.5)
+            end
             -- Highlight selected tab
-            tabButton.BackgroundTransparency = 0.7
+            tabButton.BackgroundTransparency = 0.2
             tabIcon.ImageColor3 = Color3.fromRGB(21, 103, 251)
         end)
 
@@ -587,19 +607,22 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
                 v.Visible = false
             end
             -- Reset all tab buttons
-            for _, btn in next, tabBar:GetChildren() do
+            for _, btn in next, topNav:GetChildren() do
                 if btn:IsA("TextButton") then
-                    btn.BackgroundTransparency = 1
+                    btn.BackgroundTransparency = 0.7
                     local ic = btn:FindFirstChild("icon")
                     if ic then
                         ic.ImageColor3 = Color3.fromRGB(95, 95, 95)
                     end
                 end
             end
-            -- Show this workarea
+            -- Show this workarea and main window
             workareamain.Visible = true
+            if main.Position.Y.Scale > 1 then
+                tp(main, UDim2.new(0.5, 0, 0.5, 0), 0.5)
+            end
             -- Highlight this tab
-            tabButton.BackgroundTransparency = 0.7
+            tabButton.BackgroundTransparency = 0.2
             tabIcon.ImageColor3 = Color3.fromRGB(21, 103, 251)
         end
         function sec:Divider(name)
