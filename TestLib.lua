@@ -1507,9 +1507,6 @@ function Library:CreateDropdown(module, options)
         optionButton.TextXAlignment = Enum.TextXAlignment.Left
         optionButton.Selectable = false
         optionButton.Parent = optionsFrame
-        optionLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-        optionButton.Selectable = false
-        optionButton.Parent = optionsFrame
         
         local optionGradient = Instance.new("UIGradient")
         optionGradient.Transparency = NumberSequence.new{
