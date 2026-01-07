@@ -294,39 +294,34 @@ end
 
 
 local Config = setmetatable({
-    _save_debounce = {},
+    _save_queue = {},
     save = function(self: any, file_name: any, config: any)
-        -- Debounce save to prevent too frequent writes
-        if self._save_debounce[file_name] then
-            self._save_debounce[file_name]:Cancel()
+        -- Store config in queue
+        self._save_queue[file_name] = config
+        
+        -- Save immediately (the actual debounce happens in a separate loop)
+        local success_save, result = pcall(function()
+            -- Ensure config structure exists
+            if not config then
+                config = {
+                    _flags = {},
+                    _keybinds = {},
+                    _library = {}
+                }
+            end
+            if not config._flags then config._flags = {} end
+            if not config._keybinds then config._keybinds = {} end
+            if not config._library then config._library = {} end
+            
+            local flags = HttpService:JSONEncode(config)
+            writefile('March/'..file_name..'.json', flags)
+        end)
+    
+        if not success_save then
+            warn('failed to save config', result)
         end
         
-        self._save_debounce[file_name] = task.delay(0.5, function()
-            local success_save, result = pcall(function()
-                -- Ensure config structure exists
-                if not config then
-                    config = {
-                        _flags = {},
-                        _keybinds = {},
-                        _library = {}
-                    }
-                end
-                if not config._flags then config._flags = {} end
-                if not config._keybinds then config._keybinds = {} end
-                if not config._library then config._library = {} end
-                
-                local flags = HttpService:JSONEncode(config)
-                writefile('March/'..file_name..'.json', flags)
-            end)
-        
-            if not success_save then
-                warn('failed to save config', result)
-            end
-            
-            self._save_debounce[file_name] = nil
-        end)
-        
-        return true
+        return success_save
     end,
     load = function(self: any, file_name: any, config: any)
         local success_load, result = pcall(function()
@@ -336,7 +331,6 @@ local Config = setmetatable({
                     _keybinds = {},
                     _library = {}
                 }
-                self:save(file_name, default_config)
                 return default_config
             end
         
@@ -348,7 +342,6 @@ local Config = setmetatable({
                     _keybinds = {},
                     _library = {}
                 }
-                self:save(file_name, default_config)
                 return default_config
             end
 
