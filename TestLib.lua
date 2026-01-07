@@ -2546,10 +2546,9 @@ function Library:create_ui()
                                     object.TextTransparency = isSelected and 0.2 or 0.6
                                 end
                             end
-                            -- Call callback with saved values on initialization (with delay to ensure UI is ready)
+                            -- Call callback with saved values on initialization immediately
                             if settings.callback then
                                 task.spawn(function()
-                                    task.wait(0.1)
                                     settings.callback(saved)
                                 end)
                             end
