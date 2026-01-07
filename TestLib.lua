@@ -1234,7 +1234,9 @@ function Library:create_ui()
                 Library._config._flags[settings.flag] = self._state
                 Config:save(game.GameId, Library._config)
 
-                settings.callback(self._state)
+                task.spawn(function()
+                    settings.callback(self._state)
+                end)
             end
             
             function ModuleManager:connect_keybind()
@@ -1582,7 +1584,9 @@ function Library:create_ui()
                     self._text = text
                     Library._config._flags[settings.flag] = self._text
                     Config:save(game.GameId, Library._config)
-                    settings.callback(self._text)
+                    task.spawn(function()
+                        settings.callback(self._text)
+                    end)
                 end
             
                 if Library:flag_type(settings.flag, 'string') then
@@ -1718,7 +1722,9 @@ function Library:create_ui()
                     end
                     Library._config._flags[settings.flag] = self._state
                     Config:save(game.GameId, Library._config)
-                    settings.callback(self._state)
+                    task.spawn(function()
+                        settings.callback(self._state)
+                    end)
                 end
             
                 if Library:flag_type(settings.flag, "boolean") then
@@ -1837,7 +1843,9 @@ function Library:create_ui()
                     }):Play()
                     
                     if settings.callback then
-                        settings.callback()
+                        task.spawn(function()
+                            settings.callback()
+                        end)
                     end
                 end)
             
@@ -2067,7 +2075,9 @@ function Library:create_ui()
                         Size = UDim2.fromOffset(slider_size, Drag.Size.Y.Offset)
                     }):Play()
     
-                    settings.callback(number_threshold)
+                    task.spawn(function()
+                        settings.callback(number_threshold)
+                    end)
                 end
 
                 function SliderManager:update()
@@ -2334,7 +2344,9 @@ function Library:create_ui()
                         
                         -- Callback with selected table
                         if not isInitialLoad then
-                            settings.callback(selected)
+                            task.spawn(function()
+                                settings.callback(selected)
+                            end)
                         end
                     else
                         -- For single dropdown
@@ -2348,7 +2360,9 @@ function Library:create_ui()
                         Config:save(game.GameId, Library._config)
                         
                         if not isInitialLoad then
-                            settings.callback(optionName)
+                            task.spawn(function()
+                                settings.callback(optionName)
+                            end)
                         end
                     end
                 end
@@ -2629,7 +2643,9 @@ function Library:create_ui()
                         Library._config._flags[settings.flag].checked = checked
                         Config:save(game.GameId, Library._config)
                         if settings.callback then
-                            settings.callback(checked)
+                            task.spawn(function()
+                                settings.callback(checked)
+                            end)
                         end
                     end
 
@@ -2912,7 +2928,9 @@ function Library:create_ui()
                     Config:save(game.GameId, Library._config)
                     
                     if settings.callback then
-                        settings.callback(ColorpickerManager._color)
+                        task.spawn(function()
+                            settings.callback(ColorpickerManager._color)
+                        end)
                     end
                 end
                 
