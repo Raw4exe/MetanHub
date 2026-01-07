@@ -40,6 +40,8 @@ function ConfigManager.new(gameName)
         flags = {},
         keybinds = {}
     }
+    self.saveDebounce = nil
+    self.saveDelay = 1
     
     if not isfolder(self.folderName) then
         makefolder(self.folderName)
@@ -74,7 +76,12 @@ function ConfigManager:Load()
     end)
     
     if success and result then
-        self.data = result
+        if type(result.flags) == "table" then
+            self.data.flags = result.flags
+        end
+        if type(result.keybinds) == "table" then
+            self.data.keybinds = result.keybinds
+        end
     else
         warn("Failed to load config, using defaults")
         self:Save()
@@ -82,19 +89,31 @@ function ConfigManager:Load()
 end
 
 function ConfigManager:SetFlag(flag, value)
+    if not flag then return end
     self.data.flags[flag] = value
-    task.spawn(function()
-        task.wait(0.5)
+    
+    if self.saveDebounce then
+        task.cancel(self.saveDebounce)
+    end
+    
+    self.saveDebounce = task.delay(self.saveDelay, function()
         self:Save()
+        self.saveDebounce = nil
     end)
 end
 
 function ConfigManager:GetFlag(flag, default)
-    return self.data.flags[flag] or default
+    if not flag then return default end
+    local value = self.data.flags[flag]
+    if value ~= nil then
+        return value
+    end
+    return default
 end
 
 function ConfigManager:SetKeybind(flag, keycode)
-    self.data.keybinds[flag] = tostring(keycode)
+    if not flag then return end
+    self.data.keybinds[flag] = keycode and tostring(keycode) or nil
     self:Save()
 end
 
@@ -754,6 +773,7 @@ function Library:CreateModule(tab, options)
             CreateSlider = function(m, opts) return self:CreateSlider(m, opts) end,
             CreateCheckbox = function(m, opts) return self:CreateCheckbox(m, opts) end,
             CreateDropdown = function(m, opts) return self:CreateDropdown(m, opts) end,
+            CreateMultiDropdown = function(m, opts) return self:CreateMultiDropdown(m, opts) end,
             CreateTextbox = function(m, opts) return self:CreateTextbox(m, opts) end,
             CreateButton = function(m, opts) return self:CreateButton(m, opts) end,
             CreateColorpicker = function(m, opts) return self:CreateColorpicker(m, opts) end
@@ -763,13 +783,14 @@ end
 
 -- Slider Element
 function Library:CreateSlider(module, options)
+    options = options or {}
     local slider = {}
     slider.title = options.title or "Slider"
-    slider.flag = options.flag
-    slider.min = options.minimum_value or 0
-    slider.max = options.maximum_value or 100
-    slider.value = self.config:GetFlag(options.flag, options.value or slider.min)
-    slider.round = options.round_number or false
+    slider.flag = options.flag or slider.title
+    slider.min = options.minimum_value or options.min or 0
+    slider.max = options.maximum_value or options.max or 100
+    slider.value = self.config:GetFlag(slider.flag, options.value or options.default or slider.min)
+    slider.round = options.round_number or options.round or false
     slider.callback = options.callback or function() end
     module.elementHeight = module.elementHeight + 27
     local sliderFrame = Instance.new("TextButton")
@@ -881,10 +902,11 @@ function Library:CreateSlider(module, options)
 end
 
 function Library:CreateCheckbox(module, options)
+    options = options or {}
     local checkbox = {}
     checkbox.title = options.title or "Checkbox"
-    checkbox.flag = options.flag
-    checkbox.state = self.config:GetFlag(options.flag, false)
+    checkbox.flag = options.flag or checkbox.title
+    checkbox.state = self.config:GetFlag(checkbox.flag, options.default or false)
     checkbox.callback = options.callback or function() end
     module.elementHeight = module.elementHeight + 20
     local checkboxFrame = Instance.new("TextButton")
@@ -952,13 +974,14 @@ function Library:CreateCheckbox(module, options)
 end
 
 function Library:CreateDropdown(module, options)
+    options = options or {}
     local dropdown = {}
     dropdown.title = options.title or "Dropdown"
-    dropdown.flag = options.flag
+    dropdown.flag = options.flag or dropdown.title
     dropdown.options = options.options or {}
     dropdown.multi = options.multi_dropdown or false
-    dropdown.maxVisible = options.maximum_options or 5
-    dropdown.selected = self.config:GetFlag(options.flag, dropdown.multi and {} or nil)
+    dropdown.maxVisible = options.maximum_options or math.min(#dropdown.options, 5)
+    dropdown.selected = self.config:GetFlag(dropdown.flag, dropdown.multi and {} or (options.default or nil))
     dropdown.callback = options.callback or function() end
     dropdown.open = false
     local baseHeight = 44
@@ -1123,11 +1146,12 @@ function Library:CreateDropdown(module, options)
 end
 
 function Library:CreateTextbox(module, options)
+    options = options or {}
     local textbox = {}
     textbox.title = options.title or "Textbox"
-    textbox.flag = options.flag
+    textbox.flag = options.flag or textbox.title
     textbox.placeholder = options.placeholder or "Enter text..."
-    textbox.text = self.config:GetFlag(options.flag, "")
+    textbox.text = self.config:GetFlag(textbox.flag, options.default or "")
     textbox.callback = options.callback or function() end
     module.elementHeight = module.elementHeight + 32
     local titleLabel = Instance.new("TextLabel")
@@ -1209,11 +1233,12 @@ function Library:CreateButton(module, options)
 end
 
 function Library:CreateColorpicker(module, options)
+    options = options or {}
     local colorpicker = {}
     colorpicker.title = options.title or "Color"
-    colorpicker.flag = options.flag
+    colorpicker.flag = options.flag or colorpicker.title
     colorpicker.default = options.default or Color3.fromRGB(255, 255, 255)
-    colorpicker.color = self.config:GetFlag(options.flag, colorpicker.default)
+    colorpicker.color = self.config:GetFlag(colorpicker.flag, colorpicker.default)
     colorpicker.callback = options.callback or function() end
     module.elementHeight = module.elementHeight + 20
     local colorFrame = Instance.new("TextButton")
@@ -1268,6 +1293,11 @@ function Library:CreateColorpicker(module, options)
     colorpicker.SetColor = SetColor
     table.insert(module.elements, colorpicker)
     return colorpicker
+end
+
+function Library:CreateMultiDropdown(module, options)
+    options.multi_dropdown = true
+    return self:CreateDropdown(module, options)
 end
 
 return Library
