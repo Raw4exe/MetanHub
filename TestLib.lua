@@ -1971,16 +1971,22 @@ function Library:CreateKeybind(module, options)
     keyLabel.AnchorPoint = Vector2.new(0.5, 0.5)
     keyLabel.BackgroundTransparency = 1
     keyLabel.Parent = keyDisplay
-    if keybind.key then
-        local textSize = TextService:GetTextSize(keyLabel.Text, 10, Enum.Font.GothamBold, Vector2.new(1000, 15))
-        keyDisplay.Size = UDim2.new(0, textSize.X + 8, 0, 15)
+    
+    local function UpdateKeySize(text)
+        local length = #text
+        local width = math.max(33, length * 7 + 8)
+        keyDisplay.Size = UDim2.new(0, width, 0, 15)
     end
+    
+    if keybind.key then
+        UpdateKeySize(keyLabel.Text)
+    end
+    
     local function SetKey(keycode)
         keybind.key = keycode
         local displayText = keycode and keycode:gsub("Enum.KeyCode.", "") or "None"
         keyLabel.Text = displayText
-        local textSize = TextService:GetTextSize(displayText, 10, Enum.Font.GothamBold, Vector2.new(1000, 15))
-        keyDisplay.Size = UDim2.new(0, textSize.X + 8, 0, 15)
+        UpdateKeySize(displayText)
         self.config:SetKeybind(keybind.flag, keycode)
         task.spawn(function() keybind.callback(keycode) end)
     end
