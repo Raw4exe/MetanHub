@@ -231,32 +231,10 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
     workarea.Name = "workarea"
     workarea.Parent = main
     workarea.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    workarea.Position = UDim2.new(0, 0, 0.15, 0)
-    workarea.Size = UDim2.new(1, 0, 0.85, 0)
+    workarea.Position = UDim2.new(0, 0, 0.1, 0)
+    workarea.Size = UDim2.new(1, 0, 0.9, 0)
     workarea.BackgroundTransparency = 1
     workarea.BorderSizePixel = 0
-    
-    -- Tab bar at top
-    local tabBar = Instance.new("Frame")
-    tabBar.Name = "tabBar"
-    tabBar.Parent = main
-    tabBar.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    tabBar.BackgroundTransparency = 0.3
-    tabBar.Position = UDim2.new(0, 0, 0.1, 0)
-    tabBar.Size = UDim2.new(1, 0, 0.05, 0)
-    tabBar.BorderSizePixel = 0
-    
-    local tabBarLayout = Instance.new("UIListLayout")
-    tabBarLayout.Parent = tabBar
-    tabBarLayout.FillDirection = Enum.FillDirection.Horizontal
-    tabBarLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
-    tabBarLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    tabBarLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-    tabBarLayout.Padding = UDim.new(0, 5)
-    
-    local tabBarPadding = Instance.new("UIPadding")
-    tabBarPadding.Parent = tabBar
-    tabBarPadding.PaddingLeft = UDim.new(0, 10)
     -- Simple text buttons
 
     local buttons = Instance.new("Frame")
@@ -312,8 +290,8 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
     title.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     title.BackgroundTransparency = 1
     title.BorderSizePixel = 2
-    title.Position = UDim2.new(0.15, 0, 0.0351027399, 0)
-    title.Size = UDim2.new(0, 267, 0, 10)
+    title.Position = UDim2.new(0.25, 0, 0.0351027399, 0)
+    title.Size = UDim2.new(0, 200, 0, 10)
     title.Font = Enum.Font.Gotham
     title.LineHeight = 1.180
     title.TextColor3 = Color3.fromRGB(0, 0, 0)
@@ -326,6 +304,24 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
     else
         title.Text = ""
     end
+    
+    -- Tab bar in topbar (left side)
+    local tabBar = Instance.new("Frame")
+    tabBar.Name = "tabBar"
+    tabBar.Parent = main
+    tabBar.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    tabBar.BackgroundTransparency = 1
+    tabBar.Position = UDim2.new(0, 10, 0.02, 0)
+    tabBar.Size = UDim2.new(0, 100, 0, 30)
+    tabBar.BorderSizePixel = 0
+    
+    local tabBarLayout = Instance.new("UIListLayout")
+    tabBarLayout.Parent = tabBar
+    tabBarLayout.FillDirection = Enum.FillDirection.Horizontal
+    tabBarLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+    tabBarLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    tabBarLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+    tabBarLayout.Padding = UDim.new(0, 5)
        tp(main, UDim2.new(0.5, 0, 0.5, 0), 1)
     window = {}
 
@@ -507,19 +503,19 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
     end
 
     function window:Section(name, icon)
-        -- Create tab button with icon
+        -- Create tab button with icon in topbar
         local tabButton = Instance.new("TextButton")
         tabButton.Name = "tabButton_" .. name
         tabButton.Parent = tabBar
         tabButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        tabButton.BackgroundTransparency = 0.5
-        tabButton.Size = UDim2.new(0, 35, 0, 35)
+        tabButton.BackgroundTransparency = 1
+        tabButton.Size = UDim2.new(0, 28, 0, 28)
         tabButton.AutoButtonColor = false
         tabButton.Text = ""
         tabButton.ZIndex = 3
         
         local tabCorner = Instance.new("UICorner")
-        tabCorner.CornerRadius = UDim.new(0, 8)
+        tabCorner.CornerRadius = UDim.new(0, 6)
         tabCorner.Parent = tabButton
         
         local tabIcon = Instance.new("ImageLabel")
@@ -528,7 +524,7 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
         tabIcon.BackgroundTransparency = 1
         tabIcon.Position = UDim2.new(0.5, 0, 0.5, 0)
         tabIcon.AnchorPoint = Vector2.new(0.5, 0.5)
-        tabIcon.Size = UDim2.new(0, 20, 0, 20)
+        tabIcon.Size = UDim2.new(0, 18, 0, 18)
         tabIcon.Image = icon or "rbxassetid://12608259004"
         tabIcon.ImageColor3 = Color3.fromRGB(95, 95, 95)
         tabIcon.ScaleType = Enum.ScaleType.Fit
@@ -570,7 +566,7 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
             -- Reset all tab buttons
             for _, btn in next, tabBar:GetChildren() do
                 if btn:IsA("TextButton") then
-                    btn.BackgroundTransparency = 0.5
+                    btn.BackgroundTransparency = 1
                     local ic = btn:FindFirstChild("icon")
                     if ic then
                         ic.ImageColor3 = Color3.fromRGB(95, 95, 95)
@@ -580,7 +576,7 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
             -- Show selected workarea
             workareamain.Visible = true
             -- Highlight selected tab
-            tabButton.BackgroundTransparency = 0.2
+            tabButton.BackgroundTransparency = 0.7
             tabIcon.ImageColor3 = Color3.fromRGB(21, 103, 251)
         end)
 
@@ -593,7 +589,7 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
             -- Reset all tab buttons
             for _, btn in next, tabBar:GetChildren() do
                 if btn:IsA("TextButton") then
-                    btn.BackgroundTransparency = 0.5
+                    btn.BackgroundTransparency = 1
                     local ic = btn:FindFirstChild("icon")
                     if ic then
                         ic.ImageColor3 = Color3.fromRGB(95, 95, 95)
@@ -603,7 +599,7 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
             -- Show this workarea
             workareamain.Visible = true
             -- Highlight this tab
-            tabButton.BackgroundTransparency = 0.2
+            tabButton.BackgroundTransparency = 0.7
             tabIcon.ImageColor3 = Color3.fromRGB(21, 103, 251)
         end
         function sec:Divider(name)
