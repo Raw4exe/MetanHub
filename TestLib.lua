@@ -466,9 +466,6 @@ function Library:SelectTab(tab)
     end
 end
 
-return Library
-
-
 function Library:CreateModule(tab, options)
     local module = {}
     module.title = options.title or "Module"
