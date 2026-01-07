@@ -1494,6 +1494,8 @@ function Library:CreateDropdown(module, options)
     end
     
     dropdown.size = 3
+    dropdown.updateFunctions = {}
+    
     for index, option in ipairs(dropdown.options) do
         local optionButton = Instance.new("TextButton")
         optionButton.Name = "Option"
@@ -1539,15 +1541,24 @@ function Library:CreateDropdown(module, options)
                 optionButton.TextTransparency = 0.2
                 optionButton.TextColor3 = Color3.fromRGB(152, 181, 255)
             else
-                optionButton.TextTransparency = 0.6
+                optionButton.TextTransparency = 0.7
                 optionButton.TextColor3 = Color3.fromRGB(255, 255, 255)
             end
         end
+        
+        -- Store update function for later use
+        table.insert(dropdown.updateFunctions, UpdateOptionAppearance)
         
         UpdateOptionAppearance()
         
         optionButton.MouseButton1Click:Connect(function()
             Toggle(option)
+            -- Update all options appearance
+            if dropdown.updateFunctions then
+                for _, updateFunc in ipairs(dropdown.updateFunctions) do
+                    updateFunc()
+                end
+            end
             UpdateOptionAppearance()
             if not dropdown.multi then
                 dropdown.open = false
