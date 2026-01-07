@@ -2686,6 +2686,288 @@ function Library:create_ui()
                 end;
             
                 return FeatureContainer
+            end
+
+            function ModuleManager:create_colorpicker(settings: any)
+                LayoutOrderModule = LayoutOrderModule + 1
+                
+                local ColorpickerManager = {
+                    _color = settings.default or Color3.fromRGB(255, 255, 255),
+                    _open = false
+                }
+                
+                if self._size == 0 then
+                    self._size = 11
+                end
+                self._size += 25
+                
+                if ModuleManager._state then
+                    Module.Size = UDim2.fromOffset(241, 93 + self._size)
+                end
+                Options.Size = UDim2.fromOffset(241, self._size)
+                
+                local ColorpickerFrame = Instance.new("Frame")
+                ColorpickerFrame.Size = UDim2.new(0, 207, 0, 20)
+                ColorpickerFrame.BackgroundTransparency = 1
+                ColorpickerFrame.Parent = Options
+                ColorpickerFrame.LayoutOrder = LayoutOrderModule
+                
+                local TitleLabel = Instance.new("TextLabel")
+                TitleLabel.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal)
+                TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+                TitleLabel.TextTransparency = 0.2
+                TitleLabel.Text = settings.title or "Color"
+                TitleLabel.TextSize = 11
+                TitleLabel.Size = UDim2.new(0, 150, 0, 20)
+                TitleLabel.BackgroundTransparency = 1
+                TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+                TitleLabel.Parent = ColorpickerFrame
+                
+                local ColorDisplay = Instance.new("TextButton")
+                ColorDisplay.Size = UDim2.new(0, 40, 0, 16)
+                ColorDisplay.Position = UDim2.new(1, -40, 0.5, 0)
+                ColorDisplay.AnchorPoint = Vector2.new(0, 0.5)
+                ColorDisplay.BackgroundColor3 = ColorpickerManager._color
+                ColorDisplay.Text = ""
+                ColorDisplay.AutoButtonColor = false
+                ColorDisplay.Parent = ColorpickerFrame
+                
+                local DisplayCorner = Instance.new("UICorner")
+                DisplayCorner.CornerRadius = UDim.new(0, 4)
+                DisplayCorner.Parent = ColorDisplay
+                
+                local DisplayStroke = Instance.new("UIStroke")
+                DisplayStroke.Color = Color3.fromRGB(52, 66, 89)
+                DisplayStroke.Transparency = 0.5
+                DisplayStroke.Parent = ColorDisplay
+                
+                -- Color Picker Panel
+                local PickerPanel = Instance.new("Frame")
+                PickerPanel.Size = UDim2.new(0, 207, 0, 120)
+                PickerPanel.Position = UDim2.new(0, 0, 1, 5)
+                PickerPanel.BackgroundColor3 = Color3.fromRGB(22, 28, 38)
+                PickerPanel.Visible = false
+                PickerPanel.ZIndex = 10
+                PickerPanel.Parent = ColorpickerFrame
+                
+                local PanelCorner = Instance.new("UICorner")
+                PanelCorner.CornerRadius = UDim.new(0, 5)
+                PanelCorner.Parent = PickerPanel
+                
+                local PanelStroke = Instance.new("UIStroke")
+                PanelStroke.Color = Color3.fromRGB(52, 66, 89)
+                PanelStroke.Transparency = 0.5
+                PanelStroke.Parent = PickerPanel
+                
+                -- Saturation/Value picker
+                local SatValPicker = Instance.new("ImageLabel")
+                SatValPicker.Size = UDim2.new(0, 150, 0, 80)
+                SatValPicker.Position = UDim2.new(0, 10, 0, 10)
+                SatValPicker.Image = "rbxassetid://4155801252"
+                SatValPicker.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+                SatValPicker.ZIndex = 11
+                SatValPicker.Parent = PickerPanel
+                
+                local SatValCorner = Instance.new("UICorner")
+                SatValCorner.CornerRadius = UDim.new(0, 4)
+                SatValCorner.Parent = SatValPicker
+                
+                local SatValCursor = Instance.new("Frame")
+                SatValCursor.Size = UDim2.new(0, 10, 0, 10)
+                SatValCursor.AnchorPoint = Vector2.new(0.5, 0.5)
+                SatValCursor.Position = UDim2.new(1, 0, 0, 0)
+                SatValCursor.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+                SatValCursor.ZIndex = 12
+                SatValCursor.Parent = SatValPicker
+                
+                local CursorCorner = Instance.new("UICorner")
+                CursorCorner.CornerRadius = UDim.new(1, 0)
+                CursorCorner.Parent = SatValCursor
+                
+                -- Hue slider
+                local HueSlider = Instance.new("Frame")
+                HueSlider.Size = UDim2.new(0, 20, 0, 80)
+                HueSlider.Position = UDim2.new(0, 170, 0, 10)
+                HueSlider.ZIndex = 11
+                HueSlider.Parent = PickerPanel
+                
+                local HueCorner = Instance.new("UICorner")
+                HueCorner.CornerRadius = UDim.new(0, 4)
+                HueCorner.Parent = HueSlider
+                
+                local HueGradient = Instance.new("UIGradient")
+                HueGradient.Rotation = 90
+                local hueKeypoints = {}
+                for i = 0, 1, 0.1 do
+                    table.insert(hueKeypoints, ColorSequenceKeypoint.new(i, Color3.fromHSV(i, 1, 1)))
+                end
+                HueGradient.Color = ColorSequence.new(hueKeypoints)
+                HueGradient.Parent = HueSlider
+                
+                local HueCursor = Instance.new("Frame")
+                HueCursor.Size = UDim2.new(1, 4, 0, 6)
+                HueCursor.Position = UDim2.new(0, -2, 0, 0)
+                HueCursor.AnchorPoint = Vector2.new(0, 0.5)
+                HueCursor.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+                HueCursor.ZIndex = 12
+                HueCursor.Parent = HueSlider
+                
+                local HueCursorCorner = Instance.new("UICorner")
+                HueCursorCorner.CornerRadius = UDim.new(0, 2)
+                HueCursorCorner.Parent = HueCursor
+                
+                -- Hex input
+                local HexInput = Instance.new("TextBox")
+                HexInput.Size = UDim2.new(0, 187, 0, 20)
+                HexInput.Position = UDim2.new(0, 10, 0, 95)
+                HexInput.BackgroundColor3 = Color3.fromRGB(32, 38, 51)
+                HexInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+                HexInput.PlaceholderText = "#FFFFFF"
+                HexInput.Text = "#" .. ColorpickerManager._color:ToHex()
+                HexInput.TextSize = 10
+                HexInput.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal)
+                HexInput.ZIndex = 11
+                HexInput.ClearTextOnFocus = false
+                HexInput.Parent = PickerPanel
+                
+                local HexCorner = Instance.new("UICorner")
+                HexCorner.CornerRadius = UDim.new(0, 4)
+                HexCorner.Parent = HexInput
+                
+                local Hue, Sat, Val = Color3.toHSV(ColorpickerManager._color)
+                
+                local function updateColor()
+                    ColorpickerManager._color = Color3.fromHSV(Hue, Sat, Val)
+                    ColorDisplay.BackgroundColor3 = ColorpickerManager._color
+                    SatValPicker.BackgroundColor3 = Color3.fromHSV(Hue, 1, 1)
+                    SatValCursor.Position = UDim2.new(Sat, 0, 1 - Val, 0)
+                    HueCursor.Position = UDim2.new(0, -2, Hue, 0)
+                    HexInput.Text = "#" .. ColorpickerManager._color:ToHex()
+                    
+                    Library._config._flags[settings.flag] = {ColorpickerManager._color.R, ColorpickerManager._color.G, ColorpickerManager._color.B}
+                    Config:save(game.GameId, Library._config)
+                    
+                    if settings.callback then
+                        settings.callback(ColorpickerManager._color)
+                    end
+                end
+                
+                function ColorpickerManager:SetColor(color)
+                    Hue, Sat, Val = Color3.toHSV(color)
+                    updateColor()
+                end
+                
+                function ColorpickerManager:GetColor()
+                    return ColorpickerManager._color
+                end
+                
+                -- Load saved color
+                if Library._config._flags[settings.flag] and typeof(Library._config._flags[settings.flag]) == "table" then
+                    local saved = Library._config._flags[settings.flag]
+                    ColorpickerManager._color = Color3.new(saved[1], saved[2], saved[3])
+                    Hue, Sat, Val = Color3.toHSV(ColorpickerManager._color)
+                    ColorDisplay.BackgroundColor3 = ColorpickerManager._color
+                    SatValPicker.BackgroundColor3 = Color3.fromHSV(Hue, 1, 1)
+                    SatValCursor.Position = UDim2.new(Sat, 0, 1 - Val, 0)
+                    HueCursor.Position = UDim2.new(0, -2, Hue, 0)
+                    HexInput.Text = "#" .. ColorpickerManager._color:ToHex()
+                end
+                
+                ColorDisplay.MouseButton1Click:Connect(function()
+                    ColorpickerManager._open = not ColorpickerManager._open
+                    PickerPanel.Visible = ColorpickerManager._open
+                    
+                    if ColorpickerManager._open then
+                        ModuleManager._multiplier += 125
+                        TweenService:Create(Module, TweenInfo.new(0.3, Enum.EasingStyle.Quint), {
+                            Size = UDim2.fromOffset(241, 93 + ModuleManager._size + ModuleManager._multiplier)
+                        }):Play()
+                        TweenService:Create(Module.Options, TweenInfo.new(0.3, Enum.EasingStyle.Quint), {
+                            Size = UDim2.fromOffset(241, ModuleManager._size + ModuleManager._multiplier)
+                        }):Play()
+                    else
+                        ModuleManager._multiplier -= 125
+                        TweenService:Create(Module, TweenInfo.new(0.3, Enum.EasingStyle.Quint), {
+                            Size = UDim2.fromOffset(241, 93 + ModuleManager._size + ModuleManager._multiplier)
+                        }):Play()
+                        TweenService:Create(Module.Options, TweenInfo.new(0.3, Enum.EasingStyle.Quint), {
+                            Size = UDim2.fromOffset(241, ModuleManager._size + ModuleManager._multiplier)
+                        }):Play()
+                    end
+                end)
+                
+                -- SatVal picker input
+                SatValPicker.InputBegan:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                        local dragging = true
+                        
+                        local function update()
+                            local mousePos = UserInputService:GetMouseLocation()
+                            local relX = math.clamp((mousePos.X - SatValPicker.AbsolutePosition.X) / SatValPicker.AbsoluteSize.X, 0, 1)
+                            local relY = math.clamp((mousePos.Y - SatValPicker.AbsolutePosition.Y) / SatValPicker.AbsoluteSize.Y, 0, 1)
+                            Sat = relX
+                            Val = 1 - relY
+                            updateColor()
+                        end
+                        
+                        update()
+                        
+                        local moveConn = mouse.Move:Connect(function()
+                            if dragging then update() end
+                        end)
+                        
+                        local releaseConn
+                        releaseConn = UserInputService.InputEnded:Connect(function(endInput)
+                            if endInput.UserInputType == Enum.UserInputType.MouseButton1 or endInput.UserInputType == Enum.UserInputType.Touch then
+                                dragging = false
+                                moveConn:Disconnect()
+                                releaseConn:Disconnect()
+                            end
+                        end)
+                    end
+                end)
+                
+                -- Hue slider input
+                HueSlider.InputBegan:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                        local dragging = true
+                        
+                        local function update()
+                            local mousePos = UserInputService:GetMouseLocation()
+                            local relY = math.clamp((mousePos.Y - HueSlider.AbsolutePosition.Y) / HueSlider.AbsoluteSize.Y, 0, 1)
+                            Hue = relY
+                            updateColor()
+                        end
+                        
+                        update()
+                        
+                        local moveConn = mouse.Move:Connect(function()
+                            if dragging then update() end
+                        end)
+                        
+                        local releaseConn
+                        releaseConn = UserInputService.InputEnded:Connect(function(endInput)
+                            if endInput.UserInputType == Enum.UserInputType.MouseButton1 or endInput.UserInputType == Enum.UserInputType.Touch then
+                                dragging = false
+                                moveConn:Disconnect()
+                                releaseConn:Disconnect()
+                            end
+                        end)
+                    end
+                end)
+                
+                -- Hex input
+                HexInput.FocusLost:Connect(function()
+                    local success, result = pcall(Color3.fromHex, HexInput.Text)
+                    if success and typeof(result) == "Color3" then
+                        Hue, Sat, Val = Color3.toHSV(result)
+                        updateColor()
+                    else
+                        HexInput.Text = "#" .. ColorpickerManager._color:ToHex()
+                    end
+                end)
+                
+                return ColorpickerManager
             end                    
 
             return ModuleManager
