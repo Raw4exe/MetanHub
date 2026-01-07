@@ -291,10 +291,11 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
     end
 
     function window:TempNotify(text1, text2, icon)
-        -- Сдвигаем все существующие нотификации вниз
+        -- Сдвигаем все существующие нотификации вниз на 65px
         for b,v in next, scrgui:GetChildren() do
             if v.Name == "tempnotif" then 
-                v:TweenPosition(v.Position + UDim2.new(0,0,0,65), "InOut", "Quart", 0.3, true)
+                local currentY = v.Position.Y.Offset
+                v:TweenPosition(UDim2.new(1, -10, 0, currentY + 65), "InOut", "Quart", 0.3, true)
             end
         end
         
@@ -304,7 +305,7 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
         tempnotif.AnchorPoint = Vector2.new(1, 0)
         tempnotif.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
         tempnotif.BackgroundTransparency = 0.150
-        tempnotif.Position = UDim2.new(1, 50, 0, 10) -- Начинаем справа за экраном
+        tempnotif.Position = UDim2.new(1, 300, 0, 10) -- Начинаем справа за экраном, 10px сверху
         tempnotif.Size = UDim2.new(0, 220, 0, 55)
         tempnotif.Visible = true
         tempnotif.ZIndex = 4
@@ -368,14 +369,14 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
         tshadow.ImageTransparency = 0.400
         tshadow.TileSize = UDim2.new(0, 1, 0, 1)
         
-        -- Анимация появления справа (въезжает влево)
-        tempnotif:TweenPosition(UDim2.new(1, -230, 0, 10), "InOut", "Quart", 0.5, true)
+        -- Анимация появления справа (въезжает влево) - отступ 10px от правого края
+        tempnotif:TweenPosition(UDim2.new(1, -10, 0, 10), "InOut", "Quart", 0.5, true)
         
         -- Удаление через 5 секунд с анимацией
         task.spawn(function()
             task.wait(5)
             -- Анимация ухода вправо (обратно откуда пришла)
-            tempnotif:TweenPosition(UDim2.new(1, 50, 0, 10), "InOut", "Quart", 0.5, true)
+            tempnotif:TweenPosition(UDim2.new(1, 300, 0, 10), "InOut", "Quart", 0.5, true)
             task.wait(0.5)
             tempnotif:Destroy()
         end)
