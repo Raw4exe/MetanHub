@@ -2696,7 +2696,8 @@ function Library:create_ui()
                 
                 local ColorpickerManager = {
                     _color = settings.default or Color3.fromRGB(255, 255, 255),
-                    _open = false
+                    _open = false,
+                    _popup = nil
                 }
                 
                 if self._size == 0 then
@@ -2744,34 +2745,77 @@ function Library:create_ui()
                 DisplayStroke.Transparency = 0.5
                 DisplayStroke.Parent = ColorDisplay
                 
-                -- Color Picker Panel
-                local PickerPanel = Instance.new("Frame")
-                PickerPanel.Size = UDim2.new(0, 207, 0, 120)
-                PickerPanel.Position = UDim2.new(0, 0, 1, 5)
-                PickerPanel.BackgroundColor3 = Color3.fromRGB(22, 28, 38)
-                PickerPanel.Visible = false
-                PickerPanel.ZIndex = 10
-                PickerPanel.Active = true
-                PickerPanel.Parent = ColorpickerFrame
+                -- Popup panel in ScreenGui root (not inside Container)
+                local PickerPopup = Instance.new("Frame")
+                PickerPopup.Name = "ColorPickerPopup_" .. (settings.flag or "default")
+                PickerPopup.Size = UDim2.new(0, 200, 0, 150)
+                PickerPopup.Position = UDim2.new(0.5, -100, 0.5, -75)
+                PickerPopup.BackgroundColor3 = Color3.fromRGB(22, 28, 38)
+                PickerPopup.BorderSizePixel = 0
+                PickerPopup.Visible = false
+                PickerPopup.ZIndex = 100
+                PickerPopup.Parent = March
                 
-                local PanelCorner = Instance.new("UICorner")
-                PanelCorner.CornerRadius = UDim.new(0, 5)
-                PanelCorner.Parent = PickerPanel
+                local PopupCorner = Instance.new("UICorner")
+                PopupCorner.CornerRadius = UDim.new(0, 8)
+                PopupCorner.Parent = PickerPopup
                 
-                local PanelStroke = Instance.new("UIStroke")
-                PanelStroke.Color = Color3.fromRGB(52, 66, 89)
-                PanelStroke.Transparency = 0.5
-                PanelStroke.Parent = PickerPanel
+                local PopupStroke = Instance.new("UIStroke")
+                PopupStroke.Color = Color3.fromRGB(52, 66, 89)
+                PopupStroke.Parent = PickerPopup
                 
-                -- Saturation/Value picker
-                local SatValPicker = Instance.new("ImageLabel")
-                SatValPicker.Size = UDim2.new(0, 150, 0, 80)
-                SatValPicker.Position = UDim2.new(0, 10, 0, 10)
+                -- Title bar
+                local TitleBar = Instance.new("Frame")
+                TitleBar.Size = UDim2.new(1, 0, 0, 25)
+                TitleBar.BackgroundColor3 = Color3.fromRGB(30, 36, 48)
+                TitleBar.BorderSizePixel = 0
+                TitleBar.ZIndex = 101
+                TitleBar.Parent = PickerPopup
+                
+                local TitleBarCorner = Instance.new("UICorner")
+                TitleBarCorner.CornerRadius = UDim.new(0, 8)
+                TitleBarCorner.Parent = TitleBar
+                
+                local TitleBarFix = Instance.new("Frame")
+                TitleBarFix.Size = UDim2.new(1, 0, 0, 10)
+                TitleBarFix.Position = UDim2.new(0, 0, 1, -10)
+                TitleBarFix.BackgroundColor3 = Color3.fromRGB(30, 36, 48)
+                TitleBarFix.BorderSizePixel = 0
+                TitleBarFix.ZIndex = 101
+                TitleBarFix.Parent = TitleBar
+                
+                local PopupTitle = Instance.new("TextLabel")
+                PopupTitle.Text = settings.title or "Color"
+                PopupTitle.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal)
+                PopupTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+                PopupTitle.TextSize = 11
+                PopupTitle.Size = UDim2.new(1, -30, 1, 0)
+                PopupTitle.Position = UDim2.new(0, 10, 0, 0)
+                PopupTitle.BackgroundTransparency = 1
+                PopupTitle.TextXAlignment = Enum.TextXAlignment.Left
+                PopupTitle.ZIndex = 102
+                PopupTitle.Parent = TitleBar
+                
+                local CloseBtn = Instance.new("TextButton")
+                CloseBtn.Text = "X"
+                CloseBtn.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold, Enum.FontStyle.Normal)
+                CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+                CloseBtn.TextSize = 12
+                CloseBtn.Size = UDim2.new(0, 25, 0, 25)
+                CloseBtn.Position = UDim2.new(1, -25, 0, 0)
+                CloseBtn.BackgroundTransparency = 1
+                CloseBtn.ZIndex = 102
+                CloseBtn.Parent = TitleBar
+                
+                -- SatVal picker
+                local SatValPicker = Instance.new("ImageButton")
+                SatValPicker.Size = UDim2.new(0, 140, 0, 80)
+                SatValPicker.Position = UDim2.new(0, 10, 0, 35)
                 SatValPicker.Image = "rbxassetid://4155801252"
                 SatValPicker.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-                SatValPicker.ZIndex = 11
-                SatValPicker.Active = true
-                SatValPicker.Parent = PickerPanel
+                SatValPicker.AutoButtonColor = false
+                SatValPicker.ZIndex = 101
+                SatValPicker.Parent = PickerPopup
                 
                 local SatValCorner = Instance.new("UICorner")
                 SatValCorner.CornerRadius = UDim.new(0, 4)
@@ -2782,20 +2826,26 @@ function Library:create_ui()
                 SatValCursor.AnchorPoint = Vector2.new(0.5, 0.5)
                 SatValCursor.Position = UDim2.new(1, 0, 0, 0)
                 SatValCursor.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-                SatValCursor.ZIndex = 12
+                SatValCursor.ZIndex = 102
                 SatValCursor.Parent = SatValPicker
                 
                 local CursorCorner = Instance.new("UICorner")
                 CursorCorner.CornerRadius = UDim.new(1, 0)
                 CursorCorner.Parent = SatValCursor
                 
+                local CursorStroke = Instance.new("UIStroke")
+                CursorStroke.Color = Color3.fromRGB(0, 0, 0)
+                CursorStroke.Thickness = 1
+                CursorStroke.Parent = SatValCursor
+                
                 -- Hue slider
-                local HueSlider = Instance.new("Frame")
-                HueSlider.Size = UDim2.new(0, 20, 0, 80)
-                HueSlider.Position = UDim2.new(0, 170, 0, 10)
-                HueSlider.ZIndex = 11
-                HueSlider.Active = true
-                HueSlider.Parent = PickerPanel
+                local HueSlider = Instance.new("ImageButton")
+                HueSlider.Size = UDim2.new(0, 25, 0, 80)
+                HueSlider.Position = UDim2.new(0, 160, 0, 35)
+                HueSlider.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+                HueSlider.AutoButtonColor = false
+                HueSlider.ZIndex = 101
+                HueSlider.Parent = PickerPopup
                 
                 local HueCorner = Instance.new("UICorner")
                 HueCorner.CornerRadius = UDim.new(0, 4)
@@ -2815,32 +2865,39 @@ function Library:create_ui()
                 HueCursor.Position = UDim2.new(0, -2, 0, 0)
                 HueCursor.AnchorPoint = Vector2.new(0, 0.5)
                 HueCursor.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-                HueCursor.ZIndex = 12
+                HueCursor.ZIndex = 102
                 HueCursor.Parent = HueSlider
                 
                 local HueCursorCorner = Instance.new("UICorner")
                 HueCursorCorner.CornerRadius = UDim.new(0, 2)
                 HueCursorCorner.Parent = HueCursor
                 
+                local HueCursorStroke = Instance.new("UIStroke")
+                HueCursorStroke.Color = Color3.fromRGB(0, 0, 0)
+                HueCursorStroke.Thickness = 1
+                HueCursorStroke.Parent = HueCursor
+                
                 -- Hex input
                 local HexInput = Instance.new("TextBox")
-                HexInput.Size = UDim2.new(0, 187, 0, 20)
-                HexInput.Position = UDim2.new(0, 10, 0, 95)
+                HexInput.Size = UDim2.new(0, 180, 0, 22)
+                HexInput.Position = UDim2.new(0, 10, 0, 120)
                 HexInput.BackgroundColor3 = Color3.fromRGB(32, 38, 51)
                 HexInput.TextColor3 = Color3.fromRGB(255, 255, 255)
                 HexInput.PlaceholderText = "#FFFFFF"
                 HexInput.Text = "#" .. ColorpickerManager._color:ToHex()
-                HexInput.TextSize = 10
+                HexInput.TextSize = 11
                 HexInput.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal)
-                HexInput.ZIndex = 11
+                HexInput.ZIndex = 101
                 HexInput.ClearTextOnFocus = false
-                HexInput.Parent = PickerPanel
+                HexInput.Parent = PickerPopup
                 
                 local HexCorner = Instance.new("UICorner")
                 HexCorner.CornerRadius = UDim.new(0, 4)
                 HexCorner.Parent = HexInput
                 
                 local Hue, Sat, Val = Color3.toHSV(ColorpickerManager._color)
+                local draggingSatVal = false
+                local draggingHue = false
                 
                 local function updateColor()
                     ColorpickerManager._color = Color3.fromHSV(Hue, Sat, Val)
@@ -2856,6 +2913,24 @@ function Library:create_ui()
                     if settings.callback then
                         settings.callback(ColorpickerManager._color)
                     end
+                end
+                
+                local function updateSatVal()
+                    local absPos = SatValPicker.AbsolutePosition
+                    local absSize = SatValPicker.AbsoluteSize
+                    local relX = math.clamp((mouse.X - absPos.X) / absSize.X, 0, 1)
+                    local relY = math.clamp((mouse.Y - absPos.Y) / absSize.Y, 0, 1)
+                    Sat = relX
+                    Val = 1 - relY
+                    updateColor()
+                end
+                
+                local function updateHue()
+                    local absPos = HueSlider.AbsolutePosition
+                    local absSize = HueSlider.AbsoluteSize
+                    local relY = math.clamp((mouse.Y - absPos.Y) / absSize.Y, 0, 1)
+                    Hue = relY
+                    updateColor()
                 end
                 
                 function ColorpickerManager:SetColor(color)
@@ -2879,88 +2954,45 @@ function Library:create_ui()
                     HexInput.Text = "#" .. ColorpickerManager._color:ToHex()
                 end
                 
+                -- Open popup
                 ColorDisplay.MouseButton1Click:Connect(function()
                     ColorpickerManager._open = not ColorpickerManager._open
-                    PickerPanel.Visible = ColorpickerManager._open
-                    
-                    if ColorpickerManager._open then
-                        ModuleManager._multiplier += 125
-                        TweenService:Create(Module, TweenInfo.new(0.3, Enum.EasingStyle.Quint), {
-                            Size = UDim2.fromOffset(241, 93 + ModuleManager._size + ModuleManager._multiplier)
-                        }):Play()
-                        TweenService:Create(Module.Options, TweenInfo.new(0.3, Enum.EasingStyle.Quint), {
-                            Size = UDim2.fromOffset(241, ModuleManager._size + ModuleManager._multiplier)
-                        }):Play()
-                    else
-                        ModuleManager._multiplier -= 125
-                        TweenService:Create(Module, TweenInfo.new(0.3, Enum.EasingStyle.Quint), {
-                            Size = UDim2.fromOffset(241, 93 + ModuleManager._size + ModuleManager._multiplier)
-                        }):Play()
-                        TweenService:Create(Module.Options, TweenInfo.new(0.3, Enum.EasingStyle.Quint), {
-                            Size = UDim2.fromOffset(241, ModuleManager._size + ModuleManager._multiplier)
-                        }):Play()
+                    PickerPopup.Visible = ColorpickerManager._open
+                end)
+                
+                -- Close popup
+                CloseBtn.MouseButton1Click:Connect(function()
+                    ColorpickerManager._open = false
+                    PickerPopup.Visible = false
+                end)
+                
+                -- SatVal input
+                SatValPicker.MouseButton1Down:Connect(function()
+                    draggingSatVal = true
+                    updateSatVal()
+                end)
+                
+                -- Hue input
+                HueSlider.MouseButton1Down:Connect(function()
+                    draggingHue = true
+                    updateHue()
+                end)
+                
+                -- Global mouse move/release
+                UserInputService.InputChanged:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseMovement then
+                        if draggingSatVal then
+                            updateSatVal()
+                        elseif draggingHue then
+                            updateHue()
+                        end
                     end
                 end)
                 
-                -- SatVal picker input
-                SatValPicker.InputBegan:Connect(function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                        Library._colorpicker_dragging = true
-                        local dragging = true
-                        
-                        local function update()
-                            local relX = math.clamp((mouse.X - SatValPicker.AbsolutePosition.X) / SatValPicker.AbsoluteSize.X, 0, 1)
-                            local relY = math.clamp((mouse.Y - SatValPicker.AbsolutePosition.Y) / SatValPicker.AbsoluteSize.Y, 0, 1)
-                            Sat = relX
-                            Val = 1 - relY
-                            updateColor()
-                        end
-                        
-                        update()
-                        
-                        local moveConn = mouse.Move:Connect(function()
-                            if dragging then update() end
-                        end)
-                        
-                        local releaseConn
-                        releaseConn = UserInputService.InputEnded:Connect(function(endInput)
-                            if endInput.UserInputType == Enum.UserInputType.MouseButton1 or endInput.UserInputType == Enum.UserInputType.Touch then
-                                dragging = false
-                                Library._colorpicker_dragging = false
-                                moveConn:Disconnect()
-                                releaseConn:Disconnect()
-                            end
-                        end)
-                    end
-                end)
-                
-                -- Hue slider input
-                HueSlider.InputBegan:Connect(function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                        Library._colorpicker_dragging = true
-                        local dragging = true
-                        
-                        local function update()
-                            local relY = math.clamp((mouse.Y - HueSlider.AbsolutePosition.Y) / HueSlider.AbsoluteSize.Y, 0, 1)
-                            Hue = relY
-                            updateColor()
-                        end
-                        
-                        update()
-                        
-                        local moveConn = mouse.Move:Connect(function()
-                            if dragging then update() end
-                        end)
-                        
-                        local releaseConn
-                        releaseConn = UserInputService.InputEnded:Connect(function(endInput)
-                            if endInput.UserInputType == Enum.UserInputType.MouseButton1 or endInput.UserInputType == Enum.UserInputType.Touch then
-                                dragging = false
-                                Library._colorpicker_dragging = false
-                                moveConn:Disconnect()
-                                releaseConn:Disconnect()
-                            end
-                        end)
+                UserInputService.InputEnded:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        draggingSatVal = false
+                        draggingHue = false
                     end
                 end)
                 
