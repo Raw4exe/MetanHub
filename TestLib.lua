@@ -294,30 +294,62 @@ end
 
 
 local Config = setmetatable({
+    _save_debounce = {},
     save = function(self: any, file_name: any, config: any)
-        local success_save, result = pcall(function()
-            local flags = HttpService:JSONEncode(config)
-            writefile('March/'..file_name..'.json', flags)
-        end)
-    
-        if not success_save then
-            warn('failed to save config', result)
+        -- Debounce save to prevent too frequent writes
+        if self._save_debounce[file_name] then
+            self._save_debounce[file_name]:Cancel()
         end
+        
+        self._save_debounce[file_name] = task.delay(0.5, function()
+            local success_save, result = pcall(function()
+                -- Ensure config structure exists
+                if not config then
+                    config = {
+                        _flags = {},
+                        _keybinds = {},
+                        _library = {}
+                    }
+                end
+                if not config._flags then config._flags = {} end
+                if not config._keybinds then config._keybinds = {} end
+                if not config._library then config._library = {} end
+                
+                local flags = HttpService:JSONEncode(config)
+                writefile('March/'..file_name..'.json', flags)
+            end)
+        
+            if not success_save then
+                warn('failed to save config', result)
+            end
+            
+            self._save_debounce[file_name] = nil
+        end)
+        
+        return true
     end,
     load = function(self: any, file_name: any, config: any)
         local success_load, result = pcall(function()
             if not isfile('March/'..file_name..'.json') then
-                self:save(file_name, config)
-        
-                return
+                local default_config = {
+                    _flags = {},
+                    _keybinds = {},
+                    _library = {}
+                }
+                self:save(file_name, default_config)
+                return default_config
             end
         
             local flags = readfile('March/'..file_name..'.json')
         
-            if not flags then
-                self:save(file_name, config)
-        
-                return
+            if not flags or flags == "" then
+                local default_config = {
+                    _flags = {},
+                    _keybinds = {},
+                    _library = {}
+                }
+                self:save(file_name, default_config)
+                return default_config
             end
 
             return HttpService:JSONDecode(flags)
@@ -325,6 +357,11 @@ local Config = setmetatable({
     
         if not success_load then
             warn('failed to load config', result)
+            result = {
+                _flags = {},
+                _keybinds = {},
+                _library = {}
+            }
         end
     
         if not result then
@@ -334,6 +371,11 @@ local Config = setmetatable({
                 _library = {}
             }
         end
+        
+        -- Ensure structure
+        if not result._flags then result._flags = {} end
+        if not result._keybinds then result._keybinds = {} end
+        if not result._library then result._library = {} end
     
         return result
     end
@@ -2499,6 +2541,12 @@ function Library:create_ui()
                                     end
                                     object.TextTransparency = isSelected and 0.2 or 0.6
                                 end
+                            end
+                            -- Call callback with saved values on initialization
+                            if settings.callback then
+                                task.spawn(function()
+                                    settings.callback(saved)
+                                end)
                             end
                         else
                             CurrentOption.Text = SelectedLanguage.DropdownNone or "None"
