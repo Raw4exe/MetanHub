@@ -231,10 +231,32 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
     workarea.Name = "workarea"
     workarea.Parent = main
     workarea.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    workarea.Position = UDim2.new(0, 0, 0.1, 0)
-    workarea.Size = UDim2.new(1, 0, 0.9, 0)
+    workarea.Position = UDim2.new(0, 0, 0.15, 0)
+    workarea.Size = UDim2.new(1, 0, 0.85, 0)
     workarea.BackgroundTransparency = 1
     workarea.BorderSizePixel = 0
+    
+    -- Tab bar at top
+    local tabBar = Instance.new("Frame")
+    tabBar.Name = "tabBar"
+    tabBar.Parent = main
+    tabBar.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    tabBar.BackgroundTransparency = 0.3
+    tabBar.Position = UDim2.new(0, 0, 0.1, 0)
+    tabBar.Size = UDim2.new(1, 0, 0.05, 0)
+    tabBar.BorderSizePixel = 0
+    
+    local tabBarLayout = Instance.new("UIListLayout")
+    tabBarLayout.Parent = tabBar
+    tabBarLayout.FillDirection = Enum.FillDirection.Horizontal
+    tabBarLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+    tabBarLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    tabBarLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+    tabBarLayout.Padding = UDim.new(0, 5)
+    
+    local tabBarPadding = Instance.new("UIPadding")
+    tabBarPadding.Parent = tabBar
+    tabBarPadding.PaddingLeft = UDim.new(0, 10)
     -- Simple text buttons
 
     local buttons = Instance.new("Frame")
@@ -484,8 +506,33 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
         -- Divider removed - no sidebar
     end
 
-    function window:Section(name)
-        -- No sidebar buttons needed
+    function window:Section(name, icon)
+        -- Create tab button with icon
+        local tabButton = Instance.new("TextButton")
+        tabButton.Name = "tabButton_" .. name
+        tabButton.Parent = tabBar
+        tabButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        tabButton.BackgroundTransparency = 0.5
+        tabButton.Size = UDim2.new(0, 35, 0, 35)
+        tabButton.AutoButtonColor = false
+        tabButton.Text = ""
+        tabButton.ZIndex = 3
+        
+        local tabCorner = Instance.new("UICorner")
+        tabCorner.CornerRadius = UDim.new(0, 8)
+        tabCorner.Parent = tabButton
+        
+        local tabIcon = Instance.new("ImageLabel")
+        tabIcon.Name = "icon"
+        tabIcon.Parent = tabButton
+        tabIcon.BackgroundTransparency = 1
+        tabIcon.Position = UDim2.new(0.5, 0, 0.5, 0)
+        tabIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+        tabIcon.Size = UDim2.new(0, 20, 0, 20)
+        tabIcon.Image = icon or "rbxassetid://12608259004"
+        tabIcon.ImageColor3 = Color3.fromRGB(95, 95, 95)
+        tabIcon.ScaleType = Enum.ScaleType.Fit
+        tabIcon.ZIndex = 4
         
         local workareamain = Instance.new("ScrollingFrame")
         workareamain.Name = "workareamain"
@@ -499,7 +546,7 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
         workareamain.ZIndex = 3
         workareamain.CanvasSize = UDim2.new(0, 0, 0, 0)
         workareamain.ScrollBarThickness = 2
-        workareamain.Visible = true
+        workareamain.Visible = false
 
         local ull = Instance.new("UIListLayout")
         ull.Parent = workareamain
@@ -513,14 +560,51 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
         end)
     
         table.insert(workareas, workareamain)
-
-        local sec = {}
-        function sec:Select()
-            -- Auto-visible, no switching needed
+        
+        -- Tab button click handler
+        tabButton.MouseButton1Click:Connect(function()
+            -- Hide all workareas
             for b, v in next, workareas do
                 v.Visible = false
             end
+            -- Reset all tab buttons
+            for _, btn in next, tabBar:GetChildren() do
+                if btn:IsA("TextButton") then
+                    btn.BackgroundTransparency = 0.5
+                    local ic = btn:FindFirstChild("icon")
+                    if ic then
+                        ic.ImageColor3 = Color3.fromRGB(95, 95, 95)
+                    end
+                end
+            end
+            -- Show selected workarea
             workareamain.Visible = true
+            -- Highlight selected tab
+            tabButton.BackgroundTransparency = 0.2
+            tabIcon.ImageColor3 = Color3.fromRGB(21, 103, 251)
+        end)
+
+        local sec = {}
+        function sec:Select()
+            -- Hide all workareas
+            for b, v in next, workareas do
+                v.Visible = false
+            end
+            -- Reset all tab buttons
+            for _, btn in next, tabBar:GetChildren() do
+                if btn:IsA("TextButton") then
+                    btn.BackgroundTransparency = 0.5
+                    local ic = btn:FindFirstChild("icon")
+                    if ic then
+                        ic.ImageColor3 = Color3.fromRGB(95, 95, 95)
+                    end
+                end
+            end
+            -- Show this workarea
+            workareamain.Visible = true
+            -- Highlight this tab
+            tabButton.BackgroundTransparency = 0.2
+            tabIcon.ImageColor3 = Color3.fromRGB(21, 103, 251)
         end
         function sec:Divider(name)
             local section = Instance.new("TextLabel")
