@@ -122,8 +122,9 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
     topNav.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     topNav.BackgroundTransparency = 0.150
     topNav.Position = UDim2.new(0.5, 0, 0, 10)
-    topNav.Size = UDim2.new(0, 0, 0, 50)
+    topNav.Size = UDim2.new(0, 100, 0, 50)
     topNav.ZIndex = 5
+    topNav.Visible = true
     
     local topNavCorner = Instance.new("UICorner")
     topNavCorner.CornerRadius = UDim.new(0, 12)
@@ -145,8 +146,14 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
     topNavPadding.PaddingBottom = UDim.new(0, 8)
     
     -- Auto-resize topNav based on content
-    topNavLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        topNav.Size = UDim2.new(0, topNavLayout.AbsoluteContentSize.X + 20, 0, 50)
+    task.spawn(function()
+        while topNav and topNav.Parent do
+            task.wait(0.1)
+            local contentSize = topNavLayout.AbsoluteContentSize.X + 20
+            if contentSize > 50 then
+                topNav.Size = UDim2.new(0, contentSize, 0, 50)
+            end
+        end
     end)
 
     local UserInputService = game:GetService("UserInputService")
@@ -341,6 +348,78 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
     end
        tp(main, UDim2.new(0.5, 0, 0.5, 0), 1)
     window = {}
+    
+    -- Config system
+    local configData = {}
+    local autoloadConfig = nil
+    
+    function window:SaveConfig(configName)
+        if not configName or configName == "" then
+            window:TempNotify("Error", "Config name cannot be empty", "rbxassetid://12608259004")
+            return false
+        end
+        
+        local success, err = pcall(function()
+            local jsonData = game:GetService("HttpService"):JSONEncode(configData)
+            writefile(configName .. ".json", jsonData)
+        end)
+        
+        if success then
+            window:TempNotify("Success", "Config saved: " .. configName, "rbxassetid://12608259004")
+            return true
+        else
+            window:TempNotify("Error", "Failed to save config", "rbxassetid://12608259004")
+            return false
+        end
+    end
+    
+    function window:LoadConfig(configName)
+        if not configName or configName == "" then
+            window:TempNotify("Error", "Config name cannot be empty", "rbxassetid://12608259004")
+            return false
+        end
+        
+        local success, err = pcall(function()
+            if isfile(configName .. ".json") then
+                local jsonData = readfile(configName .. ".json")
+                configData = game:GetService("HttpService"):JSONDecode(jsonData)
+                window:TempNotify("Success", "Config loaded: " .. configName, "rbxassetid://12608259004")
+            else
+                window:TempNotify("Error", "Config not found: " .. configName, "rbxassetid://12608259004")
+            end
+        end)
+        
+        return success
+    end
+    
+    function window:SetAutoload(configName)
+        autoloadConfig = configName
+        writefile("autoload.txt", configName)
+        window:TempNotify("Success", "Autoload set: " .. configName, "rbxassetid://12608259004")
+    end
+    
+    function window:RemoveAutoload()
+        autoloadConfig = nil
+        if isfile("autoload.txt") then
+            delfile("autoload.txt")
+        end
+        window:TempNotify("Success", "Autoload removed", "rbxassetid://12608259004")
+    end
+    
+    function window:GetAutoload()
+        if isfile("autoload.txt") then
+            return readfile("autoload.txt")
+        end
+        return nil
+    end
+    
+    function window:SetConfigValue(key, value)
+        configData[key] = value
+    end
+    
+    function window:GetConfigValue(key)
+        return configData[key]
+    end
 
     function window:ToggleVisible()
         if dbcooper then return end
@@ -400,6 +479,48 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
         if callback then
             callback()
         end
+    end
+    
+    function window:CreateConfigTab()
+        local configSection = window:Section("Config", "rbxassetid://12621719043")
+        
+        configSection:Divider("Save/Load Config")
+        
+        local configNameInput = ""
+        configSection:TextField("Config Name", "Enter config name...", function(text)
+            configNameInput = text
+        end)
+        
+        configSection:Button("Save Config", function()
+            window:SaveConfig(configNameInput)
+        end)
+        
+        configSection:Button("Load Config", function()
+            window:LoadConfig(configNameInput)
+        end)
+        
+        configSection:Divider("Autoload")
+        
+        local currentAutoload = window:GetAutoload()
+        if currentAutoload then
+            configSection:Label("Current autoload: " .. currentAutoload)
+        else
+            configSection:Label("No autoload set")
+        end
+        
+        configSection:Button("Set as Autoload", function()
+            if configNameInput ~= "" then
+                window:SetAutoload(configNameInput)
+            else
+                window:TempNotify("Error", "Enter config name first", "rbxassetid://12608259004")
+            end
+        end)
+        
+        configSection:Button("Remove Autoload", function()
+            window:RemoveAutoload()
+        end)
+        
+        return configSection
     end
 
     function window:TempNotify(text1, text2, icon)
