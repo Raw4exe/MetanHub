@@ -23,16 +23,28 @@ getgenv().GG = {
 local SelectedLanguage = GG.Language
 
 function convertStringToTable(inputString)
+    if typeof(inputString) == "table" then
+        return inputString
+    end
+    if typeof(inputString) ~= "string" then
+        return {}
+    end
     local result = {}
     for value in string.gmatch(inputString, "([^,]+)") do
         local trimmedValue = value:match("^%s*(.-)%s*$")
-        tablein(result, trimmedValue)
+        table.insert(result, trimmedValue)
     end
 
     return result
 end
 
 function convertTableToString(inputTable)
+    if typeof(inputTable) == "string" then
+        return inputTable
+    end
+    if typeof(inputTable) ~= "table" then
+        return ""
+    end
     return table.concat(inputTable, ", ")
 end
 
