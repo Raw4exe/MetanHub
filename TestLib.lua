@@ -498,7 +498,6 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
         workareamain.Size = UDim2.new(1, -20, 1, -20)
         workareamain.ZIndex = 3
         workareamain.CanvasSize = UDim2.new(0, 0, 0, 0)
-        workareamain.AutomaticCanvasSize = Enum.AutomaticSize.Y
         workareamain.ScrollBarThickness = 2
         workareamain.Visible = true
 
@@ -507,6 +506,11 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
         ull.HorizontalAlignment = Enum.HorizontalAlignment.Center
         ull.SortOrder = Enum.SortOrder.LayoutOrder
         ull.Padding = UDim.new(0, 5)
+        
+        -- Auto-resize canvas based on content
+        ull:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+            workareamain.CanvasSize = UDim2.new(0, 0, 0, ull.AbsoluteContentSize.Y + 10)
+        end)
     
         table.insert(workareas, workareamain)
 
