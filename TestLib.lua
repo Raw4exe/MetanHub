@@ -849,7 +849,7 @@ function Library:CreateModule(tab, options)
     module.section = options.section == "right" and tab.rightSection or tab.leftSection
     module.state = self.config:GetFlag(module.flag, false)
     module.elements = {}
-    module.elementHeight = 0
+    module.elementHeight = 8  -- Initial padding
     module.multiplier = 0
     
     -- Create module frame
@@ -1050,8 +1050,9 @@ function Library:CreateModule(tab, options)
             }, 0.5)
         end
         
-        local newSize = module.state and (93 + module.elementHeight + 8) or 93
+        local newSize = module.state and (93 + module.elementHeight + module.multiplier) or 93
         Tween(moduleFrame, {Size = UDim2.new(0, 241, 0, newSize)}, 0.5)
+        Tween(optionsFrame, {Size = UDim2.new(0, 241, 0, module.elementHeight + module.multiplier)}, 0.5)
         
         task.spawn(function()
             module.callback(state)
