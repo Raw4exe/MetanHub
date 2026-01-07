@@ -2748,6 +2748,7 @@ function Library:create_ui()
                 PickerPanel.BackgroundColor3 = Color3.fromRGB(22, 28, 38)
                 PickerPanel.Visible = false
                 PickerPanel.ZIndex = 10
+                PickerPanel.Active = true
                 PickerPanel.Parent = ColorpickerFrame
                 
                 local PanelCorner = Instance.new("UICorner")
@@ -2766,6 +2767,7 @@ function Library:create_ui()
                 SatValPicker.Image = "rbxassetid://4155801252"
                 SatValPicker.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
                 SatValPicker.ZIndex = 11
+                SatValPicker.Active = true
                 SatValPicker.Parent = PickerPanel
                 
                 local SatValCorner = Instance.new("UICorner")
@@ -2789,6 +2791,7 @@ function Library:create_ui()
                 HueSlider.Size = UDim2.new(0, 20, 0, 80)
                 HueSlider.Position = UDim2.new(0, 170, 0, 10)
                 HueSlider.ZIndex = 11
+                HueSlider.Active = true
                 HueSlider.Parent = PickerPanel
                 
                 local HueCorner = Instance.new("UICorner")
