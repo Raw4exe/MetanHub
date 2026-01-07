@@ -291,13 +291,16 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
     end
 
     function window:TempNotify(text1, text2, icon)
-        -- Сдвигаем все существующие нотификации вниз на 65px
+        -- Считаем количество существующих нотификаций
+        local notifCount = 0
         for b,v in next, scrgui:GetChildren() do
             if v.Name == "tempnotif" then 
-                local currentY = v.Position.Y.Offset
-                v:TweenPosition(UDim2.new(1, -10, 0, currentY + 65), "InOut", "Quart", 0.3, true)
+                notifCount = notifCount + 1
             end
         end
+        
+        -- Вычисляем Y-позицию для новой нотификации
+        local newYPos = 10 + (notifCount * 65)
         
         local tempnotif = Instance.new("Frame")
         tempnotif.Name = "tempnotif"
@@ -305,7 +308,7 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
         tempnotif.AnchorPoint = Vector2.new(1, 0)
         tempnotif.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
         tempnotif.BackgroundTransparency = 0.150
-        tempnotif.Position = UDim2.new(1, 300, 0, 10) -- Начинаем справа за экраном, 10px сверху
+        tempnotif.Position = UDim2.new(1, 300, 0, newYPos) -- Начинаем справа за экраном на правильной высоте
         tempnotif.Size = UDim2.new(0, 220, 0, 55)
         tempnotif.Visible = true
         tempnotif.ZIndex = 4
@@ -370,7 +373,7 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
         tshadow.TileSize = UDim2.new(0, 1, 0, 1)
         
         -- Анимация появления справа (въезжает влево) - отступ 10px от правого края
-        tempnotif:TweenPosition(UDim2.new(1, -10, 0, 10), "InOut", "Quart", 0.5, true)
+        tempnotif:TweenPosition(UDim2.new(1, -10, 0, newYPos), "InOut", "Quart", 0.5, true)
         
         -- Удаление через 5 секунд с анимацией
         task.spawn(function()
