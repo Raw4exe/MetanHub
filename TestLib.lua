@@ -294,7 +294,7 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
         -- Сдвигаем все существующие нотификации вниз
         for b,v in next, scrgui:GetChildren() do
             if v.Name == "tempnotif" then 
-                v:TweenPosition(v.Position + UDim2.new(0,0,0,87), "InOut", "Quart", 0.3, true)
+                v:TweenPosition(v.Position + UDim2.new(0,0,0,65), "InOut", "Quart", 0.3, true)
             end
         end
         
@@ -305,12 +305,12 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
         tempnotif.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
         tempnotif.BackgroundTransparency = 0.150
         tempnotif.Position = UDim2.new(1, 50, 0, 10) -- Начинаем справа за экраном
-        tempnotif.Size = UDim2.new(0, 298, 0, 78)
+        tempnotif.Size = UDim2.new(0, 220, 0, 55)
         tempnotif.Visible = true
         tempnotif.ZIndex = 4
 
         local uc_21 = Instance.new("UICorner")
-        uc_21.CornerRadius = UDim.new(0, 12)
+        uc_21.CornerRadius = UDim.new(0, 8)
         uc_21.Parent = tempnotif
 
         local t2 = Instance.new("TextLabel")
@@ -318,13 +318,13 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
         t2.Parent = tempnotif
         t2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
         t2.BackgroundTransparency = 1
-        t2.Position = UDim2.new(0.236927822, 0, 0.470085472, 0)
-        t2.Size = UDim2.new(0, 217, 0, 35)
+        t2.Position = UDim2.new(0.25, 0, 0.5, 0)
+        t2.Size = UDim2.new(0, 155, 0, 25)
         t2.ZIndex = 4
         t2.Font = Enum.Font.Gotham
         t2.Text = text2
         t2.TextColor3 = Color3.fromRGB(95, 95, 95)
-        t2.TextSize = 11
+        t2.TextSize = 9
         t2.TextWrapped = true
         t2.TextXAlignment = Enum.TextXAlignment.Left
         t2.TextYAlignment = Enum.TextYAlignment.Top
@@ -334,13 +334,13 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
         t1.Parent = tempnotif
         t1.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
         t1.BackgroundTransparency = 1
-        t1.Position = UDim2.new(0.234690696, 0, 0.193464488, 0)
-        t1.Size = UDim2.new(0, 218, 0, 17)
+        t1.Position = UDim2.new(0.25, 0, 0.15, 0)
+        t1.Size = UDim2.new(0, 155, 0, 15)
         t1.ZIndex = 4
-        t1.Font = Enum.Font.GothamMedium
+        t1.Font = Enum.Font.GothamBold
         t1.Text = text1
         t1.TextColor3 = Color3.fromRGB(95, 95, 95)
-        t1.TextSize = 19
+        t1.TextSize = 12
         t1.TextXAlignment = Enum.TextXAlignment.Left
 
         local ticon = Instance.new("ImageLabel")
@@ -348,8 +348,8 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
         ticon.Parent = tempnotif
         ticon.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
         ticon.BackgroundTransparency = 1
-        ticon.Position = UDim2.new(0.0311112702, 0, 0.193464488, 0)
-        ticon.Size = UDim2.new(0, 47, 0, 47)
+        ticon.Position = UDim2.new(0.05, 0, 0.2, 0)
+        ticon.Size = UDim2.new(0, 33, 0, 33)
         ticon.ZIndex = 4
         ticon.Image = icon
         ticon.ImageColor3 = Color3.fromRGB(95, 95, 95)
@@ -361,20 +361,20 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
         tshadow.AnchorPoint = Vector2.new(0.5, 0.5)
         tshadow.BackgroundTransparency = 1
         tshadow.Position = UDim2.new(0.5, 0, 0.5, 0)
-        tshadow.Size = UDim2.new(1.12, 0, 1.20000005, 0)
+        tshadow.Size = UDim2.new(1.15, 0, 1.25, 0)
         tshadow.ZIndex = 3
         tshadow.Image = "rbxassetid://313486536"
         tshadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
         tshadow.ImageTransparency = 0.400
         tshadow.TileSize = UDim2.new(0, 1, 0, 1)
         
-        -- Анимация появления справа
-        tempnotif:TweenPosition(UDim2.new(1, -308, 0, 10), "InOut", "Quart", 0.5, true)
+        -- Анимация появления справа (въезжает влево)
+        tempnotif:TweenPosition(UDim2.new(1, -230, 0, 10), "InOut", "Quart", 0.5, true)
         
         -- Удаление через 5 секунд с анимацией
         task.spawn(function()
             task.wait(5)
-            -- Анимация ухода вправо
+            -- Анимация ухода вправо (обратно откуда пришла)
             tempnotif:TweenPosition(UDim2.new(1, 50, 0, 10), "InOut", "Quart", 0.5, true)
             task.wait(0.5)
             tempnotif:Destroy()
@@ -642,3 +642,4 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
 end
 
 return lib
+
