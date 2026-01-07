@@ -1741,7 +1741,6 @@ function Library:CreateColorpicker(module, options)
     colorpicker.default = options.default or Color3.fromRGB(255, 255, 255)
     colorpicker.color = self.config:GetFlag(colorpicker.flag, colorpicker.default)
     colorpicker.callback = options.callback or function() end
-    colorpicker.open = false
     
     local h, s, v = colorpicker.color:ToHSV()
     colorpicker.hue = h
