@@ -2449,7 +2449,7 @@ function Library:create_ui()
                             DropdownManager:update(value, false)
                         end)
     
-                        if settings.max_options and index > settings.max_options then
+                        if index > settings.maximum_options then
                             continue
                         end
     
