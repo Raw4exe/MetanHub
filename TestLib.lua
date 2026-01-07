@@ -36,25 +36,43 @@ function ConfigManager.new(gameName)
     local self = setmetatable({}, ConfigManager)
     self.gameName = gameName or tostring(game.GameId)
     self.folderName = "MarchUI"
+    self.configsFolder = self.folderName .. "/Configs"
+    self.currentConfig = "default"
+    self.autoloadConfig = nil
     self.data = {
         flags = {},
         keybinds = {}
     }
-    self.saveDebounce = nil
-    self.saveDelay = 1
     
     if not isfolder(self.folderName) then
         makefolder(self.folderName)
     end
+    if not isfolder(self.configsFolder) then
+        makefolder(self.configsFolder)
+    end
     
+    self:LoadAutoloadSetting()
+    if self.autoloadConfig then
+        self.currentConfig = self.autoloadConfig
+    end
     self:Load()
     return self
 end
 
-function ConfigManager:Save()
+function ConfigManager:GetConfigPath(configName)
+    configName = configName or self.currentConfig
+    return self.configsFolder .. "/" .. self.gameName .. "_" .. configName .. ".json"
+end
+
+function ConfigManager:GetAutoloadPath()
+    return self.folderName .. "/" .. self.gameName .. "_autoload.txt"
+end
+
+function ConfigManager:Save(configName)
+    configName = configName or self.currentConfig
     local success, err = pcall(function()
         local json = HttpService:JSONEncode(self.data)
-        writefile(self.folderName .. "/" .. self.gameName .. ".json", json)
+        writefile(self:GetConfigPath(configName), json)
     end)
     
     if not success then
@@ -62,8 +80,12 @@ function ConfigManager:Save()
     end
 end
 
-function ConfigManager:Load()
-    local filePath = self.folderName .. "/" .. self.gameName .. ".json"
+function ConfigManager:Load(configName)
+    if configName then
+        self.currentConfig = configName
+    end
+    
+    local filePath = self:GetConfigPath()
     
     if not isfile(filePath) then
         self:Save()
@@ -88,18 +110,82 @@ function ConfigManager:Load()
     end
 end
 
+function ConfigManager:GetConfigList()
+    local configs = {}
+    local files = listfiles(self.configsFolder)
+    local pattern = self.gameName .. "_(.+)%.json"
+    
+    for _, file in ipairs(files) do
+        local fileName = file:match("([^/\\]+)$")
+        local configName = fileName:match(pattern)
+        if configName then
+            table.insert(configs, configName)
+        end
+    end
+    
+    if #configs == 0 then
+        table.insert(configs, "default")
+    end
+    
+    return configs
+end
+
+function ConfigManager:CreateConfig(configName)
+    if not configName or configName == "" then return false end
+    self.currentConfig = configName
+    self:Save()
+    return true
+end
+
+function ConfigManager:DeleteConfig(configName)
+    if not configName or configName == "" or configName == "default" then return false end
+    local filePath = self:GetConfigPath(configName)
+    if isfile(filePath) then
+        delfile(filePath)
+        if self.currentConfig == configName then
+            self.currentConfig = "default"
+            self:Load()
+        end
+        if self.autoloadConfig == configName then
+            self:DeleteAutoload()
+        end
+        return true
+    end
+    return false
+end
+
+function ConfigManager:SetAutoload(configName)
+    self.autoloadConfig = configName
+    writefile(self:GetAutoloadPath(), configName)
+end
+
+function ConfigManager:DeleteAutoload()
+    self.autoloadConfig = nil
+    local path = self:GetAutoloadPath()
+    if isfile(path) then
+        delfile(path)
+    end
+end
+
+function ConfigManager:LoadAutoloadSetting()
+    local path = self:GetAutoloadPath()
+    if isfile(path) then
+        local success, result = pcall(function()
+            return readfile(path)
+        end)
+        if success and result then
+            self.autoloadConfig = result
+        end
+    end
+end
+
+function ConfigManager:GetAutoload()
+    return self.autoloadConfig
+end
+
 function ConfigManager:SetFlag(flag, value)
     if not flag then return end
     self.data.flags[flag] = value
-    
-    if self.saveDebounce then
-        task.cancel(self.saveDebounce)
-    end
-    
-    self.saveDebounce = task.delay(self.saveDelay, function()
-        self:Save()
-        self.saveDebounce = nil
-    end)
 end
 
 function ConfigManager:GetFlag(flag, default)
@@ -125,6 +211,44 @@ end
 local Library = {}
 Library.__index = Library
 
+Library.Themes = {
+    Default = {
+        Primary = Color3.fromRGB(152, 181, 255),
+        Background = Color3.fromRGB(12, 13, 15),
+        Secondary = Color3.fromRGB(22, 28, 38),
+        Accent = Color3.fromRGB(52, 66, 89),
+        Text = Color3.fromRGB(255, 255, 255)
+    },
+    Dark = {
+        Primary = Color3.fromRGB(100, 100, 255),
+        Background = Color3.fromRGB(10, 10, 10),
+        Secondary = Color3.fromRGB(20, 20, 20),
+        Accent = Color3.fromRGB(40, 40, 40),
+        Text = Color3.fromRGB(255, 255, 255)
+    },
+    Purple = {
+        Primary = Color3.fromRGB(200, 100, 255),
+        Background = Color3.fromRGB(15, 10, 20),
+        Secondary = Color3.fromRGB(25, 20, 35),
+        Accent = Color3.fromRGB(50, 40, 70),
+        Text = Color3.fromRGB(255, 255, 255)
+    },
+    Green = {
+        Primary = Color3.fromRGB(100, 255, 150),
+        Background = Color3.fromRGB(10, 15, 12),
+        Secondary = Color3.fromRGB(20, 28, 22),
+        Accent = Color3.fromRGB(40, 66, 52),
+        Text = Color3.fromRGB(255, 255, 255)
+    },
+    Red = {
+        Primary = Color3.fromRGB(255, 100, 100),
+        Background = Color3.fromRGB(15, 10, 10),
+        Secondary = Color3.fromRGB(28, 20, 20),
+        Accent = Color3.fromRGB(66, 40, 40),
+        Text = Color3.fromRGB(255, 255, 255)
+    }
+}
+
 function Library.new()
     local self = setmetatable({}, Library)
     
@@ -133,10 +257,65 @@ function Library.new()
     self.currentTab = nil
     self.choosingKeybind = false
     self.connections = {}
+    self.currentTheme = self.Themes.Default
+    self.uiVisible = true
+    self.uiKeybind = nil
     
     self:CreateUI()
+    self:SetupUIKeybind()
     
     return self
+end
+
+function Library:SetupUIKeybind()
+    local savedKeybind = self.config:GetKeybind("_UI_Toggle")
+    if savedKeybind then
+        self.uiKeybind = savedKeybind
+        table.insert(self.connections, UserInputService.InputBegan:Connect(function(input, gameProcessed)
+            if gameProcessed then return end
+            if tostring(input.KeyCode) == savedKeybind then
+                self:ToggleUI()
+            end
+        end))
+    end
+end
+
+function Library:SetUIKeybind(keycode)
+    self.uiKeybind = keycode
+    self.config:SetKeybind("_UI_Toggle", keycode)
+    for i = #self.connections, 1, -1 do
+        local conn = self.connections[i]
+        if conn and typeof(conn) == "RBXScriptConnection" then
+            conn:Disconnect()
+            table.remove(self.connections, i)
+        end
+    end
+    if keycode then
+        table.insert(self.connections, UserInputService.InputBegan:Connect(function(input, gameProcessed)
+            if gameProcessed then return end
+            if tostring(input.KeyCode) == keycode then
+                self:ToggleUI()
+            end
+        end))
+    end
+end
+
+function Library:ToggleUI()
+    self.uiVisible = not self.uiVisible
+    if self.uiVisible then
+        self.ui.Enabled = true
+        Tween(self.container, {Size = UDim2.new(0, 698, 0, 479)}, 0.3)
+    else
+        Tween(self.container, {Size = UDim2.new(0, 0, 0, 0)}, 0.3)
+        task.wait(0.3)
+        self.ui.Enabled = false
+    end
+end
+
+function Library:SetTheme(themeName)
+    local theme = self.Themes[themeName]
+    if not theme then return end
+    self.currentTheme = theme
 end
 
 function Library:CreateUI()
@@ -518,6 +697,150 @@ function Library:SelectTab(tab)
             Tween(label.UIGradient, {Offset = Vector2.new(0, 0)}, 0.5)
         end
     end
+end
+
+function Library:CreateSettingsTab()
+    local settingsTab = self:CreateTab("Settings", "rbxassetid://7733955511")
+    
+    local configModule = settingsTab:CreateModule({
+        title = "Config Manager",
+        description = "Manage your configurations",
+        section = "left"
+    })
+    
+    local configNameBox
+    local configList
+    local autoloadStatus
+    
+    local function UpdateConfigList()
+        local configs = self.config:GetConfigList()
+        if configList then
+            configList.SetValue(configs)
+        end
+    end
+    
+    local function UpdateAutoloadStatus()
+        local autoload = self.config:GetAutoload()
+        if autoloadStatus then
+            autoloadStatus.SetText(autoload and ("Autoload: " .. autoload) or "Autoload: None")
+        end
+    end
+    
+    configList = configModule:CreateDropdown({
+        title = "Select Config",
+        options = self.config:GetConfigList(),
+        callback = function(value)
+            if value then
+                self.config:Load(value)
+                print("Loaded config:", value)
+            end
+        end
+    })
+    
+    autoloadStatus = configModule:CreateTextbox({
+        title = "Autoload Status",
+        default = self.config:GetAutoload() and ("Autoload: " .. self.config:GetAutoload()) or "Autoload: None",
+        placeholder = "No autoload set"
+    })
+    autoloadStatus.textboxFrame.TextEditable = false
+    
+    configNameBox = configModule:CreateTextbox({
+        title = "Config Name",
+        placeholder = "Enter config name..."
+    })
+    
+    configModule:CreateButton({
+        title = "Create Config",
+        callback = function()
+            local name = configNameBox.text
+            if name and name ~= "" then
+                if self.config:CreateConfig(name) then
+                    print("Created config:", name)
+                    UpdateConfigList()
+                else
+                    warn("Failed to create config")
+                end
+            else
+                warn("Please enter a config name")
+            end
+        end
+    })
+    
+    configModule:CreateButton({
+        title = "Save Config",
+        callback = function()
+            self.config:Save()
+            print("Saved config:", self.config.currentConfig)
+        end
+    })
+    
+    configModule:CreateButton({
+        title = "Delete Config",
+        callback = function()
+            local name = configNameBox.text
+            if name and name ~= "" and name ~= "default" then
+                if self.config:DeleteConfig(name) then
+                    print("Deleted config:", name)
+                    UpdateConfigList()
+                    UpdateAutoloadStatus()
+                else
+                    warn("Failed to delete config")
+                end
+            else
+                warn("Cannot delete default config or invalid name")
+            end
+        end
+    })
+    
+    configModule:CreateButton({
+        title = "Set as Autoload",
+        callback = function()
+            local name = configNameBox.text
+            if name and name ~= "" then
+                self.config:SetAutoload(name)
+                print("Set autoload:", name)
+                UpdateAutoloadStatus()
+            else
+                warn("Please enter a config name")
+            end
+        end
+    })
+    
+    configModule:CreateButton({
+        title = "Delete Autoload",
+        callback = function()
+            self.config:DeleteAutoload()
+            print("Removed autoload")
+            UpdateAutoloadStatus()
+        end
+    })
+    
+    local uiModule = settingsTab:CreateModule({
+        title = "UI Settings",
+        description = "Customize your UI",
+        section = "right"
+    })
+    
+    uiModule:CreateKeybind({
+        title = "Toggle UI",
+        default = self.config:GetKeybind("_UI_Toggle"),
+        callback = function(key)
+            self:SetUIKeybind(key)
+            print("UI Keybind set to:", key)
+        end
+    })
+    
+    uiModule:CreateDropdown({
+        title = "Theme",
+        options = {"Default", "Dark", "Purple", "Green", "Red"},
+        default = "Default",
+        callback = function(theme)
+            self:SetTheme(theme)
+            print("Theme changed to:", theme)
+        end
+    })
+    
+    return settingsTab
 end
 
 function Library:CreateModule(tab, options)
@@ -1193,7 +1516,56 @@ function Library:CreateDropdown(module, options)
         end
     end)
     UpdateText()
-    dropdown.SetValue = function(value) dropdown.selected = value UpdateText() end
+    dropdown.SetValue = function(newOptions)
+        if type(newOptions) == "table" then
+            for _, child in ipairs(optionsFrame:GetChildren()) do
+                if child:IsA("TextButton") then
+                    child:Destroy()
+                end
+            end
+            dropdown.options = newOptions
+            dropdown.maxVisible = math.min(#newOptions, 5)
+            for _, option in ipairs(newOptions) do
+                local optionButton = Instance.new("TextButton")
+                optionButton.Name = option
+                optionButton.Size = UDim2.new(1, -4, 0, 20)
+                optionButton.BackgroundColor3 = Color3.fromRGB(32, 38, 51)
+                optionButton.BackgroundTransparency = 0.5
+                optionButton.BorderSizePixel = 0
+                optionButton.Text = ""
+                optionButton.AutoButtonColor = false
+                optionButton.Parent = optionsFrame
+                local optionCorner = Instance.new("UICorner")
+                optionCorner.CornerRadius = UDim.new(0, 3)
+                optionCorner.Parent = optionButton
+                local optionLabel = Instance.new("TextLabel")
+                optionLabel.Text = option
+                optionLabel.Font = Enum.Font.GothamBold
+                optionLabel.TextSize = 10
+                optionLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+                optionLabel.TextTransparency = 0.3
+                optionLabel.TextXAlignment = Enum.TextXAlignment.Left
+                optionLabel.Size = UDim2.new(1, -8, 1, 0)
+                optionLabel.Position = UDim2.new(0, 8, 0, 0)
+                optionLabel.BackgroundTransparency = 1
+                optionLabel.Parent = optionButton
+                optionButton.MouseButton1Click:Connect(function()
+                    Toggle(option)
+                    if not dropdown.multi then
+                        dropdown.open = false
+                        optionsFrame.Visible = false
+                        Tween(dropdownFrame, {Size = UDim2.new(0, 207, 0, 39)}, 0.3)
+                        Tween(arrow, {Rotation = 0}, 0.3)
+                        local newModuleSize = 93 + module.elementHeight + 8
+                        Tween(module.frame, {Size = UDim2.new(0, 241, 0, newModuleSize)}, 0.3)
+                    end
+                end)
+            end
+        else
+            dropdown.selected = newOptions
+            UpdateText()
+        end
+    end
     table.insert(module.elements, dropdown)
     return dropdown
 end
@@ -1238,6 +1610,11 @@ function Library:CreateTextbox(module, options)
         self.config:SetFlag(textbox.flag, textbox.text)
         task.spawn(function() textbox.callback(textbox.text) end)
     end)
+    textbox.SetText = function(text)
+        textbox.text = text
+        textboxFrame.Text = text
+    end
+    textbox.textboxFrame = textboxFrame
     table.insert(module.elements, textbox)
     return textbox
 end
