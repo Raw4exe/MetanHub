@@ -2569,9 +2569,24 @@ function Library:create_ui()
                 else
                     -- For single dropdown
                     if Library:flag_type(settings.flag, 'string') then
-                        DropdownManager:update(Library._config._flags[settings.flag], true)
+                        local savedValue = Library._config._flags[settings.flag]
+                        DropdownManager:update(savedValue, true)
+                        -- Call callback on initialization with saved value
+                        if settings.callback then
+                            task.spawn(function()
+                                task.wait(0.05)
+                                settings.callback(savedValue)
+                            end)
+                        end
                     else
                         DropdownManager:update(settings.options[1], true)
+                        -- Call callback on initialization with first option
+                        if settings.callback then
+                            task.spawn(function()
+                                task.wait(0.05)
+                                settings.callback(settings.options[1])
+                            end)
+                        end
                     end
                 end
     
