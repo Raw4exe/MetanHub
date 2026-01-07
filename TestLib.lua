@@ -307,7 +307,7 @@ function Config.new()
     return self
 end
 
-function ConfigManager:save(file_name, config)
+function Config:save(file_name, config)
     -- Mark save as pending
     self._save_pending = true
     
