@@ -2119,11 +2119,10 @@ function Library:create_ui()
                         Size = UDim2.fromOffset(slider_size, Drag.Size.Y.Offset)
                     }):Play()
     
-                    if not isInitialLoad then
-                        task.spawn(function()
-                            settings.callback(number_threshold)
-                        end)
-                    end
+                    -- Always call callback to update values
+                    task.spawn(function()
+                        settings.callback(number_threshold)
+                    end)
                 end
 
                 function SliderManager:update()
@@ -3023,6 +3022,13 @@ function Library:create_ui()
                     SatValCursor.Position = UDim2.new(Sat, 0, 1 - Val, 0)
                     HueCursor.Position = UDim2.new(0, -2, Hue, 0)
                     HexInput.Text = "#" .. ColorpickerManager._color:ToHex()
+                    
+                    -- Call callback with loaded color
+                    if settings.callback then
+                        task.spawn(function()
+                            settings.callback(ColorpickerManager._color)
+                        end)
+                    end
                 end
                 
                 -- Open popup
