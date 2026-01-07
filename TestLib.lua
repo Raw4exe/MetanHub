@@ -11,6 +11,7 @@ local RunService = game:GetService('RunService')
 local Players = game:GetService('Players')
 local CoreGui = game:GetService('CoreGui')
 local HttpService = game:GetService('HttpService')
+local TextService = game:GetService('TextService')
 
 -- Utility Functions
 local function Tween(object, properties, duration, style, direction)
