@@ -2902,9 +2902,8 @@ function Library:create_ui()
                         local dragging = true
                         
                         local function update()
-                            local mousePos = UserInputService:GetMouseLocation()
-                            local relX = math.clamp((mousePos.X - SatValPicker.AbsolutePosition.X) / SatValPicker.AbsoluteSize.X, 0, 1)
-                            local relY = math.clamp((mousePos.Y - SatValPicker.AbsolutePosition.Y) / SatValPicker.AbsoluteSize.Y, 0, 1)
+                            local relX = math.clamp((mouse.X - SatValPicker.AbsolutePosition.X) / SatValPicker.AbsoluteSize.X, 0, 1)
+                            local relY = math.clamp((mouse.Y - SatValPicker.AbsolutePosition.Y) / SatValPicker.AbsoluteSize.Y, 0, 1)
                             Sat = relX
                             Val = 1 - relY
                             updateColor()
@@ -2933,8 +2932,7 @@ function Library:create_ui()
                         local dragging = true
                         
                         local function update()
-                            local mousePos = UserInputService:GetMouseLocation()
-                            local relY = math.clamp((mousePos.Y - HueSlider.AbsolutePosition.Y) / HueSlider.AbsoluteSize.Y, 0, 1)
+                            local relY = math.clamp((mouse.Y - HueSlider.AbsolutePosition.Y) / HueSlider.AbsoluteSize.Y, 0, 1)
                             Hue = relY
                             updateColor()
                         end
