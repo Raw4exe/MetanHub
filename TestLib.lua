@@ -2120,9 +2120,17 @@ function Library:create_ui()
                     }):Play()
     
                     -- Always call callback to update values
-                    task.spawn(function()
-                        settings.callback(number_threshold)
-                    end)
+                    if isInitialLoad then
+                        -- Small delay for initial load to ensure everything is ready
+                        task.spawn(function()
+                            task.wait(0.05)
+                            settings.callback(number_threshold)
+                        end)
+                    else
+                        task.spawn(function()
+                            settings.callback(number_threshold)
+                        end)
+                    end
                 end
 
                 function SliderManager:update()
