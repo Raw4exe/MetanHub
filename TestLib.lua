@@ -293,90 +293,93 @@ function AcrylicBlur:change_visiblity(state: boolean)
 end
 
 
-local Config = setmetatable({
-    _save_queue = {},
-    save = function(self: any, file_name: any, config: any)
-        -- Store config in queue
-        self._save_queue[file_name] = config
-        
-        -- Save immediately (the actual debounce happens in a separate loop)
-        local success_save, result = pcall(function()
-            -- Ensure config structure exists
-            if not config then
-                config = {
-                    _flags = {},
-                    _keybinds = {},
-                    _library = {}
-                }
-            end
-            if not config._flags then config._flags = {} end
-            if not config._keybinds then config._keybinds = {} end
-            if not config._library then config._library = {} end
-            
-            local flags = HttpService:JSONEncode(config)
-            writefile('March/'..file_name..'.json', flags)
-        end)
-    
-        if not success_save then
-            warn('failed to save config', result)
-        end
-        
-        return success_save
-    end,
-    load = function(self: any, file_name: any, config: any)
-        local success_load, result = pcall(function()
-            if not isfile('March/'..file_name..'.json') then
-                local default_config = {
-                    _flags = {},
-                    _keybinds = {},
-                    _library = {}
-                }
-                return default_config
-            end
-        
-            local flags = readfile('March/'..file_name..'.json')
-        
-            if not flags or flags == "" then
-                local default_config = {
-                    _flags = {},
-                    _keybinds = {},
-                    _library = {}
-                }
-                return default_config
-            end
+-- NEW CONFIG SYSTEM WITH AUTO-SAVE
+local Config = {}
+Config.__index = Config
 
-            return HttpService:JSONDecode(flags)
-        end)
+-- Config state
+Config._save_pending = false
+Config._save_debounce = 0.5
+Config._last_save_time = 0
+
+function Config.new()
+    local self = setmetatable({}, Config)
+    return self
+end
+
+function ConfigManager:save(file_name, config)
+    -- Mark save as pending
+    self._save_pending = true
     
-        if not success_load then
-            warn('failed to load config', result)
-            result = {
-                _flags = {},
-                _keybinds = {},
-                _library = {}
-            }
-        end
-    
-        if not result then
-            result = {
-                _flags = {},
-                _keybinds = {},
-                _library = {}
-            }
+    -- Debounced save
+    task.spawn(function()
+        local current_time = tick()
+        self._last_save_time = current_time
+        
+        -- Wait for debounce
+        task.wait(self._save_debounce)
+        
+        -- Check if another save was requested
+        if self._last_save_time ~= current_time then
+            return
         end
         
-        -- Ensure structure
-        if not result._flags then result._flags = {} end
-        if not result._keybinds then result._keybinds = {} end
-        if not result._library then result._library = {} end
+        -- Perform save
+        local success = pcall(function()
+            local data = {
+                _flags = config._flags or {},
+                _keybinds = config._keybinds or {},
+                _library = config._library or {}
+            }
+            
+            local json = HttpService:JSONEncode(data)
+            writefile('March/'..file_name..'.json', json)
+        end)
+        
+        if not success then
+            warn('[Config] Failed to save config')
+        end
+        
+        self._save_pending = false
+    end)
+end
+
+function Config:load(file_name)
+    local success, result = pcall(function()
+        if not isfile('March/'..file_name..'.json') then
+            return nil
+        end
+        
+        local json = readfile('March/'..file_name..'.json')
+        if not json or json == "" then
+            return nil
+        end
+        
+        return HttpService:JSONDecode(json)
+    end)
     
-        return result
+    if not success or not result then
+        return {
+            _flags = {},
+            _keybinds = {},
+            _library = {}
+        }
     end
-}, Config)
+    
+    -- Ensure structure
+    result._flags = result._flags or {}
+    result._keybinds = result._keybinds or {}
+    result._library = result._library or {}
+    
+    return result
+end
+
+-- Create global config instance
+local ConfigManager = Config.new()
 
 
 local Library = {
-    _config = Config:load(game.GameId),
+    _config = ConfigManager:load(game.GameId),
 
     _choosing_keybind = false,
     _device = nil,
@@ -1267,7 +1270,7 @@ function Library:create_ui()
                 end
 
                 Library._config._flags[settings.flag] = self._state
-                Config:save(game.GameId, Library._config)
+                ConfigManager:save(game.GameId, Library._config)
 
                 task.spawn(function()
                     settings.callback(self._state)
@@ -1357,7 +1360,7 @@ function Library:create_ui()
                         ModuleManager:scale_keybind(true)
 
                         Library._config._keybinds[settings.flag] = nil
-                        Config:save(game.GameId, Library._config)
+                        ConfigManager:save(game.GameId, Library._config)
 
                         TextLabel.Text = 'None'
                         
@@ -1378,7 +1381,7 @@ function Library:create_ui()
                     Connections['keybind_choose_start'] = nil
                     
                     Library._config._keybinds[settings.flag] = tostring(input.KeyCode)
-                    Config:save(game.GameId, Library._config)
+                    ConfigManager:save(game.GameId, Library._config)
 
                     if Connections[settings.flag..'_keybind'] then
                         Connections[settings.flag..'_keybind']:Disconnect()
@@ -1618,7 +1621,7 @@ function Library:create_ui()
                 function TextboxManager:update_text(text: string)
                     self._text = text
                     Library._config._flags[settings.flag] = self._text
-                    Config:save(game.GameId, Library._config)
+                    ConfigManager:save(game.GameId, Library._config)
                     task.spawn(function()
                         settings.callback(self._text)
                     end)
@@ -1756,7 +1759,7 @@ function Library:create_ui()
                         }):Play()
                     end
                     Library._config._flags[settings.flag] = self._state
-                    Config:save(game.GameId, Library._config)
+                    ConfigManager:save(game.GameId, Library._config)
                     task.spawn(function()
                         settings.callback(self._state)
                     end)
@@ -1785,7 +1788,7 @@ function Library:create_ui()
                         if keyInput.KeyCode == Enum.KeyCode.Backspace then
                             ModuleManager:scale_keybind(true)
                             Library._config._keybinds[settings.flag] = nil
-                            Config:save(game.GameId, Library._config)
+                            ConfigManager:save(game.GameId, Library._config)
                             KeybindLabel.Text = "..."
                             if Connections[settings.flag .. "_keybind"] then
                                 Connections[settings.flag .. "_keybind"]:Disconnect()
@@ -1798,7 +1801,7 @@ function Library:create_ui()
             
                         chooseConnection:Disconnect()
                         Library._config._keybinds[settings.flag] = tostring(keyInput.KeyCode)
-                        Config:save(game.GameId, Library._config)
+                        ConfigManager:save(game.GameId, Library._config)
                         if Connections[settings.flag .. "_keybind"] then
                             Connections[settings.flag .. "_keybind"]:Disconnect()
                             Connections[settings.flag .. "_keybind"] = nil
@@ -2138,7 +2141,7 @@ function Library:create_ui()
                         Connections:disconnect('slider_input_'..settings.flag)
 
                         if not settings.ignoresaved then
-                            Config:save(game.GameId, Library._config);
+                            ConfigManager:save(game.GameId, Library._config);
                         end;
                     end)
                 end
@@ -2375,7 +2378,7 @@ function Library:create_ui()
                         
                         -- Save config
                         Library._config._flags[settings.flag] = selected
-                        Config:save(game.GameId, Library._config)
+                        ConfigManager:save(game.GameId, Library._config)
                         
                         -- Callback with selected table
                         if not isInitialLoad then
@@ -2392,7 +2395,7 @@ function Library:create_ui()
                             end
                         end
                         Library._config._flags[settings.flag] = optionName
-                        Config:save(game.GameId, Library._config)
+                        ConfigManager:save(game.GameId, Library._config)
                         
                         if not isInitialLoad then
                             task.spawn(function()
@@ -2535,9 +2538,10 @@ function Library:create_ui()
                                     object.TextTransparency = isSelected and 0.2 or 0.6
                                 end
                             end
-                            -- Call callback with saved values on initialization
+                            -- Call callback with saved values on initialization (with delay to ensure UI is ready)
                             if settings.callback then
                                 task.spawn(function()
+                                    task.wait(0.1)
                                     settings.callback(saved)
                                 end)
                             end
@@ -2682,7 +2686,7 @@ function Library:create_ui()
                         checked = not checked
                         Checkbox.BackgroundColor3 = checked and Color3.fromRGB(152, 181, 255) or Color3.fromRGB(32, 38, 51)
                         Library._config._flags[settings.flag].checked = checked
-                        Config:save(game.GameId, Library._config)
+                        ConfigManager:save(game.GameId, Library._config)
                         if settings.callback then
                             task.spawn(function()
                                 settings.callback(checked)
@@ -2713,12 +2717,12 @@ function Library:create_ui()
                             if newKey ~= "Unknown" then
                                 KeybindBox.Text = newKey;
                             end;
-                            Config:save(game.GameId, Library._config) -- Save new keybind
+                            ConfigManager:save(game.GameId, Library._config) -- Save new keybind
                             inputConnection:Disconnect()
                         elseif input.UserInputType == Enum.UserInputType.MouseButton3 then
                             Library._config._flags[settings.flag].BIND = "Unknown"
                             KeybindBox.Text = "..."
-                            Config:save(game.GameId, Library._config)
+                            ConfigManager:save(game.GameId, Library._config)
                             inputConnection:Disconnect()
                         end
                     end)
@@ -2966,7 +2970,7 @@ function Library:create_ui()
                     HexInput.Text = "#" .. ColorpickerManager._color:ToHex()
                     
                     Library._config._flags[settings.flag] = {ColorpickerManager._color.R, ColorpickerManager._color.G, ColorpickerManager._color.B}
-                    Config:save(game.GameId, Library._config)
+                    ConfigManager:save(game.GameId, Library._config)
                     
                     if settings.callback then
                         task.spawn(function()
