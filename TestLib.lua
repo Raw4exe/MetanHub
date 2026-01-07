@@ -676,8 +676,10 @@ function Library:create_ui()
     UIScale.Parent = Container    
     
     self._ui = March
+    self._colorpicker_dragging = false
 
     local function on_drag(input: InputObject, process: boolean)
+        if self._colorpicker_dragging then return end
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then 
             self._dragging = true
             self._drag_start = input.Position
@@ -704,6 +706,7 @@ function Library:create_ui()
     end
 
     local function drag(input: InputObject, process: boolean)
+        if self._colorpicker_dragging then return end
         if not self._dragging then
             return
         end
@@ -2902,6 +2905,7 @@ function Library:create_ui()
                 -- SatVal picker input
                 SatValPicker.InputBegan:Connect(function(input)
                     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                        Library._colorpicker_dragging = true
                         local dragging = true
                         
                         local function update()
@@ -2922,6 +2926,7 @@ function Library:create_ui()
                         releaseConn = UserInputService.InputEnded:Connect(function(endInput)
                             if endInput.UserInputType == Enum.UserInputType.MouseButton1 or endInput.UserInputType == Enum.UserInputType.Touch then
                                 dragging = false
+                                Library._colorpicker_dragging = false
                                 moveConn:Disconnect()
                                 releaseConn:Disconnect()
                             end
@@ -2932,6 +2937,7 @@ function Library:create_ui()
                 -- Hue slider input
                 HueSlider.InputBegan:Connect(function(input)
                     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                        Library._colorpicker_dragging = true
                         local dragging = true
                         
                         local function update()
@@ -2950,6 +2956,7 @@ function Library:create_ui()
                         releaseConn = UserInputService.InputEnded:Connect(function(endInput)
                             if endInput.UserInputType == Enum.UserInputType.MouseButton1 or endInput.UserInputType == Enum.UserInputType.Touch then
                                 dragging = false
+                                Library._colorpicker_dragging = false
                                 moveConn:Disconnect()
                                 releaseConn:Disconnect()
                             end
