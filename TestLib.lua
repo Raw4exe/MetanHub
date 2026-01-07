@@ -114,6 +114,80 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
     uc.CornerRadius = UDim.new(0, 12)
     uc.Parent = main
 
+    -- Minimize button (white circle)
+    local minimizeCircle = Instance.new("TextButton")
+    minimizeCircle.Name = "minimizeCircle"
+    minimizeCircle.Parent = scrgui
+    minimizeCircle.AnchorPoint = Vector2.new(0.5, 0.5)
+    minimizeCircle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    minimizeCircle.BackgroundTransparency = 0.150
+    minimizeCircle.Position = UDim2.new(0.1, 0, 0.1, 0)
+    minimizeCircle.Size = UDim2.new(0, 50, 0, 50)
+    minimizeCircle.Visible = false
+    minimizeCircle.AutoButtonColor = false
+    minimizeCircle.Text = ""
+    minimizeCircle.ZIndex = 10
+
+    local circleCorner = Instance.new("UICorner")
+    circleCorner.CornerRadius = UDim.new(1, 0)
+    circleCorner.Parent = minimizeCircle
+
+    local circleIcon = Instance.new("TextLabel")
+    circleIcon.Name = "icon"
+    circleIcon.Parent = minimizeCircle
+    circleIcon.BackgroundTransparency = 1
+    circleIcon.Size = UDim2.new(1, 0, 1, 0)
+    circleIcon.Font = Enum.Font.GothamBold
+    circleIcon.Text = "+"
+    circleIcon.TextColor3 = Color3.fromRGB(95, 95, 95)
+    circleIcon.TextSize = 24
+    circleIcon.ZIndex = 11
+
+    -- Dragging for minimize circle
+    local circleDragging
+    local circleDragInput
+    local circleDragStart
+    local circleStartPos
+    
+    local function updateCircle(input)
+        local delta = input.Position - circleDragStart
+        minimizeCircle.Position = UDim2.new(circleStartPos.X.Scale, circleStartPos.X.Offset + delta.X, circleStartPos.Y.Scale, circleStartPos.Y.Offset + delta.Y)
+    end
+    
+    minimizeCircle.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            circleDragging = true
+            circleDragStart = input.Position
+            circleStartPos = minimizeCircle.Position
+            
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    circleDragging = false
+                end
+            end)
+        end
+    end)
+    
+    minimizeCircle.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            circleDragInput = input
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if input == circleDragInput and circleDragging then
+            updateCircle(input)
+        end
+    end)
+
+    -- Click animation for minimize circle
+    minimizeCircle.MouseButton1Click:Connect(function()
+        -- Animation: shrink then grow
+        game:GetService("TweenService"):Create(minimizeCircle, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(0, 40, 0, 40)}):Play()
+        task.wait(0.1)
+        game:GetService("TweenService"):Create(minimizeCircle, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(0, 50, 0, 50)}):Play()
+    end)
+
     local UserInputService = game:GetService("UserInputService") --- skidded ik
     local dragging
     local dragInput
@@ -161,76 +235,52 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
     workarea.Size = UDim2.new(1, 0, 0.9, 0)
     workarea.BackgroundTransparency = 1
     workarea.BorderSizePixel = 0
-    -- macos style buttons
-
+    -- Simple text buttons
 
     local buttons = Instance.new("Frame")
     buttons.Name = "buttons"
     buttons.Parent = main
     buttons.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     buttons.BackgroundTransparency = 1
-    buttons.Size = UDim2.new(0, 70, 0, 38)
+    buttons.Position = UDim2.new(1, -60, 0, 5)
+    buttons.Size = UDim2.new(0, 55, 0, 25)
 
     local ull_3 = Instance.new("UIListLayout")
     ull_3.Parent = buttons
     ull_3.FillDirection = Enum.FillDirection.Horizontal
-    ull_3.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    ull_3.HorizontalAlignment = Enum.HorizontalAlignment.Right
     ull_3.SortOrder = Enum.SortOrder.LayoutOrder
     ull_3.VerticalAlignment = Enum.VerticalAlignment.Center
-    ull_3.Padding = UDim.new(0, 7)
-
-
-    local close = Instance.new("TextButton")
-    close.Name = "close"
-    close.Parent = buttons
-    close.BackgroundColor3 = Color3.fromRGB(254, 94, 86)
-    close.Size = UDim2.new(0, 11, 0, 11)
-    close.AutoButtonColor = false
-    close.Font = Enum.Font.SourceSans
-    close.Text = ""
-    close.TextColor3 = Color3.fromRGB(255, 50, 50)
-    close.TextSize = 9
-    close.MouseButton1Click:Connect(function()
-        scrgui:Destroy()
-    end)
-
-
-    local uc_18 = Instance.new("UICorner")
-    uc_18.CornerRadius = UDim.new(1, 0)
-    uc_18.Parent = close
+    ull_3.Padding = UDim.new(0, 10)
 
 
     local minimize = Instance.new("TextButton")
     minimize.Name = "minimize"
     minimize.Parent = buttons
-    minimize.BackgroundColor3 = Color3.fromRGB(255, 189, 46)
-    minimize.Size = UDim2.new(0, 11, 0, 11)
+    minimize.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    minimize.BackgroundTransparency = 1
+    minimize.Size = UDim2.new(0, 20, 0, 20)
     minimize.AutoButtonColor = false
-    minimize.Font = Enum.Font.SourceSans
-    minimize.Text = ""
-    minimize.TextColor3 = Color3.fromRGB(255, 50, 50)
-    minimize.TextSize = 9
+    minimize.Font = Enum.Font.GothamBold
+    minimize.Text = "-"
+    minimize.TextColor3 = Color3.fromRGB(95, 95, 95)
+    minimize.TextSize = 20
 
 
-    local uc_19 = Instance.new("UICorner")
-    uc_19.CornerRadius = UDim.new(1, 0)
-    uc_19.Parent = minimize
-
-
-    local resize = Instance.new("TextButton")
-    resize.Name = "resize"
-    resize.Parent = buttons
-    resize.BackgroundColor3 = Color3.fromRGB(39, 200, 63)
-    resize.Size = UDim2.new(0, 11, 0, 11)
-    resize.AutoButtonColor = false
-    resize.Font = Enum.Font.SourceSans
-    resize.Text = ""
-    resize.TextColor3 = Color3.fromRGB(255, 50, 50)
-    resize.TextSize = 9
-
-    local uc_20 = Instance.new("UICorner")
-    uc_20.CornerRadius = UDim.new(1, 0)
-    uc_20.Parent = resize
+    local close = Instance.new("TextButton")
+    close.Name = "close"
+    close.Parent = buttons
+    close.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    close.BackgroundTransparency = 1
+    close.Size = UDim2.new(0, 20, 0, 20)
+    close.AutoButtonColor = false
+    close.Font = Enum.Font.GothamBold
+    close.Text = "x"
+    close.TextColor3 = Color3.fromRGB(95, 95, 95)
+    close.TextSize = 18
+    close.MouseButton1Click:Connect(function()
+        scrgui:Destroy()
+    end)
 
     -- title text at topbar
 
@@ -272,8 +322,28 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
         end
     end
 
+    function window:ToggleVisible()
+        if dbcooper then return end
+        visible = not visible
+        dbcooper = true
+        if visible then
+            minimizeCircle.Visible = false
+            tp(main, UDim2.new(0.5, 0, 0.5, 0), 0.5)
+            task.wait(0.5)
+            dbcooper = false
+        else
+            tp(main, main.Position + UDim2.new(0,0,2,0), 0.5)
+            task.wait(0.5)
+            minimizeCircle.Visible = true
+            dbcooper = false
+        end
+    end
+
     if visiblekey then
         minimize.MouseButton1Click:Connect(function()
+            window:ToggleVisible()
+        end)
+        minimizeCircle.MouseButton1Click:Connect(function()
             window:ToggleVisible()
         end)
         game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
@@ -281,13 +351,20 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
                 window:ToggleVisible()
             end
         end)
+    else
+        minimize.MouseButton1Click:Connect(function()
+            window:ToggleVisible()
+        end)
+        minimizeCircle.MouseButton1Click:Connect(function()
+            window:ToggleVisible()
+        end)
     end
 
     function window:GreenButton(callback)
-        if _G.gbutton_123123 then _G.gbutton_123123:Disconnect() end
-        _G.gbutton_123123 = resize.MouseButton1Click:Connect(function()
+        -- Green button removed, function kept for compatibility
+        if callback then
             callback()
-        end)
+        end
     end
 
     function window:TempNotify(text1, text2, icon)
@@ -421,7 +498,7 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
         workareamain.Size = UDim2.new(1, -20, 1, -20)
         workareamain.ZIndex = 3
         workareamain.CanvasSize = UDim2.new(0, 0, 0, 0)
-        workareamain.AutomaticCanvasSize = "Y"
+        workareamain.AutomaticCanvasSize = Enum.AutomaticSize.Y
         workareamain.ScrollBarThickness = 2
         workareamain.Visible = true
 
