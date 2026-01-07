@@ -250,6 +250,19 @@ Library.Themes = {
     }
 }
 
+Library.Fonts = {
+    "Gotham",
+    "GothamBold", 
+    "GothamBlack",
+    "SourceSans",
+    "SourceSansBold",
+    "Arial",
+    "ArialBold",
+    "RobotoMono",
+    "Ubuntu",
+    "Oswald"
+}
+
 function Library.new()
     local self = setmetatable({}, Library)
     
@@ -259,6 +272,8 @@ function Library.new()
     self.choosingKeybind = false
     self.connections = {}
     self.currentTheme = self.Themes.Default
+    local savedFont = self.config:GetFlag("_UI_Font", "GothamBold")
+    self.currentFont = Enum.Font[savedFont] or Enum.Font.GothamBold
     self.uiVisible = true
     self.uiKeybind = nil
     
@@ -317,6 +332,13 @@ function Library:SetTheme(themeName)
     if not theme then return end
     self.currentTheme = theme
     self:ApplyTheme()
+end
+
+function Library:SetFont(fontName)
+    local font = Enum.Font[fontName]
+    if not font then return end
+    self.currentFont = font
+    self.config:SetFlag("_UI_Font", fontName)
 end
 
 function Library:ApplyTheme()
@@ -829,11 +851,22 @@ function Library:CreateSettingsTab()
     
     uiModule:CreateDropdown({
         title = "Theme",
-        options = {"Default", "Dark", "Purple", "Green", "Red"},
+        options = {"Default", "Ocean", "Purple", "Green", "Red", "Orange", "Pink", "Cyan", "Yellow", "Dark"},
         default = "Default",
         callback = function(theme)
             self:SetTheme(theme)
             print("Theme changed to:", theme)
+        end
+    })
+    
+    uiModule:CreateDropdown({
+        title = "Font",
+        options = self.Fonts,
+        default = self.config:GetFlag("_UI_Font", "GothamBold"),
+        callback = function(font)
+            self:SetFont(font)
+            print("Font changed to:", font)
+            print("Note: Restart UI to apply font changes")
         end
     })
     
