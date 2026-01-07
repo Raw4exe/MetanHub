@@ -631,10 +631,6 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
             end
         end
 
-        sidebar2.MouseButton1Click:Connect(function()
-            sec:Select()
-        end)
-
         return sec
     end
 
@@ -642,4 +638,3 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
 end
 
 return lib
-
