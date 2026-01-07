@@ -297,13 +297,11 @@ end
 local Config = {}
 Config.__index = Config
 
--- Config state
-Config._save_pending = false
-Config._save_debounce = 0.5
-Config._last_save_time = 0
-
 function Config.new()
     local self = setmetatable({}, Config)
+    self._save_pending = false
+    self._save_debounce = 0.5
+    self._last_save_time = 0
     return self
 end
 
@@ -1618,17 +1616,21 @@ function Library:create_ui()
                 UICorner.CornerRadius = UDim.new(0, 4)
                 UICorner.Parent = Textbox
             
-                function TextboxManager:update_text(text: string)
+                function TextboxManager:update_text(text: string, isInitialLoad: boolean)
                     self._text = text
                     Library._config._flags[settings.flag] = self._text
-                    ConfigManager:save(game.GameId, Library._config)
+                    
+                    if not isInitialLoad then
+                        ConfigManager:save(game.GameId, Library._config)
+                    end
+                    
                     task.spawn(function()
                         settings.callback(self._text)
                     end)
                 end
             
                 if Library:flag_type(settings.flag, 'string') then
-                    TextboxManager:update_text(Library._config._flags[settings.flag])
+                    TextboxManager:update_text(Library._config._flags[settings.flag], true)
                 end
             
                 Textbox.FocusLost:Connect(function()
@@ -1741,7 +1743,7 @@ function Library:create_ui()
                 FillCorner.CornerRadius = UDim.new(0, 3)
                 FillCorner.Parent = Fill
             
-                function CheckboxManager:change_state(state: boolean)
+                function CheckboxManager:change_state(state: boolean, isInitialLoad: boolean)
                     self._state = state
                     if self._state then
                         TweenService:Create(Box, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
@@ -1759,14 +1761,18 @@ function Library:create_ui()
                         }):Play()
                     end
                     Library._config._flags[settings.flag] = self._state
-                    ConfigManager:save(game.GameId, Library._config)
+                    
+                    if not isInitialLoad then
+                        ConfigManager:save(game.GameId, Library._config)
+                    end
+                    
                     task.spawn(function()
                         settings.callback(self._state)
                     end)
                 end
             
                 if Library:flag_type(settings.flag, "boolean") then
-                    CheckboxManager:change_state(Library._config._flags[settings.flag])
+                    CheckboxManager:change_state(Library._config._flags[settings.flag], true)
                 end
             
                 Checkbox.MouseButton1Click:Connect(function()
@@ -2092,7 +2098,7 @@ function Library:create_ui()
                 Value.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
                 Value.Parent = Slider
 
-                function SliderManager:set_percentage(percentage: number)
+                function SliderManager:set_percentage(percentage: number, isInitialLoad: boolean)
                     local rounded_number = 0
 
                     if settings.round_number then
@@ -2113,16 +2119,18 @@ function Library:create_ui()
                         Size = UDim2.fromOffset(slider_size, Drag.Size.Y.Offset)
                     }):Play()
     
-                    task.spawn(function()
-                        settings.callback(number_threshold)
-                    end)
+                    if not isInitialLoad then
+                        task.spawn(function()
+                            settings.callback(number_threshold)
+                        end)
+                    end
                 end
 
                 function SliderManager:update()
                     local mouse_position = (mouse.X - Drag.AbsolutePosition.X) / Drag.Size.X.Offset
                     local percentage = settings.minimum_value + (settings.maximum_value - settings.minimum_value) * mouse_position
 
-                    self:set_percentage(percentage)
+                    self:set_percentage(percentage, false)
                 end
 
                 function SliderManager:input()
@@ -2149,12 +2157,12 @@ function Library:create_ui()
 
                 if Library:flag_type(settings.flag, 'number') then
                     if not settings.ignoresaved then
-                        SliderManager:set_percentage(Library._config._flags[settings.flag]);
+                        SliderManager:set_percentage(Library._config._flags[settings.flag], true);
                     else
-                        SliderManager:set_percentage(settings.value);
+                        SliderManager:set_percentage(settings.value, true);
                     end;
                 else
-                    SliderManager:set_percentage(settings.value);
+                    SliderManager:set_percentage(settings.value, true);
                 end;
     
                 Slider.MouseButton1Down:Connect(function()
