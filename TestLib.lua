@@ -242,7 +242,7 @@ function AcrylicBlur:render(distance: number)
         local width = (top_right3D - top_left3D).Magnitude
         local height = (top_right3D - bottom_right3D).Magnitude
 
-        if not self._root then
+        if not self._root or not self._root.Parent then
             return
         end
 
@@ -251,6 +251,7 @@ function AcrylicBlur:render(distance: number)
     end
 
     local function on_change()
+        if not self._frame then return end
         local offset = Util:get_offset()
         local size = self._frame.AbsoluteSize - Vector2.new(offset, offset)
         local position = self._frame.AbsolutePosition + Vector2.new(offset / 2, offset / 2)
