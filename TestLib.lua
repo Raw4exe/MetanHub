@@ -249,217 +249,6 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
     title.TextWrapped = true
     title.TextXAlignment = Enum.TextXAlignment.Left
 
-    -- notif1
-    local notif = Instance.new("Frame")
-    notif.Name = "notif"
-    notif.Parent = main
-    notif.AnchorPoint = Vector2.new(0.5, 0.5)
-    notif.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    notif.Position = UDim2.new(0.5, 0, 0.5, 0)
-    notif.Size = UDim2.new(0, 203, 0, 241)
-    notif.Visible = false
-    notif.ZIndex = 3
-
-    local uc_11 = Instance.new("UICorner")
-    uc_11.CornerRadius = UDim.new(0, 12)
-    uc_11.Parent = notif
-
-    local notificon = Instance.new("ImageLabel")
-    notificon.Name = "notificon"
-    notificon.Parent = notif
-    notificon.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    notificon.BackgroundTransparency = 1
-    notificon.Position = UDim2.new(0.335526317, 0, 0.0994475111, 0)
-    notificon.Size = UDim2.new(0, 67, 0, 67)
-    notificon.ZIndex = 3
-    notificon.Image = "rbxassetid://4871684504"
-    notificon.ImageColor3 = Color3.fromRGB(95, 95, 95)
-
-    local notifbutton1 = Instance.new("TextButton")
-    notifbutton1.Name = "notifbutton1"
-    notifbutton1.Parent = notif
-    notifbutton1.BackgroundColor3 = Color3.fromRGB(21, 103, 251)
-    notifbutton1.Position = UDim2.new(0.0559210554, 0, 0.817679524, 0)
-    notifbutton1.Size = UDim2.new(0, 180, 0, 33)
-    notifbutton1.ZIndex = 3
-    notifbutton1.Font = Enum.Font.Gotham
-    notifbutton1.Text = "OK"
-    notifbutton1.TextColor3 = Color3.fromRGB(255, 255, 255)
-    notifbutton1.TextSize = 14
-
-    local uc_12 = Instance.new("UICorner")
-    uc_12.CornerRadius = UDim.new(0, 6)
-    uc_12.Parent = notifbutton1
-
-    local notifshadow = Instance.new("ImageLabel")
-    notifshadow.Name = "notifshadow"
-    notifshadow.Parent = notif
-    notifshadow.AnchorPoint = Vector2.new(0.5, 0.5)
-    notifshadow.BackgroundTransparency = 1
-    notifshadow.Position = UDim2.new(0.5, 0, 0.5, 0)
-    notifshadow.Size = UDim2.new(1.20000005, 0, 1.20000005, 0)
-    notifshadow.Image = "rbxassetid://313486536"
-    notifshadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-
-    local notifdarkness = Instance.new("Frame")
-    notifdarkness.Name = "notifdarkness"
-    notifdarkness.Parent = notif
-    notifdarkness.AnchorPoint = Vector2.new(0.5, 0.5)
-    notifdarkness.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    notifdarkness.BackgroundTransparency = 0.600
-    notifdarkness.Position = UDim2.new(0.5, 0, 0.5, 0)
-    notifdarkness.Size = UDim2.new(0, 481, 0, 389)
-    notifdarkness.ZIndex = 2
-
-    local uc_13 = Instance.new("UICorner")
-    uc_13.CornerRadius = UDim.new(0, 12)
-    uc_13.Parent = notifdarkness
-
-    local notiftitle = Instance.new("TextLabel")
-    notiftitle.Name = "notiftitle"
-    notiftitle.Parent = notif
-    notiftitle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    notiftitle.BackgroundTransparency = 1
-    notiftitle.Position = UDim2.new(0.167763159, 0, 0.375690609, 0)
-    notiftitle.Size = UDim2.new(0, 133, 0, 33)
-    notiftitle.ZIndex = 3
-    notiftitle.Font = Enum.Font.GothamMedium
-    notiftitle.Text = "Notice"
-    notiftitle.TextColor3 = Color3.fromRGB(95, 95, 95)
-    notiftitle.TextSize = 19
-
-    local notiftext = Instance.new("TextLabel")
-    notiftext.Name = "notiftext"
-    notiftext.Parent = notif
-    notiftext.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    notiftext.BackgroundTransparency = 1
-    notiftext.Position = UDim2.new(0.0822368413, 0, 0.513812184, 0)
-    notiftext.Size = UDim2.new(0, 169, 0, 44)
-    notiftext.ZIndex = 3
-    notiftext.Font = Enum.Font.Gotham
-    notiftext.Text = "We would like to contact you regarding your car's extended warranty."
-    notiftext.TextColor3 = Color3.fromRGB(95, 95, 95)
-    notiftext.TextSize = 11
-    notiftext.TextWrapped = true
-
-    -- notifcation 2 (two button)
-
-    local notif2 = Instance.new("Frame")
-    notif2.Name = "notif2"
-    notif2.Parent = main
-    notif2.AnchorPoint = Vector2.new(0.5, 0.5)
-    notif2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    notif2.Position = UDim2.new(0.5, 0, 0.5, 0)
-    notif2.Size = UDim2.new(0, 203, 0, 241)
-    notif2.Visible = false
-    notif2.ZIndex = 3
-
-    local uc_14 = Instance.new("UICorner")
-    uc_14.CornerRadius = UDim.new(0, 12)
-    uc_14.Parent = notif2
-
-    local notif2icon = Instance.new("ImageLabel")
-    notif2icon.Name = "notif2icon"
-    notif2icon.Parent = notif2
-    notif2icon.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    notif2icon.BackgroundTransparency = 1
-    notif2icon.Position = UDim2.new(0.335526317, 0, 0.0994475111, 0)
-    notif2icon.Size = UDim2.new(0, 67, 0, 67)
-    notif2icon.ZIndex = 3
-    notif2icon.Image = "rbxassetid://12608260095"
-    notif2icon.ImageColor3 = Color3.fromRGB(95, 95, 95)
-
-    local notif2title = Instance.new("TextLabel")
-    notif2title.Name = "notif2title"
-    notif2title.Parent = notif2
-    notif2title.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    notif2title.BackgroundTransparency = 1
-    notif2title.Position = UDim2.new(0.167763159, 0, 0.375690609, 0)
-    notif2title.Size = UDim2.new(0, 133, 0, 33)
-    notif2title.ZIndex = 3
-    notif2title.Font = Enum.Font.GothamMedium
-    notif2title.Text = "Notice"
-    notif2title.TextColor3 = Color3.fromRGB(95, 95, 95)
-    notif2title.TextSize = 19
-
-
-    local notif2text = Instance.new("TextLabel")
-    notif2text.Name = "notif2text"
-    notif2text.Parent = notif2
-    notif2text.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    notif2text.BackgroundTransparency = 1
-    notif2text.Position = UDim2.new(0.0822368413, 0, 0.513812184, 0)
-    notif2text.Size = UDim2.new(0, 169, 0, 44)
-    notif2text.ZIndex = 3
-    notif2text.Font = Enum.Font.Gotham
-    notif2text.Text = "We would like to contact you regarding your car's extended warranty."
-    notif2text.TextColor3 = Color3.fromRGB(95, 95, 95)
-    notif2text.TextSize = 11
-    notif2text.TextWrapped = true
-
-
-    local notif2button1 = Instance.new("TextButton")
-    notif2button1.Name = "notif2button1"
-    notif2button1.Parent = notif2
-    notif2button1.BackgroundColor3 = Color3.fromRGB(21, 103, 251)
-    notif2button1.Position = UDim2.new(0.0559210517, 0, 0.715469658, 0)
-    notif2button1.Size = UDim2.new(0, 180, 0, 27)
-    notif2button1.ZIndex = 3
-    notif2button1.Font = Enum.Font.Gotham
-    notif2button1.Text = "Sure!"
-    notif2button1.TextColor3 = Color3.fromRGB(255, 255, 255)
-    notif2button1.TextSize = 14
-
-    local uc_15 = Instance.new("UICorner")
-    uc_15.CornerRadius = UDim.new(0, 6)
-    uc_15.Parent = notif2button1
-
-
-    local notif2shadow = Instance.new("ImageLabel")
-    notif2shadow.Name = "notif2shadow"
-    notif2shadow.Parent = notif2
-    notif2shadow.AnchorPoint = Vector2.new(0.5, 0.5)
-    notif2shadow.BackgroundTransparency = 1
-    notif2shadow.Position = UDim2.new(0.5, 0, 0.5, 0)
-    notif2shadow.Size = UDim2.new(1.20000005, 0, 1.20000005, 0)
-    notif2shadow.Image = "rbxassetid://313486536"
-    notif2shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-
-
-    local notif2darkness = Instance.new("Frame")
-    notif2darkness.Name = "notif2darkness"
-    notif2darkness.Parent = notif2
-    notif2darkness.AnchorPoint = Vector2.new(0.5, 0.5)
-    notif2darkness.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    notif2darkness.BackgroundTransparency = 0.600
-    notif2darkness.Position = UDim2.new(0.5, 0, 0.5, 0)
-    notif2darkness.Size = UDim2.new(0, 481, 0, 389)
-    notif2darkness.ZIndex = 2
-
-
-    local uc_16 = Instance.new("UICorner")
-    uc_16.CornerRadius = UDim.new(0, 12)
-    uc_16.Parent = notif2darkness
-
-
-    local notif2button2 = Instance.new("TextButton")
-    notif2button2.Name = "notif2button2"
-    notif2button2.Parent = notif2
-    notif2button2.BackgroundColor3 = Color3.fromRGB(21, 103, 251)
-    notif2button2.BackgroundTransparency = 1
-    notif2button2.Position = UDim2.new(0.0526315793, 0, 0.842541456, 0)
-    notif2button2.Size = UDim2.new(0, 180, 0, 27)
-    notif2button2.ZIndex = 3
-    notif2button2.Font = Enum.Font.Gotham
-    notif2button2.Text = "Go away."
-    notif2button2.TextColor3 = Color3.fromRGB(95, 95, 95)
-    notif2button2.TextSize = 14
-
-
-    local uc_17 = Instance.new("UICorner")
-    uc_17.CornerRadius = UDim.new(0, 6)
-    uc_17.Parent = notif2button2
-
     if ti then
         title.Text = ti
     else
@@ -502,24 +291,26 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
     end
 
     function window:TempNotify(text1, text2, icon)
+        -- Сдвигаем все существующие нотификации вниз
         for b,v in next, scrgui:GetChildren() do
             if v.Name == "tempnotif" then 
-                v.Position += UDim2.new(0,0,0,130)
+                v:TweenPosition(v.Position + UDim2.new(0,0,0,87), "InOut", "Quart", 0.3, true)
             end
         end
+        
         local tempnotif = Instance.new("Frame")
         tempnotif.Name = "tempnotif"
         tempnotif.Parent = scrgui
-        tempnotif.AnchorPoint = Vector2.new(0.5, 0.5)
+        tempnotif.AnchorPoint = Vector2.new(1, 0)
         tempnotif.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
         tempnotif.BackgroundTransparency = 0.150
-        tempnotif.Position = UDim2.new(1, -250, 0.0794737339, 0)
-        tempnotif.Size = UDim2.new(0, 447, 0, 117)
+        tempnotif.Position = UDim2.new(1, 50, 0, 10) -- Начинаем справа за экраном
+        tempnotif.Size = UDim2.new(0, 298, 0, 78)
         tempnotif.Visible = true
         tempnotif.ZIndex = 4
 
         local uc_21 = Instance.new("UICorner")
-        uc_21.CornerRadius = UDim.new(0, 18)
+        uc_21.CornerRadius = UDim.new(0, 12)
         uc_21.Parent = tempnotif
 
         local t2 = Instance.new("TextLabel")
@@ -528,16 +319,15 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
         t2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
         t2.BackgroundTransparency = 1
         t2.Position = UDim2.new(0.236927822, 0, 0.470085472, 0)
-        t2.Size = UDim2.new(0, 326, 0, 52)
+        t2.Size = UDim2.new(0, 217, 0, 35)
         t2.ZIndex = 4
         t2.Font = Enum.Font.Gotham
         t2.Text = text2
         t2.TextColor3 = Color3.fromRGB(95, 95, 95)
-        t2.TextSize = 16
+        t2.TextSize = 11
         t2.TextWrapped = true
         t2.TextXAlignment = Enum.TextXAlignment.Left
         t2.TextYAlignment = Enum.TextYAlignment.Top
-
 
         local t1 = Instance.new("TextLabel")
         t1.Name = "t1"
@@ -545,14 +335,13 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
         t1.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
         t1.BackgroundTransparency = 1
         t1.Position = UDim2.new(0.234690696, 0, 0.193464488, 0)
-        t1.Size = UDim2.new(0, 327, 0, 25)
+        t1.Size = UDim2.new(0, 218, 0, 17)
         t1.ZIndex = 4
         t1.Font = Enum.Font.GothamMedium
         t1.Text = text1
         t1.TextColor3 = Color3.fromRGB(95, 95, 95)
-        t1.TextSize = 28
+        t1.TextSize = 19
         t1.TextXAlignment = Enum.TextXAlignment.Left
-
 
         local ticon = Instance.new("ImageLabel")
         ticon.Name = "ticon"
@@ -560,12 +349,11 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
         ticon.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
         ticon.BackgroundTransparency = 1
         ticon.Position = UDim2.new(0.0311112702, 0, 0.193464488, 0)
-        ticon.Size = UDim2.new(0, 71, 0, 71)
+        ticon.Size = UDim2.new(0, 47, 0, 47)
         ticon.ZIndex = 4
         ticon.Image = icon
         ticon.ImageColor3 = Color3.fromRGB(95, 95, 95)
         ticon.ScaleType = Enum.ScaleType.Fit
-
 
         local tshadow = Instance.new("ImageLabel")
         tshadow.Name = "tshadow"
@@ -579,46 +367,33 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
         tshadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
         tshadow.ImageTransparency = 0.400
         tshadow.TileSize = UDim2.new(0, 1, 0, 1)
-        game:GetService("Debris"):AddItem(tempnotif, 5)
+        
+        -- Анимация появления справа
+        tempnotif:TweenPosition(UDim2.new(1, -308, 0, 10), "InOut", "Quart", 0.5, true)
+        
+        -- Удаление через 5 секунд с анимацией
+        task.spawn(function()
+            task.wait(5)
+            -- Анимация ухода вправо
+            tempnotif:TweenPosition(UDim2.new(1, 50, 0, 10), "InOut", "Quart", 0.5, true)
+            task.wait(0.5)
+            tempnotif:Destroy()
+        end)
     end
 
     function window:Notify(txt1, txt2, b1, icohn, callback)
-        if notif.Visible == true or notif2.Visible == true then return "Already visible" end
-        notiftitle.Text = txt1
-        notiftext.Text = txt2
-        notificon = icohn
-        notif.Visible = true
-        notifbutton1.Text = b1
+        -- Используем TempNotify вместо старой системы
+        window:TempNotify(txt1, txt2, icohn)
         if callback then
-            con1 = notifbutton1.MouseButton1Click:Connect(function()
-                con1:Disconnect()
-                callback()
-                notif.Visible = false
-            end)
+            callback()
         end
     end
 
     function window:Notify2(txt1, txt2, b1, b2, icohn, callback, callback2)
-        if notif.Visible == true or notif2.Visible == true then return "Already visible" end
-        notif2title.Text = txt1
-        notif2text.Text = txt2
-        notif2icon = icohn
-        notif2.Visible = true
-        notif2button1.Text = b1
-        notif2button2.Text = b2
-        if callback and callback2 then
-            con1 = notif2button1.MouseButton1Click:Connect(function()
-                con1:Disconnect()
-                con2:Disconnect()
-                callback()
-                notif2.Visible = false
-            end)
-            con2 = notif2button2.MouseButton1Click:Connect(function()
-                con1:Disconnect()
-                con2:Disconnect()
-                callback2()
-                notif2.Visible = false
-            end)
+        -- Используем TempNotify вместо старой системы
+        window:TempNotify(txt1, txt2, icohn)
+        if callback then
+            callback()
         end
     end
 
