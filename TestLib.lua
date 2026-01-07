@@ -1,8 +1,3 @@
---[[
-    March UI Library - Clean Rewrite
-    Визуал: March UI
-    Код: Полностью переписан с нуля
-]]
 
 -- Services
 local UserInputService = game:GetService('UserInputService')
