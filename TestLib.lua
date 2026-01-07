@@ -420,6 +420,41 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
     function window:GetConfigValue(key)
         return configData[key]
     end
+    
+    function window:GetConfigList()
+        local configs = {}
+        if not isfolder then return configs end
+        
+        local files = listfiles()
+        for _, file in ipairs(files) do
+            if file:match("%.json$") then
+                local configName = file:match("([^/\\]+)%.json$")
+                if configName then
+                    table.insert(configs, configName)
+                end
+            end
+        end
+        
+        return configs
+    end
+    
+    function window:DeleteConfig(configName)
+        if not configName or configName == "" then
+            window:TempNotify("Error", "Config name cannot be empty", "rbxassetid://12608259004")
+            return false
+        end
+        
+        local success, err = pcall(function()
+            if isfile(configName .. ".json") then
+                delfile(configName .. ".json")
+                window:TempNotify("Success", "Config deleted: " .. configName, "rbxassetid://12608259004")
+            else
+                window:TempNotify("Error", "Config not found: " .. configName, "rbxassetid://12608259004")
+            end
+        end)
+        
+        return success
+    end
 
     function window:ToggleVisible()
         if dbcooper then return end
@@ -481,48 +516,6 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
         end
     end
     
-    function window:CreateConfigTab()
-        local configSection = window:Section("Config", "rbxassetid://12621719043")
-        
-        configSection:Divider("Save/Load Config")
-        
-        local configNameInput = ""
-        configSection:TextField("Config Name", "Enter config name...", function(text)
-            configNameInput = text
-        end)
-        
-        configSection:Button("Save Config", function()
-            window:SaveConfig(configNameInput)
-        end)
-        
-        configSection:Button("Load Config", function()
-            window:LoadConfig(configNameInput)
-        end)
-        
-        configSection:Divider("Autoload")
-        
-        local currentAutoload = window:GetAutoload()
-        if currentAutoload then
-            configSection:Label("Current autoload: " .. currentAutoload)
-        else
-            configSection:Label("No autoload set")
-        end
-        
-        configSection:Button("Set as Autoload", function()
-            if configNameInput ~= "" then
-                window:SetAutoload(configNameInput)
-            else
-                window:TempNotify("Error", "Enter config name first", "rbxassetid://12608259004")
-            end
-        end)
-        
-        configSection:Button("Remove Autoload", function()
-            window:RemoveAutoload()
-        end)
-        
-        return configSection
-    end
-
     function window:TempNotify(text1, text2, icon)
         -- Считаем количество существующих нотификаций
         local notifCount = 0
@@ -941,8 +934,215 @@ function lib:init(ti, dosplash, visiblekey, deleteprevious)
                 end)
             end
         end
+        
+        function sec:Dropdown(name, options, callback)
+            local selectedOption = options[1] or "None"
+            local dropdownOpen = false
+            
+            local dropdownFrame = Instance.new("Frame")
+            dropdownFrame.Name = "dropdown"
+            dropdownFrame.Parent = workareamain
+            dropdownFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            dropdownFrame.BackgroundTransparency = 1
+            dropdownFrame.Size = UDim2.new(0, 418, 0, 37)
+            
+            local dropdownLabel = Instance.new("TextLabel")
+            dropdownLabel.Name = "label"
+            dropdownLabel.Parent = dropdownFrame
+            dropdownFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            dropdownLabel.BackgroundTransparency = 1
+            dropdownLabel.Size = UDim2.new(0, 200, 0, 37)
+            dropdownLabel.Font = Enum.Font.Gotham
+            dropdownLabel.Text = name
+            dropdownLabel.TextColor3 = Color3.fromRGB(95, 95, 95)
+            dropdownLabel.TextSize = 21
+            dropdownLabel.TextXAlignment = Enum.TextXAlignment.Left
+            
+            local dropdownButton = Instance.new("TextButton")
+            dropdownButton.Name = "button"
+            dropdownButton.Parent = dropdownFrame
+            dropdownButton.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+            dropdownButton.Position = UDim2.new(0.441926777, 0, 0.0270270277, 0)
+            dropdownButton.Size = UDim2.new(0, 233, 0, 34)
+            dropdownButton.AutoButtonColor = false
+            dropdownButton.Font = Enum.Font.Gotham
+            dropdownButton.Text = selectedOption
+            dropdownButton.TextColor3 = Color3.fromRGB(12, 12, 12)
+            dropdownButton.TextSize = 18
+            
+            local dropdownCorner = Instance.new("UICorner")
+            dropdownCorner.CornerRadius = UDim.new(0, 9)
+            dropdownCorner.Parent = dropdownButton
+            
+            local dropdownList = Instance.new("Frame")
+            dropdownList.Name = "list"
+            dropdownList.Parent = dropdownFrame
+            dropdownList.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
+            dropdownList.Position = UDim2.new(0.441926777, 0, 1, 5)
+            dropdownList.Size = UDim2.new(0, 233, 0, 0)
+            dropdownList.Visible = false
+            dropdownList.ZIndex = 10
+            
+            local dropdownListCorner = Instance.new("UICorner")
+            dropdownListCorner.CornerRadius = UDim.new(0, 9)
+            dropdownListCorner.Parent = dropdownList
+            
+            local dropdownListLayout = Instance.new("UIListLayout")
+            dropdownListLayout.Parent = dropdownList
+            dropdownListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+            dropdownListLayout.Padding = UDim.new(0, 2)
+            
+            local function updateOptions(newOptions)
+                for _, child in pairs(dropdownList:GetChildren()) do
+                    if child:IsA("TextButton") then
+                        child:Destroy()
+                    end
+                end
+                
+                for _, option in ipairs(newOptions) do
+                    local optionButton = Instance.new("TextButton")
+                    optionButton.Name = "option"
+                    optionButton.Parent = dropdownList
+                    optionButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+                    optionButton.BackgroundTransparency = 0.5
+                    optionButton.Size = UDim2.new(1, 0, 0, 30)
+                    optionButton.AutoButtonColor = false
+                    optionButton.Font = Enum.Font.Gotham
+                    optionButton.Text = option
+                    optionButton.TextColor3 = Color3.fromRGB(12, 12, 12)
+                    optionButton.TextSize = 16
+                    optionButton.ZIndex = 11
+                    
+                    optionButton.MouseButton1Click:Connect(function()
+                        selectedOption = option
+                        dropdownButton.Text = option
+                        dropdownList.Visible = false
+                        dropdownOpen = false
+                        dropdownFrame.Size = UDim2.new(0, 418, 0, 37)
+                        
+                        if callback then
+                            callback(option)
+                        end
+                    end)
+                end
+                
+                local contentHeight = #newOptions * 32
+                dropdownList.Size = UDim2.new(0, 233, 0, contentHeight)
+            end
+            
+            updateOptions(options)
+            
+            dropdownButton.MouseButton1Click:Connect(function()
+                dropdownOpen = not dropdownOpen
+                dropdownList.Visible = dropdownOpen
+                
+                if dropdownOpen then
+                    local contentHeight = #options * 32
+                    dropdownFrame.Size = UDim2.new(0, 418, 0, 37 + contentHeight + 10)
+                else
+                    dropdownFrame.Size = UDim2.new(0, 418, 0, 37)
+                end
+            end)
+            
+            return {
+                UpdateOptions = updateOptions,
+                SetSelected = function(option)
+                    selectedOption = option
+                    dropdownButton.Text = option
+                end
+            }
+        end
 
         return sec
+    end
+    
+    function window:CreateConfigTab()
+        local configSection = window:Section("Config", "rbxassetid://12621719043")
+        
+        configSection:Divider("Save/Load Config")
+        
+        local configNameInput = ""
+        configSection:TextField("Config Name", "Enter config name...", function(text)
+            configNameInput = text
+        end)
+        
+        -- Dropdown with config list
+        local configList = window:GetConfigList()
+        if #configList == 0 then
+            table.insert(configList, "No configs found")
+        end
+        
+        local configDropdown = configSection:Dropdown("Select Config", configList, function(selected)
+            if selected ~= "No configs found" then
+                configNameInput = selected
+            end
+        end)
+        
+        configSection:Button("Refresh Config List", function()
+            local newList = window:GetConfigList()
+            if #newList == 0 then
+                newList = {"No configs found"}
+            end
+            configDropdown.UpdateOptions(newList)
+            window:TempNotify("Success", "Config list refreshed", "rbxassetid://12608259004")
+        end)
+        
+        configSection:Button("Save Config", function()
+            if window:SaveConfig(configNameInput) then
+                local newList = window:GetConfigList()
+                if #newList == 0 then
+                    newList = {"No configs found"}
+                end
+                configDropdown.UpdateOptions(newList)
+            end
+        end)
+        
+        configSection:Button("Load Config", function()
+            window:LoadConfig(configNameInput)
+        end)
+        
+        configSection:Button("Delete Config", function()
+            if window:DeleteConfig(configNameInput) then
+                local newList = window:GetConfigList()
+                if #newList == 0 then
+                    newList = {"No configs found"}
+                end
+                configDropdown.UpdateOptions(newList)
+                configNameInput = ""
+            end
+        end)
+        
+        configSection:Divider("Autoload")
+        
+        -- Autoload status label (will be updated)
+        local currentAutoload = window:GetAutoload()
+        local autoloadText = currentAutoload and ("Current autoload: " .. currentAutoload) or "No autoload set"
+        local autoloadLabelObj = configSection:Label(autoloadText)
+        
+        configSection:Button("Set as Autoload", function()
+            if configNameInput ~= "" then
+                window:SetAutoload(configNameInput)
+                -- Update status
+                local newAutoload = window:GetAutoload()
+                autoloadLabelObj.Text = newAutoload and ("Current autoload: " .. newAutoload) or "No autoload set"
+            else
+                window:TempNotify("Error", "Enter config name first", "rbxassetid://12608259004")
+            end
+        end)
+        
+        configSection:Button("Remove Autoload", function()
+            window:RemoveAutoload()
+            -- Update status
+            autoloadLabelObj.Text = "No autoload set"
+        end)
+        
+        configSection:Button("Refresh Autoload Status", function()
+            local newAutoload = window:GetAutoload()
+            autoloadLabelObj.Text = newAutoload and ("Current autoload: " .. newAutoload) or "No autoload set"
+            window:TempNotify("Success", "Status refreshed", "rbxassetid://12608259004")
+        end)
+        
+        return configSection
     end
 
     return window
