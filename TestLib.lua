@@ -1074,8 +1074,9 @@ function Library:CreateModule(tab, options)
         local displayText = savedKeybind:gsub("Enum.KeyCode.", "")
         keybindLabel.Text = displayText
         
-        local textSize = TextService:GetTextSize(displayText, 10, Enum.Font.GothamBold, Vector2.new(1000, 15))
-        keybindFrame.Size = UDim2.new(0, textSize.X + 8, 0, 15)
+        local length = #displayText
+        local width = math.max(33, length * 7 + 8)
+        keybindFrame.Size = UDim2.new(0, width, 0, 15)
         
         -- Connect keybind
         table.insert(self.connections, UserInputService.InputBegan:Connect(function(input, gameProcessed)
@@ -1115,8 +1116,9 @@ function Library:CreateModule(tab, options)
             local displayText = keycodeStr:gsub("Enum.KeyCode.", "")
             keybindLabel.Text = displayText
             
-            local textSize = TextService:GetTextSize(displayText, 10, Enum.Font.GothamBold, Vector2.new(1000, 15))
-            keybindFrame.Size = UDim2.new(0, textSize.X + 8, 0, 15)
+            local length = #displayText
+            local width = math.max(33, length * 7 + 8)
+            keybindFrame.Size = UDim2.new(0, width, 0, 15)
             
             self.config:SetKeybind(module.flag, keycodeStr)
             
@@ -1518,8 +1520,35 @@ function Library:CreateDropdown(module, options)
         }
         optionGradient.Parent = optionButton
         
+        local function UpdateOptionAppearance()
+            local isSelected = false
+            if dropdown.multi then
+                if type(dropdown.selected) == "table" then
+                    for _, v in ipairs(dropdown.selected) do
+                        if v == option then
+                            isSelected = true
+                            break
+                        end
+                    end
+                end
+            else
+                isSelected = (dropdown.selected == option)
+            end
+            
+            if isSelected then
+                optionButton.TextTransparency = 0.2
+                optionButton.TextColor3 = Color3.fromRGB(152, 181, 255)
+            else
+                optionButton.TextTransparency = 0.6
+                optionButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+            end
+        end
+        
+        UpdateOptionAppearance()
+        
         optionButton.MouseButton1Click:Connect(function()
             Toggle(option)
+            UpdateOptionAppearance()
             if not dropdown.multi then
                 dropdown.open = false
                 Tween(dropdownFrame, {Size = UDim2.new(0, 207, 0, 39)}, 0.5)
