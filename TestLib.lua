@@ -2152,49 +2152,103 @@ function Library:CreateDropdown(module, options)
     UpdateText()
     dropdown.SetValue = function(newOptions)
         if type(newOptions) == "table" then
+            -- Удаляем старые опции
             for _, child in ipairs(optionsFrame:GetChildren()) do
                 if child:IsA("TextButton") then
                     child:Destroy()
                 end
             end
+            
+            -- Очищаем updateFunctions
+            dropdown.updateFunctions = {}
+            
+            -- Обновляем список опций
             dropdown.options = newOptions
             dropdown.maxVisible = math.min(#newOptions, 5)
-            for _, option in ipairs(newOptions) do
+            
+            -- Пересчитываем размер
+            dropdown.size = 3
+            
+            -- Создаём новые опции с правильной структурой
+            for index, option in ipairs(newOptions) do
                 local optionButton = Instance.new("TextButton")
-                optionButton.Name = option
-                optionButton.Size = UDim2.new(1, -4, 0, 20)
-                optionButton.BackgroundColor3 = Color3.fromRGB(32, 38, 51)
-                optionButton.BackgroundTransparency = 0.5
-                optionButton.BorderSizePixel = 0
-                optionButton.Text = ""
+                optionButton.Name = "Option"
+                optionButton.Font = Enum.Font.GothamBold
+                optionButton.Active = false
+                optionButton.TextTransparency = 0.6
+                optionButton.AnchorPoint = Vector2.new(0, 0.5)
+                optionButton.TextSize = 10
+                optionButton.Size = UDim2.new(0, 186, 0, 16)
+                optionButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+                optionButton.Text = option
                 optionButton.AutoButtonColor = false
+                optionButton.BackgroundTransparency = 1
+                optionButton.TextXAlignment = Enum.TextXAlignment.Left
+                optionButton.Selectable = false
                 optionButton.Parent = optionsFrame
-                local optionCorner = Instance.new("UICorner")
-                optionCorner.CornerRadius = UDim.new(0, 3)
-                optionCorner.Parent = optionButton
-                local optionLabel = Instance.new("TextLabel")
-                optionLabel.Text = option
-                optionLabel.Font = Enum.Font.GothamBold
-                optionLabel.TextSize = 10
-                optionLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-                optionLabel.TextTransparency = 0.3
-                optionLabel.TextXAlignment = Enum.TextXAlignment.Left
-                optionLabel.Size = UDim2.new(1, -8, 1, 0)
-                optionLabel.Position = UDim2.new(0, 8, 0, 0)
-                optionLabel.BackgroundTransparency = 1
-                optionLabel.Parent = optionButton
+                
+                local optionGradient = Instance.new("UIGradient")
+                optionGradient.Transparency = NumberSequence.new{
+                    NumberSequenceKeypoint.new(0, 0),
+                    NumberSequenceKeypoint.new(0.7, 0),
+                    NumberSequenceKeypoint.new(0.87, 0.36),
+                    NumberSequenceKeypoint.new(1, 1)
+                }
+                optionGradient.Parent = optionButton
+                
+                local function UpdateOptionAppearance()
+                    local isSelected = false
+                    if dropdown.multi then
+                        if type(dropdown.selected) == "table" then
+                            for _, v in ipairs(dropdown.selected) do
+                                if v == option then
+                                    isSelected = true
+                                    break
+                                end
+                            end
+                        end
+                    else
+                        isSelected = (dropdown.selected == option)
+                    end
+                    
+                    local theme = self.currentTheme
+                    if isSelected then
+                        optionButton.TextTransparency = 0.2
+                        optionButton.TextColor3 = theme.Primary
+                    else
+                        optionButton.TextTransparency = 0.7
+                        optionButton.TextColor3 = theme.Text
+                    end
+                end
+                
+                table.insert(dropdown.updateFunctions, UpdateOptionAppearance)
+                UpdateOptionAppearance()
+                
                 optionButton.MouseButton1Click:Connect(function()
                     Toggle(option)
+                    if dropdown.updateFunctions then
+                        for _, updateFunc in ipairs(dropdown.updateFunctions) do
+                            updateFunc()
+                        end
+                    end
+                    UpdateOptionAppearance()
                     if not dropdown.multi then
                         dropdown.open = false
-                        optionsFrame.Visible = false
-                        Tween(dropdownFrame, {Size = UDim2.new(0, 207, 0, 42)}, 0.3)
-                        Tween(arrow, {Rotation = 0}, 0.3)
-                        local newModuleSize = 93 + module.elementHeight + 8
-                        Tween(module.frame, {Size = UDim2.new(0, 241, 0, newModuleSize)}, 0.3)
+                        Tween(dropdownFrame, {Size = UDim2.new(0, 207, 0, 42)}, 0.5)
+                        Tween(box, {Size = UDim2.new(0, 207, 0, 22)}, 0.5)
+                        Tween(arrow, {Rotation = 0}, 0.5)
+                        module.multiplier = module.multiplier - dropdown.size
+                        Tween(module.frame, {Size = UDim2.new(0, 241, 0, 93 + module.elementHeight + module.multiplier)}, 0.5)
+                        Tween(module.optionsFrame, {Size = UDim2.new(0, 241, 0, module.elementHeight + module.multiplier)}, 0.5)
                     end
                 end)
+                
+                if index <= dropdown.maxVisible then
+                    dropdown.size = dropdown.size + 16
+                end
             end
+            
+            optionsFrame.Size = UDim2.fromOffset(207, dropdown.size)
         else
             dropdown.selected = newOptions
             UpdateText()
