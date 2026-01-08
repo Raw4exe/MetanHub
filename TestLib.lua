@@ -380,12 +380,17 @@ function Library.new()
     if defaultTheme and self.Themes[defaultTheme] then
         self.currentTheme = self.Themes[defaultTheme]
         self.currentThemeName = defaultTheme
-        self.needsThemeApplication = true -- Флаг что нужно применить тему
         print("[DEBUG] Will apply autoload theme:", defaultTheme)
+        
+        -- Применяем тему с задержкой (после создания всех табов)
+        task.spawn(function()
+            task.wait(0.5) -- Ждем пока все табы создадутся
+            print("[DEBUG] Applying autoload theme to all elements...")
+            self:ApplyTheme()
+        end)
     else
         self.currentTheme = self.Themes.Ocean
         self.currentThemeName = "Ocean"
-        self.needsThemeApplication = false
         print("[DEBUG] Using default Ocean theme")
     end
     
@@ -396,15 +401,6 @@ function Library.new()
     
     self:CreateUI()
     self:SetupUIKeybind()
-    
-    -- Применяем тему через Heartbeat (после полной загрузки UI)
-    if self.needsThemeApplication then
-        RunService.Heartbeat:Wait()
-        RunService.Heartbeat:Wait()
-        print("[DEBUG] Applying autoload theme to all elements...")
-        self:ApplyTheme()
-        self.needsThemeApplication = false
-    end
     
     return self
 end
