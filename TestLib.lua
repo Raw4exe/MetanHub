@@ -234,75 +234,75 @@ local Library = {}
 Library.__index = Library
 
 Library.Themes = {
-    Default = {
-        Primary = Color3.fromRGB(152, 181, 255),
-        Background = Color3.fromRGB(12, 13, 15),
-        Secondary = Color3.fromRGB(22, 28, 38),
-        Accent = Color3.fromRGB(52, 66, 89),
-        Text = Color3.fromRGB(255, 255, 255)
-    },
-    Dark = {
-        Primary = Color3.fromRGB(100, 100, 255),
-        Background = Color3.fromRGB(10, 10, 10),
-        Secondary = Color3.fromRGB(20, 20, 20),
-        Accent = Color3.fromRGB(40, 40, 40),
-        Text = Color3.fromRGB(255, 255, 255)
-    },
-    Purple = {
-        Primary = Color3.fromRGB(200, 100, 255),
-        Background = Color3.fromRGB(15, 10, 20),
-        Secondary = Color3.fromRGB(25, 20, 35),
-        Accent = Color3.fromRGB(50, 40, 70),
-        Text = Color3.fromRGB(255, 255, 255)
-    },
-    Green = {
-        Primary = Color3.fromRGB(100, 255, 150),
-        Background = Color3.fromRGB(10, 15, 12),
-        Secondary = Color3.fromRGB(20, 28, 22),
-        Accent = Color3.fromRGB(40, 66, 52),
-        Text = Color3.fromRGB(255, 255, 255)
-    },
-    Red = {
-        Primary = Color3.fromRGB(255, 100, 100),
-        Background = Color3.fromRGB(15, 10, 10),
-        Secondary = Color3.fromRGB(28, 20, 20),
-        Accent = Color3.fromRGB(66, 40, 40),
-        Text = Color3.fromRGB(255, 255, 255)
-    },
     Ocean = {
+        Primary = Color3.fromRGB(64, 156, 255),
+        Background = Color3.fromRGB(10, 15, 25),
+        Secondary = Color3.fromRGB(15, 25, 40),
+        Accent = Color3.fromRGB(30, 50, 80),
+        Text = Color3.fromRGB(200, 220, 255)
+    },
+    Sunset = {
+        Primary = Color3.fromRGB(255, 107, 107),
+        Background = Color3.fromRGB(25, 15, 20),
+        Secondary = Color3.fromRGB(40, 25, 30),
+        Accent = Color3.fromRGB(80, 40, 50),
+        Text = Color3.fromRGB(255, 200, 200)
+    },
+    Forest = {
+        Primary = Color3.fromRGB(76, 175, 80),
+        Background = Color3.fromRGB(15, 20, 15),
+        Secondary = Color3.fromRGB(25, 35, 25),
+        Accent = Color3.fromRGB(40, 60, 40),
+        Text = Color3.fromRGB(200, 255, 200)
+    },
+    Midnight = {
+        Primary = Color3.fromRGB(138, 43, 226),
+        Background = Color3.fromRGB(10, 10, 15),
+        Secondary = Color3.fromRGB(20, 15, 30),
+        Accent = Color3.fromRGB(40, 30, 60),
+        Text = Color3.fromRGB(220, 200, 255)
+    },
+    Volcano = {
+        Primary = Color3.fromRGB(255, 87, 34),
+        Background = Color3.fromRGB(20, 10, 10),
+        Secondary = Color3.fromRGB(35, 20, 15),
+        Accent = Color3.fromRGB(70, 35, 25),
+        Text = Color3.fromRGB(255, 220, 200)
+    },
+    Arctic = {
         Primary = Color3.fromRGB(100, 200, 255),
-        Background = Color3.fromRGB(10, 15, 20),
-        Secondary = Color3.fromRGB(20, 30, 45),
-        Accent = Color3.fromRGB(40, 60, 90),
-        Text = Color3.fromRGB(255, 255, 255)
+        Background = Color3.fromRGB(15, 18, 22),
+        Secondary = Color3.fromRGB(25, 30, 38),
+        Accent = Color3.fromRGB(45, 55, 70),
+        Text = Color3.fromRGB(220, 240, 255)
     },
-    Orange = {
-        Primary = Color3.fromRGB(255, 150, 50),
-        Background = Color3.fromRGB(18, 12, 8),
-        Secondary = Color3.fromRGB(35, 25, 18),
-        Accent = Color3.fromRGB(70, 50, 35),
-        Text = Color3.fromRGB(255, 255, 255)
+    Space = {
+        Primary = Color3.fromRGB(147, 51, 234),
+        Background = Color3.fromRGB(8, 8, 15),
+        Secondary = Color3.fromRGB(15, 15, 25),
+        Accent = Color3.fromRGB(30, 25, 50),
+        Text = Color3.fromRGB(200, 180, 255)
     },
-    Pink = {
-        Primary = Color3.fromRGB(255, 120, 180),
-        Background = Color3.fromRGB(18, 10, 15),
-        Secondary = Color3.fromRGB(35, 22, 30),
-        Accent = Color3.fromRGB(70, 45, 60),
-        Text = Color3.fromRGB(255, 255, 255)
+    Cherry = {
+        Primary = Color3.fromRGB(255, 105, 180),
+        Background = Color3.fromRGB(20, 12, 15),
+        Secondary = Color3.fromRGB(35, 22, 28),
+        Accent = Color3.fromRGB(70, 40, 55),
+        Text = Color3.fromRGB(255, 200, 230)
     },
-    Cyan = {
-        Primary = Color3.fromRGB(50, 255, 220),
-        Background = Color3.fromRGB(8, 15, 15),
-        Secondary = Color3.fromRGB(18, 30, 30),
-        Accent = Color3.fromRGB(35, 60, 60),
-        Text = Color3.fromRGB(255, 255, 255)
+    Emerald = {
+        Primary = Color3.fromRGB(80, 200, 120),
+        Background = Color3.fromRGB(10, 18, 15),
+        Secondary = Color3.fromRGB(18, 30, 25),
+        Accent = Color3.fromRGB(35, 55, 45),
+        Text = Color3.fromRGB(200, 255, 220)
     },
-    Yellow = {
-        Primary = Color3.fromRGB(255, 220, 80),
-        Background = Color3.fromRGB(15, 14, 10),
+    Gold = {
+        Primary = Color3.fromRGB(255, 193, 7),
+        Background = Color3.fromRGB(18, 15, 10),
         Secondary = Color3.fromRGB(30, 28, 20),
-        Accent = Color3.fromRGB(60, 55, 40),
-        Text = Color3.fromRGB(255, 255, 255)
+        Accent = Color3.fromRGB(60, 50, 35),
+        Text = Color3.fromRGB(255, 240, 200)
     }
 }
 
@@ -346,7 +346,7 @@ function Library.new()
     self.currentTab = nil
     self.choosingKeybind = false
     self.connections = {}
-    self.currentTheme = self.Themes.Default
+    self.currentTheme = self.Themes.Ocean -- Default theme Ocean
     local savedFont = self.config:GetFlag("_UI_Font", "GothamBold")
     self.currentFont = Enum.Font[savedFont] or Enum.Font.GothamBold
     self.uiVisible = true
@@ -481,9 +481,9 @@ function Library:ApplyTheme()
             elseif name == "Box" and parent and parent.Name == "Dropdown" then
                 Tween(descendant, {BackgroundColor3 = theme.Primary, BackgroundTransparency = 0.9}, 0.3)
             
-            -- Кейбинды модулей
+            -- Кейбинды модулей - НЕ МЕНЯЕМ ФОН
             elseif name == "Keybind" and parent and parent.Name == "Header" then
-                Tween(descendant, {BackgroundColor3 = theme.Primary, BackgroundTransparency = 0.7}, 0.3)
+                -- Только обновляем цвет текста, фон оставляем как есть
                 local label = descendant:FindFirstChild("TextLabel")
                 if label then
                     Tween(label, {TextColor3 = Color3.fromRGB(209, 222, 255)}, 0.3)
@@ -524,9 +524,13 @@ function Library:ApplyTheme()
                     end
                 end
             
-            -- Кейбинд Display в элементах
+            -- Кейбинд Display в элементах - НЕ МЕНЯЕМ ФОН
             elseif name == "Display" and parent and parent.Name == "Keybind" then
-                Tween(descendant, {BackgroundColor3 = theme.Primary, BackgroundTransparency = 0.7}, 0.3)
+                -- Фон не меняем, оставляем дефолтный
+                local label = descendant:FindFirstChild("TextLabel")
+                if label then
+                    Tween(label, {TextColor3 = Color3.fromRGB(209, 222, 255)}, 0.3)
+                end
             end
             
             -- Обновляем UIStroke для всех Frame
@@ -545,9 +549,9 @@ function Library:ApplyTheme()
             if name == "Button" and parent and parent.Name == "Options" then
                 Tween(descendant, {BackgroundColor3 = theme.Primary, BackgroundTransparency = 0.8}, 0.3)
             
-            -- Кейбинды элементов
+            -- Кейбинды элементов - НЕ МЕНЯЕМ ФОН
             elseif name == "Keybind" and parent and parent.Name == "Options" then
-                Tween(descendant, {BackgroundColor3 = theme.Primary, BackgroundTransparency = 0.8}, 0.3)
+                -- Фон не меняем
                 Tween(descendant, {TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.3)
             
             -- Табы
@@ -2288,7 +2292,7 @@ function Library:CreateColorpicker(module, options)
     displayCorner2.CornerRadius = UDim.new(0, 4)
     displayCorner2.Parent = colorDisplay
     
-    -- Блокирующий оверлей поверх всей GUI
+    -- Блокирующий оверлей поверх всей GUI с сильным blur
     local blurOverlay = Instance.new("Frame")
     blurOverlay.Name = "BlurOverlay"
     blurOverlay.Size = UDim2.new(1, 0, 1, 0)
@@ -2301,10 +2305,15 @@ function Library:CreateColorpicker(module, options)
     blurOverlay.Active = true
     blurOverlay.Parent = self.container
     
-    -- Диалог ColorPicker по центру
+    -- Закругление углов для blur overlay
+    local blurCorner = Instance.new("UICorner")
+    blurCorner.CornerRadius = UDim.new(0, 10)
+    blurCorner.Parent = blurOverlay
+    
+    -- Диалог ColorPicker по центру (меньший размер)
     local dialog = Instance.new("Frame")
     dialog.Name = "ColorDialog"
-    dialog.Size = UDim2.fromOffset(340, 280)
+    dialog.Size = UDim2.fromOffset(280, 230)
     dialog.Position = UDim2.new(0.5, 0, 0.5, 0)
     dialog.AnchorPoint = Vector2.new(0.5, 0.5)
     dialog.BackgroundColor3 = Color3.fromRGB(22, 28, 38)
@@ -2316,7 +2325,7 @@ function Library:CreateColorpicker(module, options)
     dialog.Parent = self.container
     
     local dialogCorner = Instance.new("UICorner")
-    dialogCorner.CornerRadius = UDim.new(0, 8)
+    dialogCorner.CornerRadius = UDim.new(0, 10)
     dialogCorner.Parent = dialog
     
     local dialogStroke = Instance.new("UIStroke")
@@ -2324,10 +2333,10 @@ function Library:CreateColorpicker(module, options)
     dialogStroke.Transparency = 0.5
     dialogStroke.Parent = dialog
     
-    -- Палитра цвета (больше размер)
+    -- Палитра цвета (меньший размер)
     local satVibMap = Instance.new("ImageButton")
-    satVibMap.Size = UDim2.fromOffset(260, 180)
-    satVibMap.Position = UDim2.fromOffset(15, 15)
+    satVibMap.Size = UDim2.fromOffset(200, 140)
+    satVibMap.Position = UDim2.fromOffset(12, 12)
     satVibMap.Image = "rbxassetid://4155801252"
     satVibMap.BackgroundColor3 = Color3.fromHSV(h, 1, 1)
     satVibMap.BorderSizePixel = 0
@@ -2341,7 +2350,7 @@ function Library:CreateColorpicker(module, options)
     satVibCorner.Parent = satVibMap
     
     local cursor = Instance.new("ImageLabel")
-    cursor.Size = UDim2.fromOffset(20, 20)
+    cursor.Size = UDim2.fromOffset(18, 18)
     cursor.ScaleType = Enum.ScaleType.Fit
     cursor.AnchorPoint = Vector2.new(0.5, 0.5)
     cursor.BackgroundTransparency = 1
@@ -2350,10 +2359,10 @@ function Library:CreateColorpicker(module, options)
     cursor.ZIndex = 1002
     cursor.Parent = satVibMap
     
-    -- Слайдер оттенка (справа от палитры)
+    -- Слайдер оттенка (справа от палитры, меньший)
     local hueSlider = Instance.new("Frame")
-    hueSlider.Size = UDim2.fromOffset(20, 180)
-    hueSlider.Position = UDim2.fromOffset(285, 15)
+    hueSlider.Size = UDim2.fromOffset(16, 140)
+    hueSlider.Position = UDim2.fromOffset(220, 12)
     hueSlider.BorderSizePixel = 0
     hueSlider.ZIndex = 1001
     hueSlider.Active = true
@@ -2391,10 +2400,10 @@ function Library:CreateColorpicker(module, options)
     hueDrag.ZIndex = 1003
     hueDrag.Parent = hueDragHolder
     
-    -- Превью цвета (слева внизу)
+    -- Превью цвета (слева внизу, меньший размер)
     local colorPreview = Instance.new("Frame")
-    colorPreview.Size = UDim2.fromOffset(50, 40)
-    colorPreview.Position = UDim2.fromOffset(15, 210)
+    colorPreview.Size = UDim2.fromOffset(40, 32)
+    colorPreview.Position = UDim2.fromOffset(12, 165)
     colorPreview.BackgroundColor3 = colorpicker.color
     colorPreview.BorderSizePixel = 0
     colorPreview.ZIndex = 1001
@@ -2404,15 +2413,15 @@ function Library:CreateColorpicker(module, options)
     previewCorner.CornerRadius = UDim.new(0, 6)
     previewCorner.Parent = colorPreview
     
-    -- Hex input (рядом с превью)
+    -- Hex input (рядом с превью, меньший)
     local hexInput = Instance.new("TextBox")
-    hexInput.Size = UDim2.fromOffset(100, 40)
-    hexInput.Position = UDim2.fromOffset(75, 210)
+    hexInput.Size = UDim2.fromOffset(80, 32)
+    hexInput.Position = UDim2.fromOffset(60, 165)
     hexInput.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
     hexInput.BackgroundTransparency = 0.3
     hexInput.BorderSizePixel = 0
     hexInput.Font = Enum.Font.GothamBold
-    hexInput.TextSize = 13
+    hexInput.TextSize = 11
     hexInput.TextColor3 = Color3.fromRGB(255, 255, 255)
     hexInput.Text = "#" .. colorpicker.color:ToHex()
     hexInput.PlaceholderText = "#FFFFFF"
@@ -2424,14 +2433,14 @@ function Library:CreateColorpicker(module, options)
     hexCorner.CornerRadius = UDim.new(0, 6)
     hexCorner.Parent = hexInput
     
-    -- Accept Button (справа внизу)
+    -- Accept Button (справа внизу, меньший)
     local acceptBtn = Instance.new("TextButton")
     acceptBtn.Text = "Accept"
     acceptBtn.Font = Enum.Font.GothamBold
-    acceptBtn.TextSize = 13
+    acceptBtn.TextSize = 11
     acceptBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    acceptBtn.Size = UDim2.fromOffset(70, 40)
-    acceptBtn.Position = UDim2.fromOffset(185, 210)
+    acceptBtn.Size = UDim2.fromOffset(60, 32)
+    acceptBtn.Position = UDim2.fromOffset(148, 165)
     acceptBtn.BackgroundColor3 = Color3.fromRGB(152, 181, 255)
     acceptBtn.BackgroundTransparency = 0.2
     acceptBtn.BorderSizePixel = 0
@@ -2443,14 +2452,14 @@ function Library:CreateColorpicker(module, options)
     acceptCorner.CornerRadius = UDim.new(0, 6)
     acceptCorner.Parent = acceptBtn
     
-    -- Cancel Button (рядом с Accept)
+    -- Cancel Button (рядом с Accept, меньший)
     local cancelBtn = Instance.new("TextButton")
     cancelBtn.Text = "Cancel"
     cancelBtn.Font = Enum.Font.GothamBold
-    cancelBtn.TextSize = 13
+    cancelBtn.TextSize = 11
     cancelBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    cancelBtn.Size = UDim2.fromOffset(70, 40)
-    cancelBtn.Position = UDim2.fromOffset(260, 210)
+    cancelBtn.Size = UDim2.fromOffset(60, 32)
+    cancelBtn.Position = UDim2.fromOffset(214, 165)
     cancelBtn.BackgroundColor3 = Color3.fromRGB(152, 181, 255)
     cancelBtn.BackgroundTransparency = 0.2
     cancelBtn.BorderSizePixel = 0
@@ -2474,7 +2483,7 @@ function Library:CreateColorpicker(module, options)
     
     local function ShowDialog()
         blurOverlay.Visible = true
-        Tween(blurOverlay, {BackgroundTransparency = 0.5}, 0.2)
+        Tween(blurOverlay, {BackgroundTransparency = 0.3}, 0.2)  -- Сильнее blur (0.3 вместо 0.5)
         dialog.Visible = true
         h, s, v = colorpicker.hue, colorpicker.sat, colorpicker.vib
         UpdateDisplay()
