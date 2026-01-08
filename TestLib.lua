@@ -380,15 +380,7 @@ function Library.new()
     if defaultTheme and self.Themes[defaultTheme] then
         self.currentTheme = self.Themes[defaultTheme]
         self.currentThemeName = defaultTheme
-        print("[DEBUG] Will apply autoload theme:", defaultTheme)
-        
-        -- Применяем тему с задержкой (после создания всех табов и элементов)
-        task.spawn(function()
-            task.wait(1.5) -- Увеличена задержка для гарантии что все элементы созданы
-            print("[DEBUG] Applying autoload theme to all elements...")
-            self:ApplyTheme()
-            print("[DEBUG] Theme applied successfully!")
-        end)
+        print("[DEBUG] Using autoload theme:", defaultTheme)
     else
         self.currentTheme = self.Themes.Ocean
         self.currentThemeName = "Ocean"
@@ -803,7 +795,7 @@ function Library:CreateUI()
     
     local container = Instance.new("Frame")
     container.Name = "Container"
-    container.Size = UDim2.new(0, 0, 0, 0)
+    container.Size = UDim2.new(0, 698, 0, 479)  -- Сразу полный размер, без анимации
     container.Position = UDim2.new(0.5, 0, 0.5, 0)
     container.AnchorPoint = Vector2.new(0.5, 0.5)
     container.BackgroundColor3 = theme.Background
@@ -955,15 +947,8 @@ function Library:SetupDragging()
 end
 
 function Library:Load()
-    Tween(self.container, {Size = UDim2.new(0, 698, 0, 479)}, 0.5)
+    -- UI уже создан с полным размером, просто создаём watermark
     self:CreateWatermark()
-    
-    -- Применяем тему после загрузки UI
-    task.spawn(function()
-        task.wait(0.5) -- Ждем завершения анимации
-        print("[DEBUG] Applying theme after UI load...")
-        self:ApplyTheme()
-    end)
 end
 
 function Library:CreateTab(name, icon)
