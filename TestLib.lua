@@ -1925,7 +1925,7 @@ function Library:CreateColorpicker(module, options)
     
     local dialog = Instance.new("Frame")
     dialog.Name = "ColorDialog"
-    dialog.Size = UDim2.fromOffset(260, 230)
+    dialog.Size = UDim2.fromOffset(240, 195)
     dialog.Position = UDim2.new(0.5, 0, 0.5, 0)
     dialog.AnchorPoint = Vector2.new(0.5, 0.5)
     dialog.BackgroundColor3 = Color3.fromRGB(22, 28, 38)
@@ -1944,21 +1944,9 @@ function Library:CreateColorpicker(module, options)
     dialogStroke.Transparency = 0.5
     dialogStroke.Parent = dialog
     
-    local dialogTitle = Instance.new("TextLabel")
-    dialogTitle.Text = colorpicker.title
-    dialogTitle.Font = Enum.Font.GothamBold
-    dialogTitle.TextSize = 13
-    dialogTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-    dialogTitle.Size = UDim2.new(1, -20, 0, 25)
-    dialogTitle.Position = UDim2.fromOffset(10, 5)
-    dialogTitle.BackgroundTransparency = 1
-    dialogTitle.TextXAlignment = Enum.TextXAlignment.Left
-    dialogTitle.ZIndex = 1001
-    dialogTitle.Parent = dialog
-    
     local satVibMap = Instance.new("ImageButton")
-    satVibMap.Size = UDim2.fromOffset(190, 130)
-    satVibMap.Position = UDim2.fromOffset(15, 35)
+    satVibMap.Size = UDim2.fromOffset(180, 120)
+    satVibMap.Position = UDim2.fromOffset(10, 10)
     satVibMap.Image = "rbxassetid://4155801252"
     satVibMap.BackgroundColor3 = Color3.fromHSV(h, 1, 1)
     satVibMap.BorderSizePixel = 0
@@ -2210,6 +2198,17 @@ function Library:CreateColorpicker(module, options)
     
     blurOverlay.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            -- Check if click is on dialog elements (don't close if interacting with controls)
+            local mousePos = UserInputService:GetMouseLocation() - guiInset
+            local dialogPos = dialog.AbsolutePosition
+            local dialogSize = dialog.AbsoluteSize
+            
+            -- If click is inside dialog bounds, don't close
+            if mousePos.X >= dialogPos.X and mousePos.X <= dialogPos.X + dialogSize.X and
+               mousePos.Y >= dialogPos.Y and mousePos.Y <= dialogPos.Y + dialogSize.Y then
+                return
+            end
+            
             HideDialog()
         end
     end)
@@ -2334,17 +2333,24 @@ end
 function Library:CreateNotificationContainer()
     if self.notificationContainer then return end
     
+    -- Create separate ScreenGui for notifications so they stay visible when main UI is hidden
+    local notificationGui = Instance.new("ScreenGui")
+    notificationGui.Name = "MarchUI_Notifications"
+    notificationGui.ResetOnSpawn = false
+    notificationGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    notificationGui.Parent = CoreGui
+    
+    self.notificationGui = notificationGui
+    
     local container = Instance.new("Frame")
     container.Name = "NotificationContainer"
     container.Size = UDim2.new(0, 300, 0, 0)
-    container.Position = UDim2.new(1, -310, 0, 10)
+    container.Position = UDim2.new(0.8, 0, 0, 10)
     container.BackgroundTransparency = 1
     container.BorderSizePixel = 0
     container.ClipsDescendants = false
-    container.Parent = self.ui
+    container.Parent = notificationGui
     container.AutomaticSize = Enum.AutomaticSize.Y
-    -- Position like Library.lua - right side
-    container.Position = UDim2.new(0.8, 0, 0, 10)
     
     local layout = Instance.new("UIListLayout")
     layout.FillDirection = Enum.FillDirection.Vertical
@@ -2585,35 +2591,36 @@ function Library:CreateWatermark()
     
     local watermark = Instance.new("Frame")
     watermark.Name = "Watermark"
-    watermark.Size = UDim2.new(0, 220, 0, 30)
+    watermark.Size = UDim2.new(0, 240, 0, 35)
     watermark.Position = UDim2.new(0.5, 0, 0.4, 0)
     watermark.AnchorPoint = Vector2.new(0.5, 0.5)
-    watermark.BackgroundColor3 = Color3.fromRGB(22, 28, 38)
-    watermark.BackgroundTransparency = 0.2
+    watermark.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+    watermark.BackgroundTransparency = 0
     watermark.BorderSizePixel = 0
     watermark.Visible = false
     watermark.Active = true
     watermark.Parent = watermarkGui
     
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 6)
+    corner.CornerRadius = UDim.new(0, 4)
     corner.Parent = watermark
     
     local stroke = Instance.new("UIStroke")
-    stroke.Color = Color3.fromRGB(52, 66, 89)
-    stroke.Transparency = 0.5
+    stroke.Color = Color3.fromRGB(40, 40, 40)
+    stroke.Transparency = 0
+    stroke.Thickness = 1
     stroke.Parent = watermark
     
     local infoLabel = Instance.new("TextLabel")
     infoLabel.Name = "Info"
-    infoLabel.Text = "FPS: 60 | Ping: 50ms | Click to open"
+    infoLabel.Text = "FPS: 60 | Ping: 50ms | 00:00"
     infoLabel.Font = Enum.Font.GothamBold
-    infoLabel.TextSize = 11
-    infoLabel.TextColor3 = Color3.fromRGB(152, 181, 255)
-    infoLabel.Size = UDim2.new(1, -10, 1, 0)
-    infoLabel.Position = UDim2.new(0, 5, 0, 0)
+    infoLabel.TextSize = 12
+    infoLabel.TextColor3 = Color3.fromRGB(210, 210, 210)
+    infoLabel.Size = UDim2.new(1, -20, 1, 0)
+    infoLabel.Position = UDim2.new(0, 10, 0, 0)
     infoLabel.BackgroundTransparency = 1
-    infoLabel.TextXAlignment = Enum.TextXAlignment.Center
+    infoLabel.TextXAlignment = Enum.TextXAlignment.Left
     infoLabel.Parent = watermark
     
     local dragging = false
@@ -2718,6 +2725,11 @@ function Library:Unload()
     if self.uiKeybindConnection then
         self.uiKeybindConnection:Disconnect()
         self.uiKeybindConnection = nil
+    end
+    
+    if self.notificationGui then
+        self.notificationGui:Destroy()
+        self.notificationGui = nil
     end
     
     if self.watermarkGui then
