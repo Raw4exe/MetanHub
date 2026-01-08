@@ -1925,7 +1925,7 @@ function Library:CreateColorpicker(module, options)
     
     local dialog = Instance.new("Frame")
     dialog.Name = "ColorDialog"
-    dialog.Size = UDim2.fromOffset(280, 240)
+    dialog.Size = UDim2.fromOffset(260, 230)
     dialog.Position = UDim2.new(0.5, 0, 0.5, 0)
     dialog.AnchorPoint = Vector2.new(0.5, 0.5)
     dialog.BackgroundColor3 = Color3.fromRGB(22, 28, 38)
@@ -1957,7 +1957,7 @@ function Library:CreateColorpicker(module, options)
     dialogTitle.Parent = dialog
     
     local satVibMap = Instance.new("ImageButton")
-    satVibMap.Size = UDim2.fromOffset(200, 140)
+    satVibMap.Size = UDim2.fromOffset(190, 130)
     satVibMap.Position = UDim2.fromOffset(15, 35)
     satVibMap.Image = "rbxassetid://4155801252"
     satVibMap.BackgroundColor3 = Color3.fromHSV(h, 1, 1)
@@ -1981,8 +1981,8 @@ function Library:CreateColorpicker(module, options)
     cursor.Parent = satVibMap
     
     local hueSlider = Instance.new("Frame")
-    hueSlider.Size = UDim2.fromOffset(14, 140)
-    hueSlider.Position = UDim2.fromOffset(225, 35)
+    hueSlider.Size = UDim2.fromOffset(14, 130)
+    hueSlider.Position = UDim2.fromOffset(215, 35)
     hueSlider.BorderSizePixel = 0
     hueSlider.ZIndex = 1001
     hueSlider.Parent = dialog
@@ -2020,8 +2020,8 @@ function Library:CreateColorpicker(module, options)
     hueDrag.Parent = hueDragHolder
     
     local colorPreview = Instance.new("Frame")
-    colorPreview.Size = UDim2.fromOffset(40, 30)
-    colorPreview.Position = UDim2.fromOffset(15, 185)
+    colorPreview.Size = UDim2.fromOffset(35, 28)
+    colorPreview.Position = UDim2.fromOffset(15, 175)
     colorPreview.BackgroundColor3 = colorpicker.color
     colorPreview.BorderSizePixel = 0
     colorPreview.ZIndex = 1001
@@ -2032,13 +2032,13 @@ function Library:CreateColorpicker(module, options)
     previewCorner.Parent = colorPreview
     
     local hexInput = Instance.new("TextBox")
-    hexInput.Size = UDim2.fromOffset(100, 30)
-    hexInput.Position = UDim2.fromOffset(65, 185)
+    hexInput.Size = UDim2.fromOffset(80, 28)
+    hexInput.Position = UDim2.fromOffset(55, 175)
     hexInput.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
     hexInput.BackgroundTransparency = 0.5
     hexInput.BorderSizePixel = 0
     hexInput.Font = Enum.Font.GothamBold
-    hexInput.TextSize = 12
+    hexInput.TextSize = 11
     hexInput.TextColor3 = Color3.fromRGB(255, 255, 255)
     hexInput.Text = "#" .. colorpicker.color:ToHex()
     hexInput.PlaceholderText = "#FFFFFF"
@@ -2056,10 +2056,10 @@ function Library:CreateColorpicker(module, options)
     acceptBtn.Font = Enum.Font.GothamBold
     acceptBtn.TextSize = 11
     acceptBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    acceptBtn.Size = UDim2.fromOffset(55, 30)
-    acceptBtn.Position = UDim2.fromOffset(175, 185)
-    acceptBtn.BackgroundColor3 = Color3.fromRGB(100, 180, 100)
-    acceptBtn.BackgroundTransparency = 0.2
+    acceptBtn.Size = UDim2.fromOffset(55, 28)
+    acceptBtn.Position = UDim2.fromOffset(140, 175)
+    acceptBtn.BackgroundColor3 = Color3.fromRGB(152, 181, 255)
+    acceptBtn.BackgroundTransparency = 0.3
     acceptBtn.BorderSizePixel = 0
     acceptBtn.ZIndex = 1001
     acceptBtn.Parent = dialog
@@ -2073,10 +2073,10 @@ function Library:CreateColorpicker(module, options)
     cancelBtn.Font = Enum.Font.GothamBold
     cancelBtn.TextSize = 11
     cancelBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    cancelBtn.Size = UDim2.fromOffset(55, 30)
-    cancelBtn.Position = UDim2.fromOffset(235, 185)
-    cancelBtn.BackgroundColor3 = Color3.fromRGB(180, 100, 100)
-    cancelBtn.BackgroundTransparency = 0.2
+    cancelBtn.Size = UDim2.fromOffset(55, 28)
+    cancelBtn.Position = UDim2.fromOffset(200, 175)
+    cancelBtn.BackgroundColor3 = Color3.fromRGB(152, 181, 255)
+    cancelBtn.BackgroundTransparency = 0.3
     cancelBtn.BorderSizePixel = 0
     cancelBtn.ZIndex = 1001
     cancelBtn.Parent = dialog
@@ -2111,15 +2111,18 @@ function Library:CreateColorpicker(module, options)
     end
     
     local draggingSat = false
+    local guiInset = game:GetService("GuiService"):GetGuiInset()
+    
     satVibMap.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             draggingSat = true
             local minX = satVibMap.AbsolutePosition.X
             local maxX = minX + satVibMap.AbsoluteSize.X
-            local mouseX = math.clamp(UserInputService:GetMouseLocation().X, minX, maxX)
+            local mousePos = UserInputService:GetMouseLocation() - guiInset
+            local mouseX = math.clamp(mousePos.X, minX, maxX)
             local minY = satVibMap.AbsolutePosition.Y
             local maxY = minY + satVibMap.AbsoluteSize.Y
-            local mouseY = math.clamp(UserInputService:GetMouseLocation().Y, minY, maxY)
+            local mouseY = math.clamp(mousePos.Y, minY, maxY)
             s = (mouseX - minX) / (maxX - minX)
             v = 1 - ((mouseY - minY) / (maxY - minY))
             UpdateDisplay()
@@ -2130,10 +2133,11 @@ function Library:CreateColorpicker(module, options)
         if not draggingSat then return end
         local minX = satVibMap.AbsolutePosition.X
         local maxX = minX + satVibMap.AbsoluteSize.X
-        local mouseX = math.clamp(UserInputService:GetMouseLocation().X, minX, maxX)
+        local mousePos = UserInputService:GetMouseLocation() - guiInset
+        local mouseX = math.clamp(mousePos.X, minX, maxX)
         local minY = satVibMap.AbsolutePosition.Y
         local maxY = minY + satVibMap.AbsoluteSize.Y
-        local mouseY = math.clamp(UserInputService:GetMouseLocation().Y, minY, maxY)
+        local mouseY = math.clamp(mousePos.Y, minY, maxY)
         s = (mouseX - minX) / (maxX - minX)
         v = 1 - ((mouseY - minY) / (maxY - minY))
         UpdateDisplay()
@@ -2149,7 +2153,8 @@ function Library:CreateColorpicker(module, options)
     local function updateHue()
         local minY = hueSlider.AbsolutePosition.Y
         local maxY = minY + hueSlider.AbsoluteSize.Y
-        local mouseY = math.clamp(UserInputService:GetMouseLocation().Y, minY, maxY)
+        local mousePos = UserInputService:GetMouseLocation() - guiInset
+        local mouseY = math.clamp(mousePos.Y, minY, maxY)
         h = (mouseY - minY) / (maxY - minY)
         UpdateDisplay()
     end
