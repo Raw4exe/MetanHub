@@ -294,6 +294,22 @@ function Library:UpdateColorsUsingRegistry()
             end
         end
     end
+    if self.currentTab then
+        local tab = self.currentTab
+        local icon = tab.button.Icon
+        local label = tab.button.Label
+        icon.ImageColor3 = theme.Primary
+        label.TextColor3 = theme.Primary
+    end
+    for _, tab in ipairs(self.tabs) do
+        for _, module in ipairs(tab.modules) do
+            if module.toggleFrame and module.state then
+                module.toggleFrame.BackgroundColor3 = theme.Primary
+            elseif module.toggleFrame then
+                module.toggleFrame.BackgroundColor3 = theme.Accent
+            end
+        end
+    end
 end
 function Library.new()
     local self = setmetatable({}, Library)
@@ -776,6 +792,7 @@ function Library:CreateModule(tab, options)
     module.elements = {}
     module.elementHeight = 8
     module.multiplier = 0
+    module.library = self
     local theme = self.currentTheme
     local moduleFrame = Instance.new("Frame")
     moduleFrame.Name = "Module"
@@ -937,12 +954,13 @@ function Library:CreateModule(tab, options)
     toggleData.SetValue = function(self2, value)
         module.state = value
         toggleData.Value = value
+        local currentTheme = module.library.currentTheme
         if value then
-            Tween(toggleFrame, {BackgroundColor3 = theme.Primary, BackgroundTransparency = 0.2}, 0.5)
-            Tween(toggleCircle, {BackgroundColor3 = theme.Text, BackgroundTransparency = 0, Position = UDim2.fromScale(0.53, 0.5)}, 0.5)
+            Tween(toggleFrame, {BackgroundColor3 = currentTheme.Primary, BackgroundTransparency = 0.2}, 0.5)
+            Tween(toggleCircle, {BackgroundColor3 = currentTheme.Text, BackgroundTransparency = 0, Position = UDim2.fromScale(0.53, 0.5)}, 0.5)
         else
-            Tween(toggleFrame, {BackgroundColor3 = theme.Accent, BackgroundTransparency = 0.5}, 0.5)
-            Tween(toggleCircle, {BackgroundColor3 = theme.Text, BackgroundTransparency = 0.3, Position = UDim2.fromScale(0, 0.5)}, 0.5)
+            Tween(toggleFrame, {BackgroundColor3 = currentTheme.Accent, BackgroundTransparency = 0.5}, 0.5)
+            Tween(toggleCircle, {BackgroundColor3 = currentTheme.Text, BackgroundTransparency = 0.3, Position = UDim2.fromScale(0, 0.5)}, 0.5)
         end
         local newSize = value and (93 + module.elementHeight + module.multiplier) or 93
         Tween(moduleFrame, {Size = UDim2.new(0, 241, 0, newSize)}, 0.5)
