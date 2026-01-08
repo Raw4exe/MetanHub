@@ -1585,7 +1585,8 @@ function Library:CreateModule(tab, options)
         
         self.choosingKeybind = true
         keybindLabel.Text = "..."
-        keybindFrame.Size = UDim2.new(0, 33, 0, 15)
+        local width = math.max(33, GetTextWidth("...", 10, Enum.Font.GothamBold) + 16)
+        keybindFrame.Size = UDim2.new(0, width, 0, 15)
         
         local connection
         connection = UserInputService.InputBegan:Connect(function(keyInput, processed)
@@ -1598,7 +1599,8 @@ function Library:CreateModule(tab, options)
             
             if keyInput.KeyCode == Enum.KeyCode.Backspace then
                 keybindLabel.Text = "None"
-                keybindFrame.Size = UDim2.new(0, 33, 0, 15)
+                local width = math.max(33, GetTextWidth("None", 10, Enum.Font.GothamBold) + 16)
+                keybindFrame.Size = UDim2.new(0, width, 0, 15)
                 self.config:SetKeybind(module.flag, nil)
                 return
             end
@@ -2848,21 +2850,12 @@ function Library:SendNotification(settings)
     
     -- Slide in from left with bounce, slide out to left
     task.spawn(function()
-        local tweenIn = TweenService:Create(innerFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-            Position = UDim2.new(0, 0, 0, 0)
-        })
-        tweenIn:Play()
+        innerFrame.Position = UDim2.new(0, 0, 0, 0)  -- Без анимации входа
         
         task.wait(duration)
         
-        local tweenOut = TweenService:Create(innerFrame, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
-            Position = UDim2.new(-1.2, 0, 0, 0)
-        })
-        tweenOut:Play()
-        
-        tweenOut.Completed:Connect(function()
-            notification:Destroy()
-        end)
+        innerFrame.Position = UDim2.new(-1.2, 0, 0, 0)  -- Без анимации выхода
+        notification:Destroy()
     end)
     
     return notification
@@ -2971,30 +2964,17 @@ function Library:SendNotificationWithButton(settings)
     local function closeNotification()
         if closed then return end
         closed = true
-        local tweenOut = TweenService:Create(innerFrame, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
-            Position = UDim2.new(-1.2, 0, 0, 0)
-        })
-        tweenOut:Play()
-        tweenOut.Completed:Connect(function()
-            notification:Destroy()
-        end)
+        innerFrame.Position = UDim2.new(-1.2, 0, 0, 0)  // Без анимации
+        notification:Destroy()
     end
     
     actionButton.MouseButton1Click:Connect(function()
-        -- Click animation
-        Tween(actionButton, {Size = UDim2.new(0, 65, 0, 26)}, 0.1)
-        task.wait(0.1)
-        Tween(actionButton, {Size = UDim2.new(0, 70, 0, 28)}, 0.1)
         task.spawn(buttonCallback)
-        task.wait(0.1)
         closeNotification()
     end)
     
     task.spawn(function()
-        local tweenIn = TweenService:Create(innerFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-            Position = UDim2.new(0, 0, 0, 0)
-        })
-        tweenIn:Play()
+        innerFrame.Position = UDim2.new(0, 0, 0, 0)  -- Без анимации входа
         
         task.wait(duration)
         closeNotification()
@@ -3021,7 +3001,7 @@ function Library:CreateWatermark()
     local watermark = Instance.new("Frame")
     watermark.Name = "Watermark"
     watermark.Size = UDim2.new(0, 250, 0, 35)
-    watermark.Position = UDim2.new(0.5, 0, 0.4, 0)
+    watermark.Position = UDim2.new(0.5, 0, 0.05, 0)  -- Изменено с 0.4 на 0.05 (намного выше)
     watermark.AnchorPoint = Vector2.new(0.5, 0.5)
     watermark.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
     watermark.BackgroundTransparency = 0
@@ -3155,14 +3135,13 @@ function Library:ToggleUI()
     self.uiVisible = not self.uiVisible
     if self.uiVisible then
         self.ui.Enabled = true
-        Tween(self.container, {Size = UDim2.new(0, 698, 0, 479)}, 0.3)
+        self.container.Size = UDim2.new(0, 698, 0, 479)  -- Без анимации
         if self.watermark then
             self.watermark.Visible = false
             self.watermarkVisible = false
         end
     else
-        Tween(self.container, {Size = UDim2.new(0, 0, 0, 0)}, 0.3)
-        task.wait(0.3)
+        self.container.Size = UDim2.new(0, 0, 0, 0)  -- Без анимации
         self.ui.Enabled = false
         if self.watermark then
             self.watermark.Visible = true
