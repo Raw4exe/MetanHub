@@ -1641,20 +1641,11 @@ function Library:CreateColorpicker(module, options)
     dialogOverlay.Size = UDim2.new(1, 0, 1, 0)
     dialogOverlay.Position = UDim2.new(0, 0, 0, 0)
     dialogOverlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    dialogOverlay.BackgroundTransparency = 1
+    dialogOverlay.BackgroundTransparency = 0.5
     dialogOverlay.BorderSizePixel = 0
     dialogOverlay.Visible = false
     dialogOverlay.ZIndex = 1000
     dialogOverlay.Parent = self.container
-    local blurFrame = Instance.new("Frame")
-    blurFrame.Name = "BlurFrame"
-    blurFrame.Size = UDim2.new(1, 0, 1, 0)
-    blurFrame.Position = UDim2.new(0, 0, 0, 0)
-    blurFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    blurFrame.BackgroundTransparency = 0.7
-    blurFrame.BorderSizePixel = 0
-    blurFrame.ZIndex = 999
-    blurFrame.Parent = self.container
     local pickerPopup = Instance.new("Frame")
     pickerPopup.Name = "PickerPopup"
     pickerPopup.Size = UDim2.new(0, 280, 0, 320)
@@ -1964,7 +1955,6 @@ function Library:CreateColorpicker(module, options)
         task.spawn(function() colorpicker.callback(colorpicker.tempColor) end)
         colorpicker.open = false
         dialogOverlay.Visible = false
-        blurFrame.Visible = false
     end)
     cancelButton.MouseEnter:Connect(function() Tween(cancelButton, {BackgroundTransparency = 0.3}, 0.2) end)
     cancelButton.MouseLeave:Connect(function() Tween(cancelButton, {BackgroundTransparency = 0.5}, 0.2) end)
@@ -1976,12 +1966,10 @@ function Library:CreateColorpicker(module, options)
         UpdateColor(false)
         colorpicker.open = false
         dialogOverlay.Visible = false
-        blurFrame.Visible = false
     end)
     colorpickerFrame.MouseButton1Click:Connect(function()
         colorpicker.open = not colorpicker.open
         dialogOverlay.Visible = colorpicker.open
-        blurFrame.Visible = colorpicker.open
         if colorpicker.open then
             UpdateColor(false)
         end
@@ -1995,7 +1983,6 @@ function Library:CreateColorpicker(module, options)
             UpdateColor(false)
             colorpicker.open = false
             dialogOverlay.Visible = false
-            blurFrame.Visible = false
         end
     end)
     UpdateColor(false)
@@ -2299,6 +2286,7 @@ function Library:CreateWatermark()
                 if input.UserInputState == Enum.UserInputState.End then
                     dragging = false
                     isDragged = true
+                    savedPosition = watermark.Position
                 end
             end)
         end
@@ -2308,7 +2296,6 @@ function Library:CreateWatermark()
             local delta = input.Position - dragStart
             local newPos = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
             watermark.Position = newPos
-            savedPosition = newPos
         end
     end)
 end
