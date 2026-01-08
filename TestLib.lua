@@ -382,11 +382,12 @@ function Library.new()
         self.currentThemeName = defaultTheme
         print("[DEBUG] Will apply autoload theme:", defaultTheme)
         
-        -- Применяем тему с задержкой (после создания всех табов)
+        -- Применяем тему с задержкой (после создания всех табов и элементов)
         task.spawn(function()
-            task.wait(0.5) -- Ждем пока все табы создадутся
+            task.wait(1.5) -- Увеличена задержка для гарантии что все элементы созданы
             print("[DEBUG] Applying autoload theme to all elements...")
             self:ApplyTheme()
+            print("[DEBUG] Theme applied successfully!")
         end)
     else
         self.currentTheme = self.Themes.Ocean
@@ -956,6 +957,13 @@ end
 function Library:Load()
     Tween(self.container, {Size = UDim2.new(0, 698, 0, 479)}, 0.5)
     self:CreateWatermark()
+    
+    -- Применяем тему после загрузки UI
+    task.spawn(function()
+        task.wait(0.5) -- Ждем завершения анимации
+        print("[DEBUG] Applying theme after UI load...")
+        self:ApplyTheme()
+    end)
 end
 
 function Library:CreateTab(name, icon)
@@ -1826,6 +1834,9 @@ function Library:CreateSlider(module, options)
     slider.round = options.round_number or options.round or false
     slider.callback = options.callback or function() end
     module.elementHeight = module.elementHeight + 30
+    
+    local theme = self.currentTheme
+    
     local sliderFrame = Instance.new("TextButton")
     sliderFrame.Name = "Slider"
     sliderFrame.Size = UDim2.new(0, 207, 0, 25)
@@ -1838,7 +1849,7 @@ function Library:CreateSlider(module, options)
     titleLabel.Text = slider.title
     titleLabel.Font = Enum.Font.GothamBold
     titleLabel.TextSize = 11
-    titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    titleLabel.TextColor3 = theme.Text
     titleLabel.TextTransparency = 0.2
     titleLabel.TextXAlignment = Enum.TextXAlignment.Left
     titleLabel.Size = UDim2.new(0, 153, 0, 13)
@@ -1849,7 +1860,7 @@ function Library:CreateSlider(module, options)
     valueLabel.Text = tostring(slider.value)
     valueLabel.Font = Enum.Font.GothamBold
     valueLabel.TextSize = 10
-    valueLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    valueLabel.TextColor3 = theme.Text
     valueLabel.TextTransparency = 0.2
     valueLabel.TextXAlignment = Enum.TextXAlignment.Right
     valueLabel.Size = UDim2.new(0, 42, 0, 13)
@@ -1862,7 +1873,7 @@ function Library:CreateSlider(module, options)
     dragFrame.Size = UDim2.new(0, 207, 0, 4)
     dragFrame.Position = UDim2.new(0.5, 0, 0.95, 0)
     dragFrame.AnchorPoint = Vector2.new(0.5, 1)
-    dragFrame.BackgroundColor3 = Color3.fromRGB(152, 181, 255)
+    dragFrame.BackgroundColor3 = theme.Primary
     dragFrame.BackgroundTransparency = 0.9
     dragFrame.BorderSizePixel = 0
     dragFrame.Parent = sliderFrame
@@ -1875,7 +1886,7 @@ function Library:CreateSlider(module, options)
     fillFrame.Size = UDim2.new(0, 103, 0, 4)
     fillFrame.Position = UDim2.new(0, 0, 0.5, 0)
     fillFrame.AnchorPoint = Vector2.new(0, 0.5)
-    fillFrame.BackgroundColor3 = Color3.fromRGB(152, 181, 255)
+    fillFrame.BackgroundColor3 = theme.Primary
     fillFrame.BackgroundTransparency = 0.5
     fillFrame.BorderSizePixel = 0
     fillFrame.Parent = dragFrame
@@ -1942,6 +1953,9 @@ function Library:CreateCheckbox(module, options)
     checkbox.state = self.config:GetFlag(checkbox.flag, options.default or false)
     checkbox.callback = options.callback or function() end
     module.elementHeight = module.elementHeight + 22
+    
+    local theme = self.currentTheme
+    
     local checkboxFrame = Instance.new("TextButton")
     checkboxFrame.Name = "Checkbox"
     checkboxFrame.Size = UDim2.new(0, 207, 0, 18)
@@ -1954,7 +1968,7 @@ function Library:CreateCheckbox(module, options)
     titleLabel.Text = checkbox.title
     titleLabel.Font = Enum.Font.GothamBold
     titleLabel.TextSize = 11
-    titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    titleLabel.TextColor3 = theme.Text
     titleLabel.TextTransparency = 0.2
     titleLabel.TextXAlignment = Enum.TextXAlignment.Left
     titleLabel.Size = UDim2.new(0, 142, 0, 13)
@@ -1967,7 +1981,7 @@ function Library:CreateCheckbox(module, options)
     boxFrame.Size = UDim2.new(0, 15, 0, 15)
     boxFrame.Position = UDim2.new(1, 0, 0.5, 0)
     boxFrame.AnchorPoint = Vector2.new(1, 0.5)
-    boxFrame.BackgroundColor3 = Color3.fromRGB(152, 181, 255)
+    boxFrame.BackgroundColor3 = theme.Primary
     boxFrame.BackgroundTransparency = 0.9
     boxFrame.BorderSizePixel = 0
     boxFrame.Parent = checkboxFrame
@@ -1980,7 +1994,7 @@ function Library:CreateCheckbox(module, options)
     fillFrame.Size = UDim2.new(0, 0, 0, 0)
     fillFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
     fillFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-    fillFrame.BackgroundColor3 = Color3.fromRGB(152, 181, 255)
+    fillFrame.BackgroundColor3 = theme.Primary
     fillFrame.BackgroundTransparency = 0.2
     fillFrame.BorderSizePixel = 0
     fillFrame.Parent = boxFrame
@@ -2019,6 +2033,8 @@ function Library:CreateDropdown(module, options)
     dropdown.open = false
     dropdown.size = 0
     
+    local theme = self.currentTheme
+    
     local baseHeight = 48
     module.elementHeight = module.elementHeight + baseHeight
     
@@ -2035,7 +2051,7 @@ function Library:CreateDropdown(module, options)
     titleLabel.Text = dropdown.title
     titleLabel.Font = Enum.Font.GothamBold
     titleLabel.TextSize = 10
-    titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    titleLabel.TextColor3 = theme.Text
     titleLabel.TextTransparency = 0.2
     titleLabel.TextXAlignment = Enum.TextXAlignment.Left
     titleLabel.Size = UDim2.new(0, 207, 0, 13)
@@ -2050,7 +2066,7 @@ function Library:CreateDropdown(module, options)
     box.Position = UDim2.new(0.5, 0, 1.2, 0)
     box.Size = UDim2.new(0, 207, 0, 22)
     box.BorderSizePixel = 0
-    box.BackgroundColor3 = Color3.fromRGB(152, 181, 255)
+    box.BackgroundColor3 = theme.Primary
     box.Parent = titleLabel
     
     local boxCorner = Instance.new("UICorner")
@@ -2070,7 +2086,7 @@ function Library:CreateDropdown(module, options)
     currentOption.Name = "CurrentOption"
     currentOption.Font = Enum.Font.GothamBold
     currentOption.TextSize = 10
-    currentOption.TextColor3 = Color3.fromRGB(255, 255, 255)
+    currentOption.TextColor3 = theme.Text
     currentOption.TextTransparency = 0.2
     currentOption.Text = "None"
     currentOption.Size = UDim2.new(0, 161, 0, 13)
