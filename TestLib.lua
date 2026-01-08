@@ -1986,15 +1986,17 @@ function Library:CreateColorpicker(module, options)
             UpdateColor(false)
         end
     end)
-    dialogOverlay.MouseButton1Click:Connect(function()
-        local hue, sat, val = colorpicker.color:ToHSV()
-        colorpicker.hue = hue
-        colorpicker.sat = sat
-        colorpicker.val = val
-        UpdateColor(false)
-        colorpicker.open = false
-        dialogOverlay.Visible = false
-        blurFrame.Visible = false
+    dialogOverlay.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            local hue, sat, val = colorpicker.color:ToHSV()
+            colorpicker.hue = hue
+            colorpicker.sat = sat
+            colorpicker.val = val
+            UpdateColor(false)
+            colorpicker.open = false
+            dialogOverlay.Visible = false
+            blurFrame.Visible = false
+        end
     end)
     UpdateColor(false)
     Options[colorpicker.flag] = colorpicker
