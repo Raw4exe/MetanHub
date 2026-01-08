@@ -684,18 +684,20 @@ function Library:CreateSettingsTab()
     end
     local function UpdateAutoloadLabel()
         local autoload = SaveManager:GetAutoloadConfig()
-        if autoloadLabel then autoloadLabel:SetText(autoload and ("Autoload: " .. autoload) or "Autoload: None") end
+        if autoloadLabel then autoloadLabel:SetValue(autoload and ("Autoload: " .. autoload) or "Autoload: None") end
     end
-    configListDropdown = configModule:CreateDropdown({ title = "Select Config", flag = "SaveManager_ConfigList", options = #SaveManager:RefreshConfigList() > 0 and SaveManager:RefreshConfigList() or {"No configs"}, callback = function(value)
-        if value and value ~= "No configs" then
-            local success, err = SaveManager:Load(value)
-            if success then self:SendNotification({ title = 'Config', text = 'Loaded config: ' .. value, duration = 3 })
-            else self:SendNotification({ title = 'Config', text = 'Failed to load: ' .. tostring(err), duration = 3 }) end
-        end
-    end })
+    configListDropdown = configModule:CreateDropdown({ title = "Select Config", flag = "SaveManager_ConfigList", options = #SaveManager:RefreshConfigList() > 0 and SaveManager:RefreshConfigList() or {"No configs"} })
     autoloadLabel = configModule:CreateTextbox({ title = "Autoload Status", flag = "SaveManager_AutoloadStatus", default = SaveManager:GetAutoloadConfig() and ("Autoload: " .. SaveManager:GetAutoloadConfig()) or "Autoload: None", placeholder = "No autoload set" })
     autoloadLabel.textboxFrame.TextEditable = false
     configNameInput = configModule:CreateTextbox({ title = "Config Name", flag = "SaveManager_ConfigName", placeholder = "Enter config name..." })
+    configModule:CreateButton({ title = "Load Config", callback = function()
+        local name = Options["SaveManager_ConfigList"] and Options["SaveManager_ConfigList"].Value
+        if name and name ~= "" and name ~= "No configs" then
+            local success, err = SaveManager:Load(name)
+            if success then self:SendNotification({ title = 'Config', text = 'Loaded config: ' .. name, duration = 3 })
+            else self:SendNotification({ title = 'Config', text = 'Failed to load: ' .. tostring(err), duration = 3 }) end
+        else self:SendNotification({ title = 'Config', text = 'Please select a config', duration = 3 }) end
+    end })
     configModule:CreateButton({ title = "Create Config", callback = function()
         local name = Options["SaveManager_ConfigName"] and Options["SaveManager_ConfigName"].Value
         if name and name ~= "" then
@@ -731,7 +733,7 @@ function Library:CreateSettingsTab()
     end
     local function UpdateAutoloadThemeLabel()
         local autoload = ThemeManager:LoadDefault()
-        if autoloadThemeLabel then autoloadThemeLabel:SetText(autoload or "None") end
+        if autoloadThemeLabel then autoloadThemeLabel:SetValue(autoload or "None") end
     end
     themeModule:CreateColorpicker({ title = "Background color", flag = "BackgroundColor", default = tempTheme.Background, callback = function(color) tempTheme.Background = color end })
     themeModule:CreateColorpicker({ title = "Main color", flag = "MainColor", default = tempTheme.Primary, callback = function(color) tempTheme.Primary = color end })
