@@ -380,10 +380,12 @@ function Library.new()
     if defaultTheme and self.Themes[defaultTheme] then
         self.currentTheme = self.Themes[defaultTheme]
         self.currentThemeName = defaultTheme
-        print("[DEBUG] Applied autoload theme:", defaultTheme)
+        self.needsThemeApplication = true -- Флаг что нужно применить тему
+        print("[DEBUG] Will apply autoload theme:", defaultTheme)
     else
-        self.currentTheme = self.Themes.Ocean -- Default theme Ocean
+        self.currentTheme = self.Themes.Ocean
         self.currentThemeName = "Ocean"
+        self.needsThemeApplication = false
         print("[DEBUG] Using default Ocean theme")
     end
     
@@ -394,6 +396,15 @@ function Library.new()
     
     self:CreateUI()
     self:SetupUIKeybind()
+    
+    -- Применяем тему через Heartbeat (после полной загрузки UI)
+    if self.needsThemeApplication then
+        RunService.Heartbeat:Wait()
+        RunService.Heartbeat:Wait()
+        print("[DEBUG] Applying autoload theme to all elements...")
+        self:ApplyTheme()
+        self.needsThemeApplication = false
+    end
     
     return self
 end
@@ -1484,14 +1495,6 @@ function Library:CreateSettingsTab()
     -- Update lists (темы уже загружены в Library.new)
     UpdateCustomThemeList()
     UpdateAutoloadDisplay()
-    
-    -- ВАЖНО: Применяем тему ко всем элементам после создания Settings таба
-    -- К этому моменту все табы и модули уже созданы
-    task.wait(0.1) -- Небольшая задержка чтобы все элементы успели создаться
-    if self.currentThemeName ~= "Ocean" then
-        print("[DEBUG] Applying autoload theme to all elements...")
-        self:ApplyTheme()
-    end
     
     return settingsTab
 end
