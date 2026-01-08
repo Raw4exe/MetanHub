@@ -422,6 +422,40 @@ function Library:ApplyTheme()
         Tween(containerStroke, {Color = theme.Accent}, 0.3)
     end
     
+    -- Проходим по всем потомкам и обновляем по именам
+    for _, descendant in ipairs(self.container:GetDescendants()) do
+        -- Кнопки
+        if descendant.Name == "Button" and descendant:IsA("TextButton") then
+            Tween(descendant, {BackgroundColor3 = theme.Primary}, 0.3)
+        end
+        
+        -- Дропдауны
+        if descendant.Name == "Dropdown" and descendant:IsA("Frame") then
+            Tween(descendant, {BackgroundColor3 = theme.Secondary}, 0.3)
+            local stroke = descendant:FindFirstChildOfClass("UIStroke")
+            if stroke then Tween(stroke, {Color = theme.Accent}, 0.3) end
+        end
+        
+        -- Текстбоксы/Инпуты
+        if (descendant.Name == "Textbox" or descendant.Name == "Input") and descendant:IsA("TextBox") then
+            Tween(descendant, {BackgroundColor3 = theme.Secondary}, 0.3)
+            Tween(descendant, {TextColor3 = theme.Text}, 0.3)
+            local stroke = descendant:FindFirstChildOfClass("UIStroke")
+            if stroke then Tween(stroke, {Color = theme.Accent}, 0.3) end
+        end
+        
+        -- Кейбинды
+        if descendant.Name == "Keybind" and descendant:IsA("TextButton") then
+            Tween(descendant, {BackgroundColor3 = theme.Primary}, 0.3)
+            Tween(descendant, {TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.3)
+        end
+        
+        -- Статус (Status label)
+        if descendant.Name == "Status" and descendant:IsA("TextLabel") then
+            Tween(descendant, {TextColor3 = theme.Primary}, 0.3)
+        end
+    end
+    
     -- Табы
     for _, tab in ipairs(self.tabs) do
         if tab.button then
@@ -481,9 +515,11 @@ function Library:ApplyTheme()
                 local title = header:FindFirstChild("Title")
                 local desc = header:FindFirstChild("Description")
                 local icon = header:FindFirstChild("Icon")
+                local status = header:FindFirstChild("Status")
                 if title then Tween(title, {TextColor3 = theme.Primary}, 0.3) end
                 if desc then Tween(desc, {TextColor3 = theme.Text}, 0.3) end
                 if icon then Tween(icon, {ImageColor3 = theme.Primary}, 0.3) end
+                if status then Tween(status, {TextColor3 = theme.Primary}, 0.3) end
                 
                 -- Разделители в заголовке
                 for _, child in ipairs(header:GetChildren()) do
@@ -492,10 +528,13 @@ function Library:ApplyTheme()
                     end
                 end
                 
-                -- Кейбинд
+                -- Кейбинд в заголовке
                 local keybindFrame = header:FindFirstChild("Keybind")
                 if keybindFrame then
                     Tween(keybindFrame, {BackgroundColor3 = theme.Primary}, 0.3)
+                    if keybindFrame:IsA("TextButton") or keybindFrame:IsA("TextLabel") then
+                        Tween(keybindFrame, {TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.3)
+                    end
                 end
             end
             
@@ -536,6 +575,24 @@ function Library:ApplyTheme()
                 -- Кнопки
                 if element.buttonFrame then
                     Tween(element.buttonFrame, {BackgroundColor3 = theme.Primary}, 0.3)
+                end
+                
+                -- Текстбоксы
+                if element.textboxFrame then
+                    Tween(element.textboxFrame, {BackgroundColor3 = theme.Secondary}, 0.3)
+                    Tween(element.textboxFrame, {TextColor3 = theme.Text}, 0.3)
+                    local textStroke = element.textboxFrame:FindFirstChildOfClass("UIStroke")
+                    if textStroke then
+                        Tween(textStroke, {Color = theme.Accent}, 0.3)
+                    end
+                end
+                
+                -- Кейбинды элементов
+                if element.keybindFrame then
+                    Tween(element.keybindFrame, {BackgroundColor3 = theme.Primary}, 0.3)
+                    if element.keybindFrame:IsA("TextButton") or element.keybindFrame:IsA("TextLabel") then
+                        Tween(element.keybindFrame, {TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.3)
+                    end
                 end
             end
         end
@@ -2030,6 +2087,7 @@ function Library:CreateColorpicker(module, options)
     satVibMap.BorderSizePixel = 0
     satVibMap.AutoButtonColor = false
     satVibMap.ZIndex = 1001
+    satVibMap.Active = true
     satVibMap.Parent = dialog
     
     local satVibCorner = Instance.new("UICorner")
@@ -2052,6 +2110,7 @@ function Library:CreateColorpicker(module, options)
     hueSlider.Position = UDim2.fromOffset(285, 15)
     hueSlider.BorderSizePixel = 0
     hueSlider.ZIndex = 1001
+    hueSlider.Active = true
     hueSlider.Parent = dialog
     
     local hueCorner = Instance.new("UICorner")
