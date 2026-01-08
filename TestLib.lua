@@ -179,8 +179,6 @@ end
 function ConfigManager:SetFlag(flag, value)
     if not flag then return end
     self.data.flags[flag] = value
-    -- Auto-save when flag changes
-    self:Save()
 end
 
 function ConfigManager:GetFlag(flag, default)
