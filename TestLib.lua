@@ -34,9 +34,7 @@ do
                 return { type = 'Toggle', idx = idx, value = object.Value }
             end,
             Load = function(idx, data)
-                if Toggles[idx] then
-                    Toggles[idx]:SetValue(data.value)
-                end
+                if Toggles[idx] then Toggles[idx]:SetValue(data.value) end
             end,
         },
         Slider = {
@@ -44,9 +42,7 @@ do
                 return { type = 'Slider', idx = idx, value = tostring(object.Value) }
             end,
             Load = function(idx, data)
-                if Options[idx] then
-                    Options[idx]:SetValue(tonumber(data.value))
-                end
+                if Options[idx] then Options[idx]:SetValue(tonumber(data.value)) end
             end,
         },
         Dropdown = {
@@ -54,9 +50,7 @@ do
                 return { type = 'Dropdown', idx = idx, value = object.Value, multi = object.Multi }
             end,
             Load = function(idx, data)
-                if Options[idx] then
-                    Options[idx]:SetValue(data.value)
-                end
+                if Options[idx] then Options[idx]:SetValue(data.value) end
             end,
         },
         ColorPicker = {
@@ -64,9 +58,7 @@ do
                 return { type = 'ColorPicker', idx = idx, value = object.Value:ToHex(), transparency = object.Transparency or 0 }
             end,
             Load = function(idx, data)
-                if Options[idx] then
-                    Options[idx]:SetValueRGB(Color3.fromHex(data.value), data.transparency)
-                end
+                if Options[idx] then Options[idx]:SetValueRGB(Color3.fromHex(data.value), data.transparency) end
             end,
         },
         KeyPicker = {
@@ -74,9 +66,7 @@ do
                 return { type = 'KeyPicker', idx = idx, mode = object.Mode or 'Toggle', key = object.Value }
             end,
             Load = function(idx, data)
-                if Options[idx] then
-                    Options[idx]:SetValue(data.key)
-                end
+                if Options[idx] then Options[idx]:SetValue(data.key) end
             end,
         },
         Input = {
@@ -84,38 +74,26 @@ do
                 return { type = 'Input', idx = idx, text = object.Value }
             end,
             Load = function(idx, data)
-                if Options[idx] and type(data.text) == 'string' then
-                    Options[idx]:SetValue(data.text)
-                end
+                if Options[idx] and type(data.text) == 'string' then Options[idx]:SetValue(data.text) end
             end,
         },
     }
     function SaveManager:SetIgnoreIndexes(list)
-        for _, key in next, list do
-            self.Ignore[key] = true
-        end
+        for _, key in next, list do self.Ignore[key] = true end
     end
     function SaveManager:SetFolder(folder)
         self.Folder = folder
         self:BuildFolderTree()
     end
     function SaveManager:BuildFolderTree()
-        local paths = {
-            self.Folder,
-            self.Folder .. '/themes',
-            self.Folder .. '/settings'
-        }
+        local paths = { self.Folder, self.Folder .. '/themes', self.Folder .. '/settings' }
         for i = 1, #paths do
             local str = paths[i]
-            if not isfolder(str) then
-                makefolder(str)
-            end
+            if not isfolder(str) then makefolder(str) end
         end
     end
     function SaveManager:Save(name)
-        if not name then
-            return false, 'no config file is selected'
-        end
+        if not name then return false, 'no config file is selected' end
         local fullPath = self.Folder .. '/settings/' .. name .. '.json'
         local data = { objects = {} }
         for idx, toggle in next, Toggles do
@@ -128,25 +106,19 @@ do
             table.insert(data.objects, self.Parser[option.Type].Save(idx, option))
         end
         local success, encoded = pcall(HttpService.JSONEncode, HttpService, data)
-        if not success then
-            return false, 'failed to encode data'
-        end
+        if not success then return false, 'failed to encode data' end
         writefile(fullPath, encoded)
         return true
     end
     function SaveManager:Load(name)
-        if not name then
-            return false, 'no config file is selected'
-        end
+        if not name then return false, 'no config file is selected' end
         local file = self.Folder .. '/settings/' .. name .. '.json'
         if not isfile(file) then return false, 'invalid file' end
         local success, decoded = pcall(HttpService.JSONDecode, HttpService, readfile(file))
         if not success then return false, 'decode error' end
         for _, option in next, decoded.objects do
             if self.Parser[option.type] then
-                task.spawn(function()
-                    self.Parser[option.type].Load(option.idx, option)
-                end)
+                task.spawn(function() self.Parser[option.type].Load(option.idx, option) end)
             end
         end
         return true
@@ -154,17 +126,11 @@ do
     function SaveManager:Delete(name)
         if not name then return false end
         local file = self.Folder .. '/settings/' .. name .. '.json'
-        if isfile(file) then
-            delfile(file)
-            return true
-        end
+        if isfile(file) then delfile(file) return true end
         return false
     end
     function SaveManager:IgnoreThemeSettings()
-        self:SetIgnoreIndexes({
-            "BackgroundColor", "MainColor", "AccentColor", "OutlineColor", "FontColor",
-            "ThemeManager_ThemeList", 'ThemeManager_CustomThemeList', 'ThemeManager_CustomThemeName',
-        })
+        self:SetIgnoreIndexes({ "BackgroundColor", "MainColor", "AccentColor", "OutlineColor", "FontColor", "ThemeManager_ThemeList", 'ThemeManager_CustomThemeList', 'ThemeManager_CustomThemeName' })
     end
     function SaveManager:RefreshConfigList()
         local list = listfiles(self.Folder .. '/settings')
@@ -179,184 +145,77 @@ do
                     pos = pos - 1
                     char = file:sub(pos, pos)
                 end
-                if char == '/' or char == '\\' then
-                    table.insert(out, file:sub(pos + 1, start - 1))
-                end
+                if char == '/' or char == '\\' then table.insert(out, file:sub(pos + 1, start - 1)) end
             end
         end
         return out
     end
-    function SaveManager:SetLibrary(library)
-        self.Library = library
-    end
+    function SaveManager:SetLibrary(library) self.Library = library end
     function SaveManager:LoadAutoloadConfig()
         if isfile(self.Folder .. '/settings/autoload.txt') then
             local name = readfile(self.Folder .. '/settings/autoload.txt')
             local success, err = self:Load(name)
             if not success then
-                if self.Library then
-                    self.Library:SendNotification({
-                        title = 'Config',
-                        text = 'Failed to load autoload config: ' .. tostring(err),
-                        duration = 3
-                    })
-                end
+                if self.Library then self.Library:SendNotification({ title = 'Config', text = 'Failed to load autoload config: ' .. tostring(err), duration = 3 }) end
                 return
             end
-            if self.Library then
-                self.Library:SendNotification({
-                    title = 'Config',
-                    text = string.format('Auto loaded config %q', name),
-                    duration = 3
-                })
-            end
+            if self.Library then self.Library:SendNotification({ title = 'Config', text = string.format('Auto loaded config %q', name), duration = 3 }) end
         end
     end
     function SaveManager:GetAutoloadConfig()
-        if isfile(self.Folder .. '/settings/autoload.txt') then
-            return readfile(self.Folder .. '/settings/autoload.txt')
-        end
+        if isfile(self.Folder .. '/settings/autoload.txt') then return readfile(self.Folder .. '/settings/autoload.txt') end
         return nil
     end
-    function SaveManager:SetAutoloadConfig(name)
-        writefile(self.Folder .. '/settings/autoload.txt', name)
-    end
+    function SaveManager:SetAutoloadConfig(name) writefile(self.Folder .. '/settings/autoload.txt', name) end
     function SaveManager:DeleteAutoloadConfig()
         local path = self.Folder .. '/settings/autoload.txt'
-        if isfile(path) then
-            delfile(path)
-        end
+        if isfile(path) then delfile(path) end
     end
     SaveManager:BuildFolderTree()
 end
+
 local ThemeManager = {}
 do
     ThemeManager.Folder = 'MarchUI'
     ThemeManager.Library = nil
     ThemeManager.BuiltInThemes = {
-        Ocean = {
-            Primary = Color3.fromRGB(64, 156, 255),
-            Background = Color3.fromRGB(10, 15, 25),
-            Secondary = Color3.fromRGB(15, 25, 40),
-            Accent = Color3.fromRGB(30, 50, 80),
-            Text = Color3.fromRGB(200, 220, 255)
-        },
-        Sunset = {
-            Primary = Color3.fromRGB(255, 107, 107),
-            Background = Color3.fromRGB(25, 15, 20),
-            Secondary = Color3.fromRGB(40, 25, 30),
-            Accent = Color3.fromRGB(80, 40, 50),
-            Text = Color3.fromRGB(255, 200, 200)
-        },
-        Forest = {
-            Primary = Color3.fromRGB(76, 175, 80),
-            Background = Color3.fromRGB(15, 20, 15),
-            Secondary = Color3.fromRGB(25, 35, 25),
-            Accent = Color3.fromRGB(40, 60, 40),
-            Text = Color3.fromRGB(200, 255, 200)
-        },
-        Midnight = {
-            Primary = Color3.fromRGB(138, 43, 226),
-            Background = Color3.fromRGB(10, 10, 15),
-            Secondary = Color3.fromRGB(20, 15, 30),
-            Accent = Color3.fromRGB(40, 30, 60),
-            Text = Color3.fromRGB(220, 200, 255)
-        },
-        Volcano = {
-            Primary = Color3.fromRGB(255, 87, 34),
-            Background = Color3.fromRGB(20, 10, 10),
-            Secondary = Color3.fromRGB(35, 20, 15),
-            Accent = Color3.fromRGB(70, 35, 25),
-            Text = Color3.fromRGB(255, 220, 200)
-        },
-        Arctic = {
-            Primary = Color3.fromRGB(100, 200, 255),
-            Background = Color3.fromRGB(15, 18, 22),
-            Secondary = Color3.fromRGB(25, 30, 38),
-            Accent = Color3.fromRGB(45, 55, 70),
-            Text = Color3.fromRGB(220, 240, 255)
-        },
-        Space = {
-            Primary = Color3.fromRGB(147, 51, 234),
-            Background = Color3.fromRGB(8, 8, 15),
-            Secondary = Color3.fromRGB(15, 15, 25),
-            Accent = Color3.fromRGB(30, 25, 50),
-            Text = Color3.fromRGB(200, 180, 255)
-        },
-        Cherry = {
-            Primary = Color3.fromRGB(255, 105, 180),
-            Background = Color3.fromRGB(20, 12, 15),
-            Secondary = Color3.fromRGB(35, 22, 28),
-            Accent = Color3.fromRGB(70, 40, 55),
-            Text = Color3.fromRGB(255, 200, 230)
-        },
-        Emerald = {
-            Primary = Color3.fromRGB(80, 200, 120),
-            Background = Color3.fromRGB(10, 18, 15),
-            Secondary = Color3.fromRGB(18, 30, 25),
-            Accent = Color3.fromRGB(35, 55, 45),
-            Text = Color3.fromRGB(200, 255, 220)
-        },
-        Gold = {
-            Primary = Color3.fromRGB(255, 193, 7),
-            Background = Color3.fromRGB(18, 15, 10),
-            Secondary = Color3.fromRGB(30, 28, 20),
-            Accent = Color3.fromRGB(60, 50, 35),
-            Text = Color3.fromRGB(255, 240, 200)
-        }
+        Ocean = { Primary = Color3.fromRGB(64, 156, 255), Background = Color3.fromRGB(10, 15, 25), Secondary = Color3.fromRGB(15, 25, 40), Accent = Color3.fromRGB(30, 50, 80), Text = Color3.fromRGB(200, 220, 255) },
+        Sunset = { Primary = Color3.fromRGB(255, 107, 107), Background = Color3.fromRGB(25, 15, 20), Secondary = Color3.fromRGB(40, 25, 30), Accent = Color3.fromRGB(80, 40, 50), Text = Color3.fromRGB(255, 200, 200) },
+        Forest = { Primary = Color3.fromRGB(76, 175, 80), Background = Color3.fromRGB(15, 20, 15), Secondary = Color3.fromRGB(25, 35, 25), Accent = Color3.fromRGB(40, 60, 40), Text = Color3.fromRGB(200, 255, 200) },
+        Midnight = { Primary = Color3.fromRGB(138, 43, 226), Background = Color3.fromRGB(10, 10, 15), Secondary = Color3.fromRGB(20, 15, 30), Accent = Color3.fromRGB(40, 30, 60), Text = Color3.fromRGB(220, 200, 255) },
+        Volcano = { Primary = Color3.fromRGB(255, 87, 34), Background = Color3.fromRGB(20, 10, 10), Secondary = Color3.fromRGB(35, 20, 15), Accent = Color3.fromRGB(70, 35, 25), Text = Color3.fromRGB(255, 220, 200) },
+        Arctic = { Primary = Color3.fromRGB(100, 200, 255), Background = Color3.fromRGB(15, 18, 22), Secondary = Color3.fromRGB(25, 30, 38), Accent = Color3.fromRGB(45, 55, 70), Text = Color3.fromRGB(220, 240, 255) },
+        Space = { Primary = Color3.fromRGB(147, 51, 234), Background = Color3.fromRGB(8, 8, 15), Secondary = Color3.fromRGB(15, 15, 25), Accent = Color3.fromRGB(30, 25, 50), Text = Color3.fromRGB(200, 180, 255) },
+        Cherry = { Primary = Color3.fromRGB(255, 105, 180), Background = Color3.fromRGB(20, 12, 15), Secondary = Color3.fromRGB(35, 22, 28), Accent = Color3.fromRGB(70, 40, 55), Text = Color3.fromRGB(255, 200, 230) },
+        Emerald = { Primary = Color3.fromRGB(80, 200, 120), Background = Color3.fromRGB(10, 18, 15), Secondary = Color3.fromRGB(18, 30, 25), Accent = Color3.fromRGB(35, 55, 45), Text = Color3.fromRGB(200, 255, 220) },
+        Gold = { Primary = Color3.fromRGB(255, 193, 7), Background = Color3.fromRGB(18, 15, 10), Secondary = Color3.fromRGB(30, 28, 20), Accent = Color3.fromRGB(60, 50, 35), Text = Color3.fromRGB(255, 240, 200) }
     }
-    function ThemeManager:SetLibrary(library)
-        self.Library = library
-    end
-    function ThemeManager:SetFolder(folder)
-        self.Folder = folder
-        self:BuildFolderTree()
-    end
+    function ThemeManager:SetLibrary(library) self.Library = library end
+    function ThemeManager:SetFolder(folder) self.Folder = folder self:BuildFolderTree() end
     function ThemeManager:BuildFolderTree()
-        local paths = {
-            self.Folder,
-            self.Folder .. '/themes',
-            self.Folder .. '/settings'
-        }
+        local paths = { self.Folder, self.Folder .. '/themes', self.Folder .. '/settings' }
         for i = 1, #paths do
             local str = paths[i]
-            if not isfolder(str) then
-                makefolder(str)
-            end
+            if not isfolder(str) then makefolder(str) end
         end
     end
     function ThemeManager:ApplyTheme(theme)
-        if self.Library then
-            self.Library:UpdateColorsUsingRegistry()
-        end
-    end
-    function ThemeManager:ThemeUpdate()
-        if self.Library then
-            self.Library:UpdateColorsUsingRegistry()
-        end
+        if self.Library then self.Library:UpdateColorsUsingRegistry() end
     end
     function ThemeManager:LoadDefault()
         local path = self.Folder .. '/themes/default.txt'
         if isfile(path) then
             local themeName = readfile(path)
-            if self.BuiltInThemes[themeName] then
-                return themeName
-            end
+            if self.BuiltInThemes[themeName] then return themeName end
             local customPath = self.Folder .. '/themes/' .. themeName .. '.json'
-            if isfile(customPath) then
-                return themeName
-            end
+            if isfile(customPath) then return themeName end
         end
         return nil
     end
-    function ThemeManager:SaveDefault(themeName)
-        writefile(self.Folder .. '/themes/default.txt', themeName)
-    end
+    function ThemeManager:SaveDefault(themeName) writefile(self.Folder .. '/themes/default.txt', themeName) end
     function ThemeManager:DeleteDefault()
         local path = self.Folder .. '/themes/default.txt'
-        if isfile(path) then
-            delfile(path)
-        end
+        if isfile(path) then delfile(path) end
     end
     function ThemeManager:GetCustomTheme(name)
         local path = self.Folder .. '/themes/' .. name .. '.json'
@@ -365,17 +224,13 @@ do
         if not success then return nil end
         local theme = {}
         for key, value in pairs(decoded) do
-            if type(value) == 'string' then
-                theme[key] = Color3.fromHex(value)
-            end
+            if type(value) == 'string' then theme[key] = Color3.fromHex(value) end
         end
         return theme
     end
     function ThemeManager:SaveCustomTheme(name, themeData)
         local data = {}
-        for key, color in pairs(themeData) do
-            data[key] = color:ToHex()
-        end
+        for key, color in pairs(themeData) do data[key] = color:ToHex() end
         local success, encoded = pcall(HttpService.JSONEncode, HttpService, data)
         if not success then return false end
         writefile(self.Folder .. '/themes/' .. name .. '.json', encoded)
@@ -383,10 +238,7 @@ do
     end
     function ThemeManager:DeleteCustomTheme(name)
         local path = self.Folder .. '/themes/' .. name .. '.json'
-        if isfile(path) then
-            delfile(path)
-            return true
-        end
+        if isfile(path) then delfile(path) return true end
         return false
     end
     function ThemeManager:RefreshCustomThemeList()
@@ -402,9 +254,7 @@ do
                     pos = pos - 1
                     char = file:sub(pos, pos)
                 end
-                if char == '/' or char == '\\' then
-                    table.insert(out, file:sub(pos + 1, start - 1))
-                end
+                if char == '/' or char == '\\' then table.insert(out, file:sub(pos + 1, start - 1)) end
             end
         end
         return out
@@ -416,14 +266,7 @@ local Library = {}
 Library.__index = Library
 Library.Registry = {}
 Library.RegistryMap = {}
-Library.Fonts = {
-    "Gotham", "GothamBold", "GothamBlack", "SourceSans", "SourceSansBold",
-    "SourceSansLight", "SourceSansItalic", "Arial", "ArialBold", "RobotoMono",
-    "Roboto", "RobotoCondensed", "Ubuntu", "Oswald", "Michroma", "Bangers",
-    "Creepster", "DenkOne", "Fondamento", "FredokaOne", "Jura", "Merriweather",
-    "Nunito", "PatrickHand", "PermanentMarker", "Sarpanch", "SciFi",
-    "SpecialElite", "TitilliumWeb"
-}
+Library.Fonts = { "Gotham", "GothamBold", "GothamBlack", "SourceSans", "SourceSansBold", "SourceSansLight", "SourceSansItalic", "Arial", "ArialBold", "RobotoMono", "Roboto", "RobotoCondensed", "Ubuntu", "Oswald", "Michroma", "Bangers", "Creepster", "DenkOne", "Fondamento", "FredokaOne", "Jura", "Merriweather", "Nunito", "PatrickHand", "PermanentMarker", "Sarpanch", "SciFi", "SpecialElite", "TitilliumWeb" }
 function Library:AddToRegistry(instance, properties)
     if not instance then return end
     local data = { Instance = instance, Properties = properties }
@@ -434,9 +277,7 @@ function Library:RemoveFromRegistry(instance)
     local data = self.RegistryMap[instance]
     if data then
         for i = #self.Registry, 1, -1 do
-            if self.Registry[i] == data then
-                table.remove(self.Registry, i)
-            end
+            if self.Registry[i] == data then table.remove(self.Registry, i) end
         end
         self.RegistryMap[instance] = nil
     end
@@ -449,9 +290,7 @@ function Library:UpdateColorsUsingRegistry()
         local properties = data.Properties
         if instance and instance.Parent then
             for property, colorKey in pairs(properties) do
-                if theme[colorKey] then
-                    instance[property] = theme[colorKey]
-                end
+                if theme[colorKey] then instance[property] = theme[colorKey] end
             end
         end
     end
@@ -496,32 +335,23 @@ function Library:SetupUIKeybind()
         self.uiKeybind = savedKeybind
         self.uiKeybindConnection = UserInputService.InputBegan:Connect(function(input, gameProcessed)
             if gameProcessed then return end
-            if tostring(input.KeyCode) == savedKeybind then
-                self:ToggleUI()
-            end
+            if tostring(input.KeyCode) == savedKeybind then self:ToggleUI() end
         end)
     end
 end
 function Library:SetUIKeybind(keycode)
     self.uiKeybind = keycode
-    if self.uiKeybindConnection then
-        self.uiKeybindConnection:Disconnect()
-        self.uiKeybindConnection = nil
-    end
+    if self.uiKeybindConnection then self.uiKeybindConnection:Disconnect() self.uiKeybindConnection = nil end
     if keycode then
         self.uiKeybindConnection = UserInputService.InputBegan:Connect(function(input, gameProcessed)
             if gameProcessed then return end
-            if tostring(input.KeyCode) == keycode then
-                self:ToggleUI()
-            end
+            if tostring(input.KeyCode) == keycode then self:ToggleUI() end
         end)
     end
 end
 function Library:SetTheme(themeName)
     local theme = ThemeManager.BuiltInThemes[themeName]
-    if not theme then
-        theme = ThemeManager:GetCustomTheme(themeName)
-    end
+    if not theme then theme = ThemeManager:GetCustomTheme(themeName) end
     if not theme then return end
     self.currentTheme = theme
     self.currentThemeName = themeName
@@ -538,32 +368,24 @@ function Library:ApplyFont()
     if not self.ui then return end
     for _, descendant in ipairs(self.ui:GetDescendants()) do
         if descendant:IsA("TextLabel") or descendant:IsA("TextButton") or descendant:IsA("TextBox") then
-            if descendant.Name ~= "Icon" then
-                descendant.Font = font
-            end
+            if descendant.Name ~= "Icon" then descendant.Font = font end
         end
     end
     if self.container then
         for _, descendant in ipairs(self.container:GetDescendants()) do
             if descendant:IsA("TextLabel") or descendant:IsA("TextButton") or descendant:IsA("TextBox") then
-                if descendant.Name ~= "Icon" then
-                    descendant.Font = font
-                end
+                if descendant.Name ~= "Icon" then descendant.Font = font end
             end
         end
     end
     if self.notificationGui then
         for _, descendant in ipairs(self.notificationGui:GetDescendants()) do
-            if descendant:IsA("TextLabel") or descendant:IsA("TextButton") or descendant:IsA("TextBox") then
-                descendant.Font = font
-            end
+            if descendant:IsA("TextLabel") or descendant:IsA("TextButton") or descendant:IsA("TextBox") then descendant.Font = font end
         end
     end
     if self.watermark then
         for _, descendant in ipairs(self.watermark:GetDescendants()) do
-            if descendant:IsA("TextLabel") or descendant:IsA("TextButton") or descendant:IsA("TextBox") then
-                descendant.Font = font
-            end
+            if descendant:IsA("TextLabel") or descendant:IsA("TextButton") or descendant:IsA("TextBox") then descendant.Font = font end
         end
     end
 end
@@ -607,7 +429,7 @@ function Library:CreateUI()
     logo.Name = "Logo"
     logo.Text = "Metan"
     logo.Font = self.currentFont
-    logo.TextSize = 18
+    logo.TextSize = 16
     logo.TextColor3 = theme.Primary
     logo.TextTransparency = 0.2
     logo.TextXAlignment = Enum.TextXAlignment.Left
@@ -618,10 +440,7 @@ function Library:CreateUI()
     logo.Parent = handler
     self:AddToRegistry(logo, { TextColor3 = 'Primary' })
     local logoGradient = Instance.new("UIGradient")
-    logoGradient.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(155, 155, 155)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255))
-    }
+    logoGradient.Color = ColorSequence.new{ ColorSequenceKeypoint.new(0, Color3.fromRGB(155, 155, 155)), ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255)) }
     logoGradient.Parent = logo
     local logoIconButton = Instance.new("ImageButton")
     logoIconButton.Name = "Icon"
@@ -635,9 +454,7 @@ function Library:CreateUI()
     logoIconButton.AutoButtonColor = false
     logoIconButton.Parent = handler
     self:AddToRegistry(logoIconButton, { ImageColor3 = 'Primary' })
-    logoIconButton.MouseButton1Click:Connect(function()
-        self:ToggleUI()
-    end)
+    logoIconButton.MouseButton1Click:Connect(function() self:ToggleUI() end)
     local pin = Instance.new("Frame")
     pin.Name = "Pin"
     pin.Size = UDim2.new(0, 2, 0, 16)
@@ -672,7 +489,7 @@ function Library:CreateUI()
     local tabsLayout = Instance.new("UIListLayout")
     tabsLayout.Padding = UDim.new(0, 4)
     tabsLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    tabsLayout.PFrame
+    tabsLayout.Parent = tabsFrame
     local sectionsFolder = Instance.new("Folder")
     sectionsFolder.Name = "Sections"
     sectionsFolder.Parent = handler
@@ -681,7 +498,7 @@ function Library:CreateUI()
     self.handler = handler
     self.tabsFrame = tabsFrame
     self.sectionsFolder = sectionsFolder
-  pin = pin
+    self.pin = pin
     self.logo = logo
     self.logoIcon = logoIconButton
     self:SetupDragging()
@@ -697,9 +514,7 @@ function Library:SetupDragging()
             dragStart = input.Position
             startPos = container.Position
             input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragging = false
-                end
+                if input.UserInputState == Enum.UserInputState.End then dragging = false end
             end)
         end
     end)
@@ -761,11 +576,7 @@ function Library:CreateTab(name, icon)
     tabLabel.BackgroundTransparency = 1
     tabLabel.Parent = tabButton
     local labelGradient = Instance.new("UIGradient")
-    labelGradient.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
-        ColorSequenceKeypoint.new(0.7, Color3.fromRGB(155, 155, 155)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(58, 58, 58))
-    }
+    labelGradient.Color = ColorSequence.new{ ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)), ColorSequenceKeypoint.new(0.7, Color3.fromRGB(155, 155, 155)), ColorSequenceKeypoint.new(1, Color3.fromRGB(58, 58, 58)) }
     labelGradient.Parent = tabLabel
     local leftSection = Instance.new("ScrollingFrame")
     leftSection.Name = "LeftSection"
@@ -812,20 +623,10 @@ function Library:CreateTab(name, icon)
     tab.button = tabButton
     tab.leftSection = leftSection
     tab.rightSection = rightSection
-    tabButton.MouseButton1Click:Connect(function()
-        self:SelectTab(tab)
-    end)
+    tabButton.MouseButton1Click:Connect(function() self:SelectTab(tab) end)
     table.insert(self.tabs, tab)
-    if #self.tabs == 1 then
-        self:SelectTab(tab)
-    end
-    return setmetatable(tab, {
-        __index = {
-            CreateModule = function(t, options)
-                return self:CreateModule(t, options)
-            end
-        }
-    })
+    if #self.tabs == 1 then self:SelectTab(tab) end
+    return setmetatable(tab, { __index = { CreateModule = function(t, options) return self:CreateModule(t, options) end } })
 end
 function Library:SelectTab(tab)
     self.currentTab = tab
@@ -858,309 +659,106 @@ end
 
 function Library:CreateSettingsTab()
     local settingsTab = self:CreateTab("Settings", "rbxassetid://7733955511")
-    local configModule = settingsTab:CreateModule({
-        title = "Config Manager",
-        description = "Manage your configurations",
-        section = "left"
-    })
-    local configNameInput
-    local configListDropdown
-    local autoloadLabel
+    local configModule = settingsTab:CreateModule({ title = "Config Manager", description = "Manage your configurations", section = "left" })
+    local configNameInput, configListDropdown, autoloadLabel
     local function UpdateConfigList()
         local configs = SaveManager:RefreshConfigList()
         if #configs == 0 then configs = {"No configs"} end
-        if configListDropdown then
-            configListDropdown:SetValues(configs)
-        end
+        if configListDropdown then configListDropdown:SetValues(configs) end
     end
     local function UpdateAutoloadLabel()
         local autoload = SaveManager:GetAutoloadConfig()
-        if autoloadLabel then
-            autoloadLabel:SetText(autoload and ("Autoload: " .. autoload) or "Autoload: None")
-        end
+        if autoloadLabel then autoloadLabel:SetText(autoload and ("Autoload: " .. autoload) or "Autoload: None") end
     end
-    configListDropdown = configModule:CreateDropdown({
-        title = "Select Config",
-        flag = "SaveManager_ConfigList",
-        options = #SaveManager:RefreshConfigList() > 0 and SaveManager:RefreshConfigList() or {"No configs"},
-        callback = function(value)
-            if value and value ~= "No configs" then
-                local success, err = SaveManager:Load(value)
-                if success then
-                    self:SendNotification({ title = 'Config', text = 'Loaded config: ' .. value, duration = 3 })
-                else
-                    self:SendNotification({ title = 'Config', text = 'Failed to load: ' .. tostring(err), duration = 3 })
-                end
-            end
+    configListDropdown = configModule:CreateDropdown({ title = "Select Config", flag = "SaveManager_ConfigList", options = #SaveManager:RefreshConfigList() > 0 and SaveManager:RefreshConfigList() or {"No configs"}, callback = function(value)
+        if value and value ~= "No configs" then
+            local success, err = SaveManager:Load(value)
+            if success then self:SendNotification({ title = 'Config', text = 'Loaded config: ' .. value, duration = 3 })
+            else self:SendNotification({ title = 'Config', text = 'Failed to load: ' .. tostring(err), duration = 3 }) end
         end
-    })
-    autoloadLabel = configModule:CreateTextbox({
-        title = "Autoload Status",
-        flag = "SaveManager_AutoloadStatus",
-        default = SaveManager:GetAutoloadConfig() and ("Autoload: " .. SaveManager:GetAutoloadConfig()) or "Autoload: None",
-        placeholder = "No autoload set"
-    })
+    end })
+    autoloadLabel = configModule:CreateTextbox({ title = "Autoload Status", flag = "SaveManager_AutoloadStatus", default = SaveManager:GetAutoloadConfig() and ("Autoload: " .. SaveManager:GetAutoloadConfig()) or "Autoload: None", placeholder = "No autoload set" })
     autoloadLabel.textboxFrame.TextEditable = false
-    configNameInput = configModule:CreateTextbox({
-        title = "Config Name",
-        flag = "SaveManager_ConfigName",
-        placeholder = "Enter config name..."
-    })
-    configModule:CreateButton({
-        title = "Create Config",
-        callback = function()
-            local name = Options["SaveManager_ConfigName"] and Options["SaveManager_ConfigName"].Value
-            if name and name ~= "" then
-                local success, err = SaveManager:Save(name)
-                if success then
-                    self:SendNotification({ title = 'Config', text = 'Created config: ' .. name, duration = 3 })
-                    UpdateConfigList()
-                else
-                    self:SendNotification({ title = 'Config', text = 'Failed: ' .. tostring(err), duration = 3 })
-                end
-            else
-                self:SendNotification({ title = 'Config', text = 'Please enter a config name', duration = 3 })
-            end
+    configNameInput = configModule:CreateTextbox({ title = "Config Name", flag = "SaveManager_ConfigName", placeholder = "Enter config name..." })
+    configModule:CreateButton({ title = "Create Config", callback = function()
+        local name = Options["SaveManager_ConfigName"] and Options["SaveManager_ConfigName"].Value
+        if name and name ~= "" then
+            local success, err = SaveManager:Save(name)
+            if success then self:SendNotification({ title = 'Config', text = 'Created config: ' .. name, duration = 3 }) UpdateConfigList()
+            else self:SendNotification({ title = 'Config', text = 'Failed: ' .. tostring(err), duration = 3 }) end
+        else self:SendNotification({ title = 'Config', text = 'Please enter a config name', duration = 3 }) end
+    end })
+    configModule:CreateButton({ title = "Delete Config", callback = function()
+        local name = Options["SaveManager_ConfigList"] and Options["SaveManager_ConfigList"].Value
+        if name and name ~= "" and name ~= "No configs" then
+            if SaveManager:Delete(name) then self:SendNotification({ title = 'Config', text = 'Deleted config: ' .. name, duration = 3 }) UpdateConfigList() UpdateAutoloadLabel()
+            else self:SendNotification({ title = 'Config', text = 'Failed to delete config', duration = 3 }) end
         end
-    })
-    configModule:CreateButton({
-        title = "Delete Config",
-        callback = function()
-            local name = Options["SaveManager_ConfigList"] and Options["SaveManager_ConfigList"].Value
-            if name and name ~= "" and name ~= "No configs" then
-                if SaveManager:Delete(name) then
-                    self:SendNotification({ title = 'Config', text = 'Deleted config: ' .. name, duration = 3 })
-                    UpdateConfigList()
-                    UpdateAutoloadLabel()
-                else
-                    self:SendNotification({ title = 'Config', text = 'Failed to delete config', duration = 3 })
-                end
-            end
-        end
-    })
-    configModule:CreateButton({
-        title = "Set as Autoload",
-        callback = function()
-            local name = Options["SaveManager_ConfigList"] and Options["SaveManager_ConfigList"].Value
-            if name and name ~= "" and name ~= "No configs" then
-                SaveManager:SetAutoloadConfig(name)
-                self:SendNotification({ title = 'Config', text = 'Set autoload: ' .. name, duration = 3 })
-                UpdateAutoloadLabel()
-            end
-        end
-    })
-    configModule:CreateButton({
-        title = "Delete Autoload",
-        callback = function()
-            SaveManager:DeleteAutoloadConfig()
-            self:SendNotification({ title = 'Config', text = 'Removed autoload', duration = 3 })
-            UpdateAutoloadLabel()
-        end
-    })
-    configModule:CreateButton({
-        title = "Refresh List",
-        callback = function()
-            UpdateConfigList()
-            self:SendNotification({ title = 'Config', text = 'Refreshed config list', duration = 2 })
-        end
-    })
-    local uiModule = settingsTab:CreateModule({
-        title = "UI Settings",
-        description = "Customize your UI",
-        section = "right"
-    })
-    uiModule:CreateKeybind({
-        title = "Toggle UI",
-        flag = "_UI_Toggle",
-        callback = function(key)
-            self:SetUIKeybind(key)
-        end
-    })
-    uiModule:CreateDropdown({
-        title = "Font",
-        flag = "_UI_Font",
-        options = self.Fonts,
-        callback = function(font)
-            self:SetFont(font)
-        end
-    })
-    uiModule:CreateButton({
-        title = "Unload UI",
-        callback = function()
-            self:Unload()
-        end
-    })
-    local themeModule = settingsTab:CreateModule({
-        title = "Themes",
-        description = "Manage themes",
-        section = "left"
-    })
-    local themeListDropdown
-    local customThemeListDropdown
-    local customThemeNameInput
-    local autoloadThemeLabel
-    local tempTheme = {
-        Primary = self.currentTheme.Primary,
-        Background = self.currentTheme.Background,
-        Secondary = self.currentTheme.Secondary,
-        Accent = self.currentTheme.Accent,
-        Text = self.currentTheme.Text
-    }
+    end })
+    configModule:CreateButton({ title = "Set as Autoload", callback = function()
+        local name = Options["SaveManager_ConfigList"] and Options["SaveManager_ConfigList"].Value
+        if name and name ~= "" and name ~= "No configs" then SaveManager:SetAutoloadConfig(name) self:SendNotification({ title = 'Config', text = 'Set autoload: ' .. name, duration = 3 }) UpdateAutoloadLabel() end
+    end })
+    configModule:CreateButton({ title = "Delete Autoload", callback = function() SaveManager:DeleteAutoloadConfig() self:SendNotification({ title = 'Config', text = 'Removed autoload', duration = 3 }) UpdateAutoloadLabel() end })
+    configModule:CreateButton({ title = "Refresh List", callback = function() UpdateConfigList() self:SendNotification({ title = 'Config', text = 'Refreshed config list', duration = 2 }) end })
+    local uiModule = settingsTab:CreateModule({ title = "UI Settings", description = "Customize your UI", section = "right" })
+    uiModule:CreateKeybind({ title = "Toggle UI", flag = "_UI_Toggle", callback = function(key) self:SetUIKeybind(key) end })
+    uiModule:CreateDropdown({ title = "Font", flag = "_UI_Font", options = self.Fonts, callback = function(font) self:SetFont(font) end })
+    uiModule:CreateButton({ title = "Unload UI", callback = function() self:Unload() end })
+    local themeModule = settingsTab:CreateModule({ title = "Themes", description = "Manage themes", section = "left" })
+    local themeListDropdown, customThemeListDropdown, customThemeNameInput, autoloadThemeLabel
+    local tempTheme = { Primary = self.currentTheme.Primary, Background = self.currentTheme.Background, Secondary = self.currentTheme.Secondary, Accent = self.currentTheme.Accent, Text = self.currentTheme.Text }
     local function UpdateCustomThemeList()
         local themes = ThemeManager:RefreshCustomThemeList()
         if #themes == 0 then themes = {"--"} end
-        if customThemeListDropdown then
-            customThemeListDropdown:SetValues(themes)
-        end
+        if customThemeListDropdown then customThemeListDropdown:SetValues(themes) end
     end
     local function UpdateAutoloadThemeLabel()
         local autoload = ThemeManager:LoadDefault()
-        if autoloadThemeLabel then
-            autoloadThemeLabel:SetText(autoload or "None")
-        end
+        if autoloadThemeLabel then autoloadThemeLabel:SetText(autoload or "None") end
     end
-    themeModule:CreateColorpicker({
-        title = "Background color",
-        flag = "BackgroundColor",
-        default = tempTheme.Background,
-        callback = function(color)
-            tempTheme.Background = color
-        end
-    })
-    themeModule:CreateColorpicker({
-        title = "Main color",
-        flag = "MainColor",
-        default = tempTheme.Primary,
-        callback = function(color)
-            tempTheme.Primary = color
-        end
-    })
-    themeModule:CreateColorpicker({
-        title = "Accent color",
-        flag = "AccentColor",
-        default = tempTheme.Accent,
-        callback = function(color)
-            tempTheme.Accent = color
-        end
-    })
-    themeModule:CreateColorpicker({
-        title = "Outline color",
-        flag = "OutlineColor",
-        default = tempTheme.Secondary,
-        callback = function(color)
-            tempTheme.Secondary = color
-        end
-    })
-    themeModule:CreateColorpicker({
-        title = "Font color",
-        flag = "FontColor",
-        default = tempTheme.Text,
-        callback = function(color)
-            tempTheme.Text = color
-        end
-    })
+    themeModule:CreateColorpicker({ title = "Background color", flag = "BackgroundColor", default = tempTheme.Background, callback = function(color) tempTheme.Background = color end })
+    themeModule:CreateColorpicker({ title = "Main color", flag = "MainColor", default = tempTheme.Primary, callback = function(color) tempTheme.Primary = color end })
+    themeModule:CreateColorpicker({ title = "Accent color", flag = "AccentColor", default = tempTheme.Accent, callback = function(color) tempTheme.Accent = color end })
+    themeModule:CreateColorpicker({ title = "Outline color", flag = "OutlineColor", default = tempTheme.Secondary, callback = function(color) tempTheme.Secondary = color end })
+    themeModule:CreateColorpicker({ title = "Font color", flag = "FontColor", default = tempTheme.Text, callback = function(color) tempTheme.Text = color end })
     local themeNames = {}
-    for name, _ in pairs(ThemeManager.BuiltInThemes) do
-        table.insert(themeNames, name)
-    end
+    for name, _ in pairs(ThemeManager.BuiltInThemes) do table.insert(themeNames, name) end
     table.sort(themeNames)
-    themeListDropdown = themeModule:CreateDropdown({
-        title = "Theme list",
-        flag = "ThemeManager_ThemeList",
-        options = themeNames,
-        callback = function(themeName)
-            if themeName then
-                self:SetTheme(themeName)
-            end
-        end
-    })
-    themeModule:CreateButton({
-        title = "Set as default",
-        callback = function()
-            if self.currentThemeName then
-                ThemeManager:SaveDefault(self.currentThemeName)
-                self:SendNotification({ title = 'Theme', text = 'Set default: ' .. self.currentThemeName, duration = 3 })
-                UpdateAutoloadThemeLabel()
-            end
-        end
-    })
-    autoloadThemeLabel = themeModule:CreateTextbox({
-        title = "Autoload theme",
-        flag = "ThemeManager_AutoloadTheme",
-        default = ThemeManager:LoadDefault() or "None",
-        placeholder = "None"
-    })
+    themeListDropdown = themeModule:CreateDropdown({ title = "Theme list", flag = "ThemeManager_ThemeList", options = themeNames, callback = function(themeName) if themeName then self:SetTheme(themeName) end end })
+    themeModule:CreateButton({ title = "Set as default", callback = function()
+        if self.currentThemeName then ThemeManager:SaveDefault(self.currentThemeName) self:SendNotification({ title = 'Theme', text = 'Set default: ' .. self.currentThemeName, duration = 3 }) UpdateAutoloadThemeLabel() end
+    end })
+    autoloadThemeLabel = themeModule:CreateTextbox({ title = "Autoload theme", flag = "ThemeManager_AutoloadTheme", default = ThemeManager:LoadDefault() or "None", placeholder = "None" })
     autoloadThemeLabel.textboxFrame.TextEditable = false
-    customThemeNameInput = themeModule:CreateTextbox({
-        title = "Custom theme name",
-        flag = "ThemeManager_CustomThemeName",
-        placeholder = "Enter name..."
-    })
-    customThemeListDropdown = themeModule:CreateDropdown({
-        title = "Custom themes",
-        flag = "ThemeManager_CustomThemeList",
-        options = #ThemeManager:RefreshCustomThemeList() > 0 and ThemeManager:RefreshCustomThemeList() or {"--"},
-        callback = function(themeName)
-            if themeName and themeName ~= "--" then
-                local theme = ThemeManager:GetCustomTheme(themeName)
-                if theme then
-                    self.currentTheme = theme
-                    self.currentThemeName = themeName
-                    self:UpdateColorsUsingRegistry()
-                end
-            end
+    customThemeNameInput = themeModule:CreateTextbox({ title = "Custom theme name", flag = "ThemeManager_CustomThemeName", placeholder = "Enter name..." })
+    customThemeListDropdown = themeModule:CreateDropdown({ title = "Custom themes", flag = "ThemeManager_CustomThemeList", options = #ThemeManager:RefreshCustomThemeList() > 0 and ThemeManager:RefreshCustomThemeList() or {"--"}, callback = function(themeName)
+        if themeName and themeName ~= "--" then
+            local theme = ThemeManager:GetCustomTheme(themeName)
+            if theme then self.currentTheme = theme self.currentThemeName = themeName self:UpdateColorsUsingRegistry() end
         end
-    })
-    themeModule:CreateButton({
-        title = "Save theme",
-        callback = function()
-            local name = Options["ThemeManager_CustomThemeName"] and Options["ThemeManager_CustomThemeName"].Value
-            if name and name ~= "" then
-                if ThemeManager:SaveCustomTheme(name, tempTheme) then
-                    self:SendNotification({ title = 'Theme', text = 'Saved theme: ' .. name, duration = 3 })
-                    UpdateCustomThemeList()
-                else
-                    self:SendNotification({ title = 'Theme', text = 'Failed to save theme', duration = 3 })
-                end
-            else
-                self:SendNotification({ title = 'Theme', text = 'Please enter a theme name', duration = 3 })
-            end
+    end })
+    themeModule:CreateButton({ title = "Save theme", callback = function()
+        local name = Options["ThemeManager_CustomThemeName"] and Options["ThemeManager_CustomThemeName"].Value
+        if name and name ~= "" then
+            if ThemeManager:SaveCustomTheme(name, tempTheme) then self:SendNotification({ title = 'Theme', text = 'Saved theme: ' .. name, duration = 3 }) UpdateCustomThemeList()
+            else self:SendNotification({ title = 'Theme', text = 'Failed to save theme', duration = 3 }) end
+        else self:SendNotification({ title = 'Theme', text = 'Please enter a theme name', duration = 3 }) end
+    end })
+    themeModule:CreateButton({ title = "Load theme", callback = function()
+        local name = Options["ThemeManager_CustomThemeList"] and Options["ThemeManager_CustomThemeList"].Value
+        if name and name ~= "" and name ~= "--" then
+            local theme = ThemeManager:GetCustomTheme(name)
+            if theme then self.currentTheme = theme self.currentThemeName = name self:UpdateColorsUsingRegistry() self:SendNotification({ title = 'Theme', text = 'Loaded theme: ' .. name, duration = 3 }) end
         end
-    })
-    themeModule:CreateButton({
-        title = "Load theme",
-        callback = function()
-            local name = Options["ThemeManager_CustomThemeList"] and Options["ThemeManager_CustomThemeList"].Value
-            if name and name ~= "" and name ~= "--" then
-                local theme = ThemeManager:GetCustomTheme(name)
-                if theme then
-                    self.currentTheme = theme
-                    self.currentThemeName = name
-                    self:UpdateColorsUsingRegistry()
-                    self:SendNotification({ title = 'Theme', text = 'Loaded theme: ' .. name, duration = 3 })
-                end
-            end
+    end })
+    themeModule:CreateButton({ title = "Refresh list", callback = function() UpdateCustomThemeList() self:SendNotification({ title = 'Theme', text = 'Refreshed theme list', duration = 2 }) end })
+    themeModule:CreateButton({ title = "Delete theme", callback = function()
+        local name = Options["ThemeManager_CustomThemeList"] and Options["ThemeManager_CustomThemeList"].Value
+        if name and name ~= "" and name ~= "--" then
+            if ThemeManager:DeleteCustomTheme(name) then self:SendNotification({ title = 'Theme', text = 'Deleted theme: ' .. name, duration = 3 }) UpdateCustomThemeList() end
         end
-    })
-    themeModule:CreateButton({
-        title = "Refresh list",
-        callback = function()
-            UpdateCustomThemeList()
-            self:SendNotification({ title = 'Theme', text = 'Refreshed theme list', duration = 2 })
-        end
-    })
-    themeModule:CreateButton({
-        title = "Delete theme",
-        callback = function()
-            local name = Options["ThemeManager_CustomThemeList"] and Options["ThemeManager_CustomThemeList"].Value
-            if name and name ~= "" and name ~= "--" then
-                if ThemeManager:DeleteCustomTheme(name) then
-                    self:SendNotification({ title = 'Theme', text = 'Deleted theme: ' .. name, duration = 3 })
-                    UpdateCustomThemeList()
-                end
-            end
-        end
-    })
+    end })
     SaveManager:IgnoreThemeSettings()
     UpdateCustomThemeList()
     UpdateAutoloadThemeLabel()
@@ -1352,9 +950,7 @@ function Library:CreateModule(tab, options)
         task.spawn(function() module.callback(value) end)
     end
     Toggles[module.flag] = toggleData
-    local function SetState(state)
-        toggleData:SetValue(state)
-    end
+    local function SetState(state) toggleData:SetValue(state) end
     if module.state then
         toggleFrame.BackgroundColor3 = theme.Primary
         toggleFrame.BackgroundTransparency = 0.2
@@ -1362,9 +958,7 @@ function Library:CreateModule(tab, options)
         toggleCircle.BackgroundTransparency = 0
         toggleCircle.Position = UDim2.fromScale(0.53, 0.5)
     end
-    header.MouseButton1Click:Connect(function()
-        SetState(not module.state)
-    end)
+    header.MouseButton1Click:Connect(function() SetState(not module.state) end)
     header.InputBegan:Connect(function(input, gameProcessed)
         if gameProcessed then return end
         if input.UserInputType ~= Enum.UserInputType.MouseButton3 then return end
@@ -1391,9 +985,7 @@ function Library:CreateModule(tab, options)
             keybindFrame.Size = UDim2.new(0, width, 0, 15)
             table.insert(self.connections, UserInputService.InputBegan:Connect(function(input2, gameProcessed2)
                 if gameProcessed2 then return end
-                if tostring(input2.KeyCode) == keycodeStr then
-                    SetState(not module.state)
-                end
+                if tostring(input2.KeyCode) == keycodeStr then SetState(not module.state) end
             end))
         end)
     end)
@@ -1405,25 +997,18 @@ function Library:CreateModule(tab, options)
             optionsFrame.Size = UDim2.new(0, 241, 0, module.elementHeight + module.multiplier)
         end
     end
-    if module.state then
-        task.spawn(function()
-            task.wait(0.1)
-            module.UpdateSize()
-        end)
-    end
+    if module.state then task.spawn(function() task.wait(0.1) module.UpdateSize() end) end
     table.insert(tab.modules, module)
-    return setmetatable(module, {
-        __index = {
-            CreateSlider = function(m, opts) return self:CreateSlider(m, opts) end,
-            CreateCheckbox = function(m, opts) return self:CreateCheckbox(m, opts) end,
-            CreateDropdown = function(m, opts) return self:CreateDropdown(m, opts) end,
-            CreateMultiDropdown = function(m, opts) return self:CreateMultiDropdown(m, opts) end,
-            CreateTextbox = function(m, opts) return self:CreateTextbox(m, opts) end,
-            CreateButton = function(m, opts) return self:CreateButton(m, opts) end,
-            CreateColorpicker = function(m, opts) return self:CreateColorpicker(m, opts) end,
-            CreateKeybind = function(m, opts) return self:CreateKeybind(m, opts) end
-        }
-    })
+    return setmetatable(module, { __index = {
+        CreateSlider = function(m, opts) return self:CreateSlider(m, opts) end,
+        CreateCheckbox = function(m, opts) return self:CreateCheckbox(m, opts) end,
+        CreateDropdown = function(m, opts) return self:CreateDropdown(m, opts) end,
+        CreateMultiDropdown = function(m, opts) return self:CreateMultiDropdown(m, opts) end,
+        CreateTextbox = function(m, opts) return self:CreateTextbox(m, opts) end,
+        CreateButton = function(m, opts) return self:CreateButton(m, opts) end,
+        CreateColorpicker = function(m, opts) return self:CreateColorpicker(m, opts) end,
+        CreateKeybind = function(m, opts) return self:CreateKeybind(m, opts) end
+    } })
 end
 
 function Library:CreateSlider(module, options)
@@ -1500,7 +1085,7 @@ function Library:CreateSlider(module, options)
     fillCorner.CornerRadius = UDim.new(0, 3)
     fillCorner.Parent = fillFrame
     local fillGradient = Instance.new("UIGradient")
-    fillGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(79, 79, 79))}
+    fillGradient.Color = ColorSequence.new{ ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(79, 79, 79)) }
     fillGradient.Parent = fillFrame
     local circle = Instance.new("Frame")
     circle.Name = "Circle"
@@ -1623,9 +1208,7 @@ function Library:CreateCheckbox(module, options)
     end
     Toggles[checkbox.flag] = checkbox
     checkbox:SetValue(checkbox.state)
-    checkboxFrame.MouseButton1Click:Connect(function()
-        checkbox:SetValue(not checkbox.state)
-    end)
+    checkboxFrame.MouseButton1Click:Connect(function() checkbox:SetValue(not checkbox.state) end)
     table.insert(module.elements, checkbox)
     return checkbox
 end
@@ -1704,12 +1287,7 @@ function Library:CreateDropdown(module, options)
     currentOption.Parent = header
     self:AddToRegistry(currentOption, { TextColor3 = 'Text' })
     local optionGradient = Instance.new("UIGradient")
-    optionGradient.Transparency = NumberSequence.new{
-        NumberSequenceKeypoint.new(0, 0),
-        NumberSequenceKeypoint.new(0.7, 0),
-        NumberSequenceKeypoint.new(0.87, 0.36),
-        NumberSequenceKeypoint.new(1, 1)
-    }
+    optionGradient.Transparency = NumberSequence.new{ NumberSequenceKeypoint.new(0, 0), NumberSequenceKeypoint.new(0.7, 0), NumberSequenceKeypoint.new(0.87, 0.36), NumberSequenceKeypoint.new(1, 1) }
     optionGradient.Parent = currentOption
     local arrow = Instance.new("ImageLabel")
     arrow.Name = "Arrow"
@@ -1744,14 +1322,9 @@ function Library:CreateDropdown(module, options)
     dropdown.Value = dropdown.selected
     local function UpdateText()
         if dropdown.multi then
-            if type(dropdown.selected) == "table" and #dropdown.selected > 0 then
-                currentOption.Text = table.concat(dropdown.selected, ", ")
-            else
-                currentOption.Text = "None"
-            end
-        else
-            currentOption.Text = dropdown.selected or "None"
-        end
+            if type(dropdown.selected) == "table" and #dropdown.selected > 0 then currentOption.Text = table.concat(dropdown.selected, ", ")
+            else currentOption.Text = "None" end
+        else currentOption.Text = dropdown.selected or "None" end
         dropdown.Value = dropdown.selected
     end
     local function Toggle(option)
@@ -1759,16 +1332,10 @@ function Library:CreateDropdown(module, options)
             if type(dropdown.selected) ~= "table" then dropdown.selected = {} end
             local found = false
             for i, v in ipairs(dropdown.selected) do
-                if v == option then
-                    table.remove(dropdown.selected, i)
-                    found = true
-                    break
-                end
+                if v == option then table.remove(dropdown.selected, i) found = true break end
             end
             if not found then table.insert(dropdown.selected, option) end
-        else
-            dropdown.selected = option
-        end
+        else dropdown.selected = option end
         UpdateText()
         task.spawn(function() dropdown.callback(dropdown.selected) end)
     end
@@ -1791,43 +1358,24 @@ function Library:CreateDropdown(module, options)
         optionButton.Selectable = false
         optionButton.Parent = optionsScrollFrame
         local optGradient = Instance.new("UIGradient")
-        optGradient.Transparency = NumberSequence.new{
-            NumberSequenceKeypoint.new(0, 0),
-            NumberSequenceKeypoint.new(0.7, 0),
-            NumberSequenceKeypoint.new(0.87, 0.36),
-            NumberSequenceKeypoint.new(1, 1)
-        }
+        optGradient.Transparency = NumberSequence.new{ NumberSequenceKeypoint.new(0, 0), NumberSequenceKeypoint.new(0.7, 0), NumberSequenceKeypoint.new(0.87, 0.36), NumberSequenceKeypoint.new(1, 1) }
         optGradient.Parent = optionButton
         local function UpdateOptionAppearance()
             local isSelected = false
             if dropdown.multi then
                 if type(dropdown.selected) == "table" then
-                    for _, v in ipairs(dropdown.selected) do
-                        if v == option then
-                            isSelected = true
-                            break
-                        end
-                    end
+                    for _, v in ipairs(dropdown.selected) do if v == option then isSelected = true break end end
                 end
-            else
-                isSelected = (dropdown.selected == option)
-            end
+            else isSelected = (dropdown.selected == option) end
             local t = self.currentTheme
-            if isSelected then
-                optionButton.TextTransparency = 0.2
-                optionButton.TextColor3 = t.Primary
-            else
-                optionButton.TextTransparency = 0.7
-                optionButton.TextColor3 = t.Text
-            end
+            if isSelected then optionButton.TextTransparency = 0.2 optionButton.TextColor3 = t.Primary
+            else optionButton.TextTransparency = 0.7 optionButton.TextColor3 = t.Text end
         end
         table.insert(dropdown.updateFunctions, UpdateOptionAppearance)
         UpdateOptionAppearance()
         optionButton.MouseButton1Click:Connect(function()
             Toggle(option)
-            for _, updateFunc in ipairs(dropdown.updateFunctions) do
-                updateFunc()
-            end
+            for _, updateFunc in ipairs(dropdown.updateFunctions) do updateFunc() end
             if not dropdown.multi then
                 dropdown.open = false
                 Tween(dropdownFrame, {Size = UDim2.new(0, 207, 0, 42)}, 0.5)
@@ -1838,13 +1386,9 @@ function Library:CreateDropdown(module, options)
                 Tween(module.optionsFrame, {Size = UDim2.new(0, 241, 0, module.elementHeight + module.multiplier)}, 0.5)
             end
         end)
-        if index <= dropdown.maxVisible then
-            dropdown.size = dropdown.size + 16
-        end
+        if index <= dropdown.maxVisible then dropdown.size = dropdown.size + 16 end
     end
-    for index, option in ipairs(dropdown.options) do
-        CreateOptionButton(option, index)
-    end
+    for index, option in ipairs(dropdown.options) do CreateOptionButton(option, index) end
     optionsScrollFrame.Size = UDim2.fromOffset(207, dropdown.size)
     dropdownFrame.MouseButton1Click:Connect(function()
         dropdown.open = not dropdown.open
@@ -1866,29 +1410,19 @@ function Library:CreateDropdown(module, options)
     end)
     UpdateText()
     dropdown.SetValue = function(self2, newValue)
-        if type(newValue) == "table" and not dropdown.multi then
-            return
-        end
+        if type(newValue) == "table" and not dropdown.multi then return end
         dropdown.selected = newValue
         dropdown.Value = newValue
         UpdateText()
-        for _, updateFunc in ipairs(dropdown.updateFunctions) do
-            updateFunc()
-        end
+        for _, updateFunc in ipairs(dropdown.updateFunctions) do updateFunc() end
     end
     dropdown.SetValues = function(self2, newOptions)
-        for _, child in ipairs(optionsScrollFrame:GetChildren()) do
-            if child:IsA("TextButton") then
-                child:Destroy()
-            end
-        end
+        for _, child in ipairs(optionsScrollFrame:GetChildren()) do if child:IsA("TextButton") then child:Destroy() end end
         dropdown.updateFunctions = {}
         dropdown.options = newOptions
         dropdown.maxVisible = math.min(#newOptions, 5)
         dropdown.size = 3
-        for index, option in ipairs(newOptions) do
-            CreateOptionButton(option, index)
-        end
+        for index, option in ipairs(newOptions) do CreateOptionButton(option, index) end
         optionsScrollFrame.Size = UDim2.fromOffset(207, dropdown.size)
     end
     dropdown.box = box
@@ -1909,10 +1443,16 @@ function Library:CreateTextbox(module, options)
     textbox.placeholder = options.placeholder or "Enter text..."
     textbox.callback = options.callback or function() end
     textbox.Type = 'Input'
-    module.elementHeight = module.elementHeight + 32
+    module.elementHeight = module.elementHeight + 48
     local theme = self.currentTheme
     local existingValue = Options[textbox.flag] and Options[textbox.flag].Value
-    textbox.text = existingValue or options.default or ""
+    textbox.value = existingValue or options.default or ""
+    local textboxContainer = Instance.new("Frame")
+    textboxContainer.Name = "Textbox"
+    textboxContainer.Size = UDim2.new(0, 207, 0, 42)
+    textboxContainer.BackgroundTransparency = 1
+    textboxContainer.BorderSizePixel = 0
+    textboxContainer.Parent = module.optionsFrame
     local titleLabel = Instance.new("TextLabel")
     titleLabel.Text = textbox.title
     titleLabel.Font = Enum.Font.GothamBold
@@ -1922,45 +1462,55 @@ function Library:CreateTextbox(module, options)
     titleLabel.TextXAlignment = Enum.TextXAlignment.Left
     titleLabel.Size = UDim2.new(0, 207, 0, 13)
     titleLabel.BackgroundTransparency = 1
-    titleLabel.Parent = module.optionsFrame
+    titleLabel.Parent = textboxContainer
     self:AddToRegistry(titleLabel, { TextColor3 = 'Text' })
-    local textboxFrame = Instance.new("TextBox")
-    textboxFrame.Name = "Textbox"
-    textboxFrame.Text = textbox.text
-    textboxFrame.PlaceholderText = textbox.placeholder
-    textboxFrame.Font = Enum.Font.GothamBold
-    textboxFrame.TextSize = 10
-    textboxFrame.TextColor3 = Color3.fromRGB(255, 255, 255)
-    textboxFrame.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
-    textboxFrame.TextXAlignment = Enum.TextXAlignment.Left
-    textboxFrame.Size = UDim2.new(0, 207, 0, 18)
-    textboxFrame.BackgroundColor3 = theme.Primary
-    textboxFrame.BackgroundTransparency = 0.9
-    textboxFrame.BorderSizePixel = 0
-    textboxFrame.ClearTextOnFocus = false
-    textboxFrame.Parent = module.optionsFrame
-    self:AddToRegistry(textboxFrame, { BackgroundColor3 = 'Primary' })
-    local textboxCorner = Instance.new("UICorner")
-    textboxCorner.CornerRadius = UDim.new(0, 4)
-    textboxCorner.Parent = textboxFrame
-    local textboxPadding = Instance.new("UIPadding")
-    textboxPadding.PaddingLeft = UDim.new(0, 8)
-    textboxPadding.Parent = textboxFrame
-    textbox.Value = textbox.text
+    local inputFrame = Instance.new("Frame")
+    inputFrame.Name = "InputFrame"
+    inputFrame.Size = UDim2.new(0, 207, 0, 22)
+    inputFrame.Position = UDim2.new(0.5, 0, 0.7, 0)
+    inputFrame.AnchorPoint = Vector2.new(0.5, 0)
+    inputFrame.BackgroundColor3 = theme.Primary
+    inputFrame.BackgroundTransparency = 0.9
+    inputFrame.BorderSizePixel = 0
+    inputFrame.Parent = textboxContainer
+    self:AddToRegistry(inputFrame, { BackgroundColor3 = 'Primary' })
+    local inputCorner = Instance.new("UICorner")
+    inputCorner.CornerRadius = UDim.new(0, 4)
+    inputCorner.Parent = inputFrame
+    local textboxInput = Instance.new("TextBox")
+    textboxInput.Name = "Input"
+    textboxInput.Font = Enum.Font.GothamBold
+    textboxInput.TextSize = 10
+    textboxInput.TextColor3 = theme.Text
+    textboxInput.TextTransparency = 0.2
+    textboxInput.PlaceholderText = textbox.placeholder
+    textboxInput.PlaceholderColor3 = theme.Text
+    textboxInput.Text = textbox.value
+    textboxInput.Size = UDim2.new(1, -10, 1, 0)
+    textboxInput.Position = UDim2.new(0.5, 0, 0.5, 0)
+    textboxInput.AnchorPoint = Vector2.new(0.5, 0.5)
+    textboxInput.BackgroundTransparency = 1
+    textboxInput.TextXAlignment = Enum.TextXAlignment.Left
+    textboxInput.ClearTextOnFocus = false
+    textboxInput.Parent = inputFrame
+    self:AddToRegistry(textboxInput, { TextColor3 = 'Text', PlaceholderColor3 = 'Text' })
+    textbox.Value = textbox.value
     textbox.SetValue = function(self2, value)
-        textbox.text = value
+        textbox.value = value
         textbox.Value = value
-        textboxFrame.Text = value
+        textboxInput.Text = value
     end
     textbox.SetText = function(self2, value)
-        textbox:SetValue(value)
+        textbox.value = value
+        textbox.Value = value
+        textboxInput.Text = value
     end
-    textboxFrame.FocusLost:Connect(function(enterPressed)
-        textbox.text = textboxFrame.Text
-        textbox.Value = textboxFrame.Text
-        task.spawn(function() textbox.callback(textbox.text) end)
+    textboxInput.FocusLost:Connect(function(enterPressed)
+        textbox.value = textboxInput.Text
+        textbox.Value = textboxInput.Text
+        task.spawn(function() textbox.callback(textboxInput.Text, enterPressed) end)
     end)
-    textbox.textboxFrame = textboxFrame
+    textbox.textboxFrame = textboxInput
     Options[textbox.flag] = textbox
     table.insert(module.elements, textbox)
     return textbox
@@ -1970,32 +1520,38 @@ function Library:CreateButton(module, options)
     local button = {}
     button.title = options.title or "Button"
     button.callback = options.callback or function() end
-    module.elementHeight = module.elementHeight + 22
+    module.elementHeight = module.elementHeight + 26
     local theme = self.currentTheme
     local buttonFrame = Instance.new("TextButton")
     buttonFrame.Name = "Button"
-    buttonFrame.Text = button.title
-    buttonFrame.Font = Enum.Font.GothamBold
-    buttonFrame.TextSize = 11
-    buttonFrame.TextColor3 = Color3.fromRGB(255, 255, 255)
-    buttonFrame.Size = UDim2.new(0, 207, 0, 18)
+    buttonFrame.Size = UDim2.new(0, 207, 0, 22)
     buttonFrame.BackgroundColor3 = theme.Primary
-    buttonFrame.BackgroundTransparency = 0.8
+    buttonFrame.BackgroundTransparency = 0.9
     buttonFrame.BorderSizePixel = 0
+    buttonFrame.Text = ""
     buttonFrame.AutoButtonColor = false
     buttonFrame.Parent = module.optionsFrame
     self:AddToRegistry(buttonFrame, { BackgroundColor3 = 'Primary' })
     local buttonCorner = Instance.new("UICorner")
     buttonCorner.CornerRadius = UDim.new(0, 4)
     buttonCorner.Parent = buttonFrame
-    buttonFrame.MouseEnter:Connect(function()
-        Tween(buttonFrame, {BackgroundTransparency = 0.6}, 0.2)
-    end)
-    buttonFrame.MouseLeave:Connect(function()
-        Tween(buttonFrame, {BackgroundTransparency = 0.8}, 0.2)
-    end)
+    local buttonLabel = Instance.new("TextLabel")
+    buttonLabel.Text = button.title
+    buttonLabel.Font = Enum.Font.GothamBold
+    buttonLabel.TextSize = 10
+    buttonLabel.TextColor3 = theme.Text
+    buttonLabel.TextTransparency = 0.2
+    buttonLabel.Size = UDim2.new(1, 0, 1, 0)
+    buttonLabel.BackgroundTransparency = 1
+    buttonLabel.Parent = buttonFrame
+    self:AddToRegistry(buttonLabel, { TextColor3 = 'Text' })
+    buttonFrame.MouseEnter:Connect(function() Tween(buttonFrame, {BackgroundTransparency = 0.7}, 0.3) end)
+    buttonFrame.MouseLeave:Connect(function() Tween(buttonFrame, {BackgroundTransparency = 0.9}, 0.3) end)
     buttonFrame.MouseButton1Click:Connect(function()
-        task.spawn(button.callback)
+        Tween(buttonFrame, {BackgroundTransparency = 0.5}, 0.1)
+        task.wait(0.1)
+        Tween(buttonFrame, {BackgroundTransparency = 0.9}, 0.1)
+        task.spawn(function() button.callback() end)
     end)
     table.insert(module.elements, button)
     return button
@@ -2004,27 +1560,24 @@ end
 function Library:CreateColorpicker(module, options)
     options = options or {}
     local colorpicker = {}
-    colorpicker.title = options.title or "Color"
+    colorpicker.title = options.title or "Colorpicker"
     colorpicker.flag = options.flag or colorpicker.title
     colorpicker.callback = options.callback or function() end
     colorpicker.Type = 'ColorPicker'
-    colorpicker.Transparency = 0
-    module.elementHeight = module.elementHeight + 22
+    module.elementHeight = module.elementHeight + 26
     local theme = self.currentTheme
     local existingValue = Options[colorpicker.flag] and Options[colorpicker.flag].Value
     colorpicker.color = existingValue or options.default or Color3.fromRGB(255, 255, 255)
-    local h, s, v = colorpicker.color:ToHSV()
-    colorpicker.hue = h
-    colorpicker.sat = s
-    colorpicker.vib = v
-    local colorFrame = Instance.new("TextButton")
-    colorFrame.Name = "ColorPicker"
-    colorFrame.Size = UDim2.new(0, 207, 0, 18)
-    colorFrame.BackgroundTransparency = 1
-    colorFrame.BorderSizePixel = 0
-    colorFrame.Text = ""
-    colorFrame.AutoButtonColor = false
-    colorFrame.Parent = module.optionsFrame
+    colorpicker.transparency = 0
+    colorpicker.open = false
+    local colorpickerFrame = Instance.new("TextButton")
+    colorpickerFrame.Name = "Colorpicker"
+    colorpickerFrame.Size = UDim2.new(0, 207, 0, 22)
+    colorpickerFrame.BackgroundTransparency = 1
+    colorpickerFrame.BorderSizePixel = 0
+    colorpickerFrame.Text = ""
+    colorpickerFrame.AutoButtonColor = false
+    colorpickerFrame.Parent = module.optionsFrame
     local titleLabel = Instance.new("TextLabel")
     titleLabel.Text = colorpicker.title
     titleLabel.Font = Enum.Font.GothamBold
@@ -2036,270 +1589,219 @@ function Library:CreateColorpicker(module, options)
     titleLabel.Position = UDim2.new(0, 0, 0.5, 0)
     titleLabel.AnchorPoint = Vector2.new(0, 0.5)
     titleLabel.BackgroundTransparency = 1
-    titleLabel.Parent = colorFrame
+    titleLabel.Parent = colorpickerFrame
     self:AddToRegistry(titleLabel, { TextColor3 = 'Text' })
-    local colorDisplay = Instance.new("TextButton")
-    colorDisplay.Name = "Display"
-    colorDisplay.Size = UDim2.new(0, 25, 0, 15)
-    colorDisplay.Position = UDim2.new(1, 0, 0.5, 0)
-    colorDisplay.AnchorPoint = Vector2.new(1, 0.5)
-    colorDisplay.BackgroundColor3 = colorpicker.color
-    colorDisplay.BorderSizePixel = 0
-    colorDisplay.Text = ""
-    colorDisplay.AutoButtonColor = false
-    colorDisplay.Parent = colorFrame
-    local displayCorner = Instance.new("UICorner")
-    displayCorner.CornerRadius = UDim.new(0, 4)
-    displayCorner.Parent = colorDisplay
-    local blurOverlay = Instance.new("Frame")
-    blurOverlay.Name = "BlurOverlay"
-    blurOverlay.Size = UDim2.new(1, 0, 1, 0)
-    blurOverlay.Position = UDim2.new(0, 0, 0, 0)
-    blurOverlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    blurOverlay.BackgroundTransparency = 1
-    blurOverlay.BorderSizePixel = 0
-    blurOverlay.ZIndex = 999
-    blurOverlay.Visible = false
-    blurOverlay.Parent = self.container
-    local dialog = Instance.new("Frame")
-    dialog.Name = "ColorDialog"
-    dialog.Size = UDim2.fromOffset(250, 185)
-    dialog.Position = UDim2.new(0.5, 0, 0.5, 0)
-    dialog.AnchorPoint = Vector2.new(0.5, 0.5)
-    dialog.BackgroundColor3 = theme.Secondary
-    dialog.BorderSizePixel = 0
-    dialog.ZIndex = 1000
-    dialog.Visible = false
-    dialog.Parent = self.container
-    self:AddToRegistry(dialog, { BackgroundColor3 = 'Secondary' })
-    local dialogCorner = Instance.new("UICorner")
-    dialogCorner.CornerRadius = UDim.new(0, 8)
-    dialogCorner.Parent = dialog
-    local dialogStroke = Instance.new("UIStroke")
-    dialogStroke.Color = theme.Accent
-    dialogStroke.Transparency = 0.5
-    dialogStroke.Parent = dialog
-    self:AddToRegistry(dialogStroke, { Color = 'Accent' })
-    local satVibMap = Instance.new("ImageLabel")
-    satVibMap.Size = UDim2.fromOffset(165, 130)
-    satVibMap.Position = UDim2.fromOffset(10, 10)
-    satVibMap.Image = "rbxassetid://4155801252"
-    satVibMap.BackgroundColor3 = Color3.fromHSV(h, 1, 1)
-    satVibMap.BorderSizePixel = 0
-    satVibMap.ZIndex = 1001
-    satVibMap.Active = true
-    satVibMap.Parent = dialog
-    local satVibCorner = Instance.new("UICorner")
-    satVibCorner.CornerRadius = UDim.new(0, 6)
-    satVibCorner.Parent = satVibMap
-    local cursor = Instance.new("ImageLabel")
-    cursor.Size = UDim2.fromOffset(18, 18)
-    cursor.ScaleType = Enum.ScaleType.Fit
-    cursor.AnchorPoint = Vector2.new(0.5, 0.5)
-    cursor.BackgroundTransparency = 1
-    cursor.Image = "http://www.roblox.com/asset/?id=4805639000"
-    cursor.Position = UDim2.new(s, 0, 1 - v, 0)
-    cursor.ZIndex = 1002
-    cursor.Parent = satVibMap
-    local hueSlider = Instance.new("Frame")
-    hueSlider.Size = UDim2.fromOffset(14, 130)
-    hueSlider.Position = UDim2.fromOffset(186, 10)
-    hueSlider.BorderSizePixel = 0
-    hueSlider.ZIndex = 1001
-    hueSlider.Active = true
-    hueSlider.Parent = dialog
+    local colorBox = Instance.new("Frame")
+    colorBox.Name = "ColorBox"
+    colorBox.Size = UDim2.new(0, 30, 0, 15)
+    colorBox.Position = UDim2.new(1, 0, 0.5, 0)
+    colorBox.AnchorPoint = Vector2.new(1, 0.5)
+    colorBox.BackgroundColor3 = colorpicker.color
+    colorBox.BorderSizePixel = 0
+    colorBox.Parent = colorpickerFrame
+    local colorBoxCorner = Instance.new("UICorner")
+    colorBoxCorner.CornerRadius = UDim.new(0, 4)
+    colorBoxCorner.Parent = colorBox
+    local colorBoxStroke = Instance.new("UIStroke")
+    colorBoxStroke.Color = theme.Accent
+    colorBoxStroke.Transparency = 0.5
+    colorBoxStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    colorBoxStroke.Parent = colorBox
+    self:AddToRegistry(colorBoxStroke, { Color = 'Accent' })
+    local pickerPopup = Instance.new("Frame")
+    pickerPopup.Name = "PickerPopup"
+    pickerPopup.Size = UDim2.new(0, 180, 0, 150)
+    pickerPopup.Position = UDim2.new(1, 5, 0, 0)
+    pickerPopup.BackgroundColor3 = theme.Secondary
+    pickerPopup.BorderSizePixel = 0
+    pickerPopup.Visible = false
+    pickerPopup.ZIndex = 100
+    pickerPopup.Parent = colorpickerFrame
+    self:AddToRegistry(pickerPopup, { BackgroundColor3 = 'Secondary' })
+    local popupCorner = Instance.new("UICorner")
+    popupCorner.CornerRadius = UDim.new(0, 6)
+    popupCorner.Parent = pickerPopup
+    local popupStroke = Instance.new("UIStroke")
+    popupStroke.Color = theme.Accent
+    popupStroke.Transparency = 0.5
+    popupStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    popupStroke.Parent = pickerPopup
+    self:AddToRegistry(popupStroke, { Color = 'Accent' })
+    local satValFrame = Instance.new("ImageButton")
+    satValFrame.Name = "SatVal"
+    satValFrame.Size = UDim2.new(0, 120, 0, 100)
+    satValFrame.Position = UDim2.new(0, 10, 0, 10)
+    satValFrame.BackgroundColor3 = Color3.fromHSV(1, 1, 1)
+    satValFrame.BorderSizePixel = 0
+    satValFrame.AutoButtonColor = false
+    satValFrame.ZIndex = 101
+    satValFrame.Parent = pickerPopup
+    local satValCorner = Instance.new("UICorner")
+    satValCorner.CornerRadius = UDim.new(0, 4)
+    satValCorner.Parent = satValFrame
+    local satGradient = Instance.new("UIGradient")
+    satGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)), ColorSequenceKeypoint.new(1, Color3.new(1, 1, 1))}
+    satGradient.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(1, 0)}
+    satGradient.Parent = satValFrame
+    local valOverlay = Instance.new("Frame")
+    valOverlay.Name = "ValOverlay"
+    valOverlay.Size = UDim2.new(1, 0, 1, 0)
+    valOverlay.BackgroundColor3 = Color3.new(0, 0, 0)
+    valOverlay.BackgroundTransparency = 1
+    valOverlay.BorderSizePixel = 0
+    valOverlay.ZIndex = 102
+    valOverlay.Parent = satValFrame
+    local valOverlayCorner = Instance.new("UICorner")
+    valOverlayCorner.CornerRadius = UDim.new(0, 4)
+    valOverlayCorner.Parent = valOverlay
+    local valGradient = Instance.new("UIGradient")
+    valGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.new(0, 0, 0)), ColorSequenceKeypoint.new(1, Color3.new(0, 0, 0))}
+    valGradient.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(1, 0)}
+    valGradient.Rotation = 90
+    valGradient.Parent = valOverlay
+    local satValCursor = Instance.new("Frame")
+    satValCursor.Name = "Cursor"
+    satValCursor.Size = UDim2.new(0, 8, 0, 8)
+    satValCursor.Position = UDim2.new(1, 0, 0, 0)
+    satValCursor.AnchorPoint = Vector2.new(0.5, 0.5)
+    satValCursor.BackgroundColor3 = Color3.new(1, 1, 1)
+    satValCursor.BorderSizePixel = 0
+    satValCursor.ZIndex = 103
+    satValCursor.Parent = satValFrame
+    local satValCursorCorner = Instance.new("UICorner")
+    satValCursorCorner.CornerRadius = UDim.new(1, 0)
+    satValCursorCorner.Parent = satValCursor
+    local satValCursorStroke = Instance.new("UIStroke")
+    satValCursorStroke.Color = Color3.new(0, 0, 0)
+    satValCursorStroke.Thickness = 1
+    satValCursorStroke.Parent = satValCursor
+    local hueFrame = Instance.new("ImageButton")
+    hueFrame.Name = "Hue"
+    hueFrame.Size = UDim2.new(0, 20, 0, 100)
+    hueFrame.Position = UDim2.new(0, 140, 0, 10)
+    hueFrame.BorderSizePixel = 0
+    hueFrame.AutoButtonColor = false
+    hueFrame.ZIndex = 101
+    hueFrame.Parent = pickerPopup
     local hueCorner = Instance.new("UICorner")
-    hueCorner.CornerRadius = UDim.new(0, 10)
-    hueCorner.Parent = hueSlider
+    hueCorner.CornerRadius = UDim.new(0, 4)
+    hueCorner.Parent = hueFrame
     local hueGradient = Instance.new("UIGradient")
+    hueGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromHSV(0, 1, 1)), ColorSequenceKeypoint.new(0.167, Color3.fromHSV(0.167, 1, 1)), ColorSequenceKeypoint.new(0.333, Color3.fromHSV(0.333, 1, 1)), ColorSequenceKeypoint.new(0.5, Color3.fromHSV(0.5, 1, 1)), ColorSequenceKeypoint.new(0.667, Color3.fromHSV(0.667, 1, 1)), ColorSequenceKeypoint.new(0.833, Color3.fromHSV(0.833, 1, 1)), ColorSequenceKeypoint.new(1, Color3.fromHSV(1, 1, 1))}
     hueGradient.Rotation = 90
-    hueGradient.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)),
-        ColorSequenceKeypoint.new(0.17, Color3.fromRGB(255, 255, 0)),
-        ColorSequenceKeypoint.new(0.33, Color3.fromRGB(0, 255, 0)),
-        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 255, 255)),
-        ColorSequenceKeypoint.new(0.67, Color3.fromRGB(0, 0, 255)),
-        ColorSequenceKeypoint.new(0.83, Color3.fromRGB(255, 0, 255)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 0))
-    }
-    hueGradient.Parent = hueSlider
-    local hueDragHolder = Instance.new("Frame")
-    hueDragHolder.Size = UDim2.new(1, 0, 1, -10)
-    hueDragHolder.Position = UDim2.fromOffset(0, 5)
-    hueDragHolder.BackgroundTransparency = 1
-    hueDragHolder.ZIndex = 1002
-    hueDragHolder.Parent = hueSlider
-    local hueDrag = Instance.new("ImageLabel")
-    hueDrag.Size = UDim2.fromOffset(20, 20)
-    hueDrag.Image = "http://www.roblox.com/asset/?id=12266946128"
-    hueDrag.Position = UDim2.new(0, 0, h, -10)
-    hueDrag.BackgroundTransparency = 1
-    hueDrag.ZIndex = 1003
-    hueDrag.Parent = hueDragHolder
-    local colorPreview = Instance.new("Frame")
-    colorPreview.Size = UDim2.fromOffset(30, 25)
-    colorPreview.Position = UDim2.fromOffset(10, 150)
-    colorPreview.BackgroundColor3 = colorpicker.color
-    colorPreview.BorderSizePixel = 0
-    colorPreview.ZIndex = 1001
-    colorPreview.Parent = dialog
-    local previewCorner = Instance.new("UICorner")
-    previewCorner.CornerRadius = UDim.new(0, 6)
-    previewCorner.Parent = colorPreview
-    local acceptBtn = Instance.new("TextButton")
-    acceptBtn.Text = "Accept"
-    acceptBtn.Font = Enum.Font.GothamBold
-    acceptBtn.TextSize = 11
-    acceptBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    acceptBtn.Size = UDim2.fromOffset(50, 25)
-    acceptBtn.Position = UDim2.fromOffset(135, 150)
-    acceptBtn.BackgroundColor3 = theme.Primary
-    acceptBtn.BackgroundTransparency = 0.2
-    acceptBtn.BorderSizePixel = 0
-    acceptBtn.ZIndex = 1001
-    acceptBtn.AutoButtonColor = false
-    acceptBtn.Parent = dialog
-    self:AddToRegistry(acceptBtn, { BackgroundColor3 = 'Primary' })
-    local acceptCorner = Instance.new("UICorner")
-    acceptCorner.CornerRadius = UDim.new(0, 6)
-    acceptCorner.Parent = acceptBtn
-    local cancelBtn = Instance.new("TextButton")
-    cancelBtn.Text = "Cancel"
-    cancelBtn.Font = Enum.Font.GothamBold
-    cancelBtn.TextSize = 11
-    cancelBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    cancelBtn.Size = UDim2.fromOffset(50, 25)
-    cancelBtn.Position = UDim2.fromOffset(190, 150)
-    cancelBtn.BackgroundColor3 = theme.Primary
-    cancelBtn.BackgroundTransparency = 0.2
-    cancelBtn.BorderSizePixel = 0
-    cancelBtn.ZIndex = 1001
-    cancelBtn.AutoButtonColor = false
-    cancelBtn.Parent = dialog
-    self:AddToRegistry(cancelBtn, { BackgroundColor3 = 'Primary' })
-    local cancelCorner = Instance.new("UICorner")
-    cancelCorner.CornerRadius = UDim.new(0, 6)
-    cancelCorner.Parent = cancelBtn
+    hueGradient.Parent = hueFrame
+    local hueCursor = Instance.new("Frame")
+    hueCursor.Name = "Cursor"
+    hueCursor.Size = UDim2.new(1, 4, 0, 4)
+    hueCursor.Position = UDim2.new(0.5, 0, 0, 0)
+    hueCursor.AnchorPoint = Vector2.new(0.5, 0.5)
+    hueCursor.BackgroundColor3 = Color3.new(1, 1, 1)
+    hueCursor.BorderSizePixel = 0
+    hueCursor.ZIndex = 102
+    hueCursor.Parent = hueFrame
+    local hueCursorCorner = Instance.new("UICorner")
+    hueCursorCorner.CornerRadius = UDim.new(0, 2)
+    hueCursorCorner.Parent = hueCursor
+    local hexInput = Instance.new("TextBox")
+    hexInput.Name = "HexInput"
+    hexInput.Size = UDim2.new(0, 150, 0, 22)
+    hexInput.Position = UDim2.new(0, 10, 0, 118)
+    hexInput.BackgroundColor3 = theme.Accent
+    hexInput.BackgroundTransparency = 0.5
+    hexInput.BorderSizePixel = 0
+    hexInput.Font = Enum.Font.GothamBold
+    hexInput.TextSize = 10
+    hexInput.TextColor3 = theme.Text
+    hexInput.Text = "#" .. colorpicker.color:ToHex()
+    hexInput.ClearTextOnFocus = false
+    hexInput.ZIndex = 101
+    hexInput.Parent = pickerPopup
+    self:AddToRegistry(hexInput, { BackgroundColor3 = 'Accent', TextColor3 = 'Text' })
+    local hexInputCorner = Instance.new("UICorner")
+    hexInputCorner.CornerRadius = UDim.new(0, 4)
+    hexInputCorner.Parent = hexInput
+    local h, s, v = colorpicker.color:ToHSV()
+    colorpicker.hue = h
+    colorpicker.sat = s
+    colorpicker.val = v
     colorpicker.Value = colorpicker.color
-    local function UpdateDisplay()
-        local color = Color3.fromHSV(h, s, v)
-        satVibMap.BackgroundColor3 = Color3.fromHSV(h, 1, 1)
-        hueDrag.Position = UDim2.new(0, 0, h, -10)
-        cursor.Position = UDim2.new(s, 0, 1 - v, 0)
-        colorPreview.BackgroundColor3 = color
+    colorpicker.Transparency = colorpicker.transparency
+    local function UpdateColor()
+        local newColor = Color3.fromHSV(colorpicker.hue, colorpicker.sat, colorpicker.val)
+        colorpicker.color = newColor
+        colorpicker.Value = newColor
+        colorBox.BackgroundColor3 = newColor
+        satValFrame.BackgroundColor3 = Color3.fromHSV(colorpicker.hue, 1, 1)
+        hexInput.Text = "#" .. newColor:ToHex()
+        satValCursor.Position = UDim2.new(colorpicker.sat, 0, 1 - colorpicker.val, 0)
+        hueCursor.Position = UDim2.new(0.5, 0, colorpicker.hue, 0)
+        task.spawn(function() colorpicker.callback(newColor) end)
     end
-    local function ShowDialog()
-        blurOverlay.Visible = true
-        Tween(blurOverlay, {BackgroundTransparency = 0.1}, 0.2)
-        dialog.Visible = true
-        h, s, v = colorpicker.hue, colorpicker.sat, colorpicker.vib
-        UpdateDisplay()
+    colorpicker.SetValue = function(self2, color)
+        local hue, sat, val = color:ToHSV()
+        colorpicker.hue = hue
+        colorpicker.sat = sat
+        colorpicker.val = val
+        UpdateColor()
     end
-    local function HideDialog()
-        Tween(blurOverlay, {BackgroundTransparency = 1}, 0.2)
-        task.delay(0.2, function()
-            blurOverlay.Visible = false
-        end)
-        dialog.Visible = false
-    end
-    local draggingSat = false
-    local draggingHue = false
-    local guiInset = game:GetService("GuiService"):GetGuiInset()
-    satVibMap.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            draggingSat = true
-            local minX = satVibMap.AbsolutePosition.X
-            local maxX = minX + satVibMap.AbsoluteSize.X
-            local mousePos = UserInputService:GetMouseLocation() - guiInset
-            local mouseX = math.clamp(mousePos.X, minX, maxX)
-            local minY = satVibMap.AbsolutePosition.Y
-            local maxY = minY + satVibMap.AbsoluteSize.Y
-            local mouseY = math.clamp(mousePos.Y, minY, maxY)
-            s = (mouseX - minX) / (maxX - minX)
-            v = 1 - ((mouseY - minY) / (maxY - minY))
-            UpdateDisplay()
-        end
-    end)
-    satVibMap.MouseMoved:Connect(function()
-        if not draggingSat then return end
-        local minX = satVibMap.AbsolutePosition.X
-        local maxX = minX + satVibMap.AbsoluteSize.X
-        local mousePos = UserInputService:GetMouseLocation() - guiInset
-        local mouseX = math.clamp(mousePos.X, minX, maxX)
-        local minY = satVibMap.AbsolutePosition.Y
-        local maxY = minY + satVibMap.AbsoluteSize.Y
-        local mouseY = math.clamp(mousePos.Y, minY, maxY)
-        s = (mouseX - minX) / (maxX - minX)
-        v = 1 - ((mouseY - minY) / (maxY - minY))
-        UpdateDisplay()
-    end)
-    UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            draggingSat = false
-            draggingHue = false
-        end
-    end)
-    local function updateHue()
-        local minY = hueSlider.AbsolutePosition.Y
-        local maxY = minY + hueSlider.AbsoluteSize.Y
-        local mousePos = UserInputService:GetMouseLocation() - guiInset
-        local mouseY = math.clamp(mousePos.Y, minY, maxY)
-        h = (mouseY - minY) / (maxY - minY)
-        UpdateDisplay()
-    end
-    hueSlider.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            draggingHue = true
-            updateHue()
-        end
-    end)
-    UserInputService.InputChanged:Connect(function(input)
-        if draggingHue and input.UserInputType == Enum.UserInputType.MouseMovement then
-            updateHue()
-        end
-    end)
-    acceptBtn.MouseEnter:Connect(function()
-        Tween(acceptBtn, {BackgroundTransparency = 0}, 0.2)
-    end)
-    acceptBtn.MouseLeave:Connect(function()
-        Tween(acceptBtn, {BackgroundTransparency = 0.2}, 0.2)
-    end)
-    cancelBtn.MouseEnter:Connect(function()
-        Tween(cancelBtn, {BackgroundTransparency = 0}, 0.2)
-    end)
-    cancelBtn.MouseLeave:Connect(function()
-        Tween(cancelBtn, {BackgroundTransparency = 0.2}, 0.2)
-    end)
-    acceptBtn.MouseButton1Click:Connect(function()
-        local color = Color3.fromHSV(h, s, v)
-        colorpicker.color = color
-        colorpicker.Value = color
-        colorpicker.hue = h
-        colorpicker.sat = s
-        colorpicker.vib = v
-        colorDisplay.BackgroundColor3 = color
-        task.spawn(function() colorpicker.callback(color) end)
-        HideDialog()
-    end)
-    cancelBtn.MouseButton1Click:Connect(function()
-        HideDialog()
-    end)
-    colorDisplay.MouseButton1Click:Connect(function()
-        ShowDialog()
-    end)
     colorpicker.SetValueRGB = function(self2, color, transparency)
-        colorpicker.color = color
-        colorpicker.Value = color
-        colorpicker.Transparency = transparency or 0
-        colorDisplay.BackgroundColor3 = color
-        h, s, v = color:ToHSV()
-        colorpicker.hue = h
-        colorpicker.sat = s
-        colorpicker.vib = v
-        colorPreview.BackgroundColor3 = color
-        task.spawn(function() colorpicker.callback(color) end)
+        colorpicker:SetValue(color)
+        colorpicker.transparency = transparency or 0
+        colorpicker.Transparency = colorpicker.transparency
     end
-    UpdateDisplay()
+    local draggingSatVal = false
+    local draggingHue = false
+    satValFrame.MouseButton1Down:Connect(function()
+        draggingSatVal = true
+        local mouse = Players.LocalPlayer:GetMouse()
+        local function Update()
+            local relX = math.clamp((mouse.X - satValFrame.AbsolutePosition.X) / satValFrame.AbsoluteSize.X, 0, 1)
+            local relY = math.clamp((mouse.Y - satValFrame.AbsolutePosition.Y) / satValFrame.AbsoluteSize.Y, 0, 1)
+            colorpicker.sat = relX
+            colorpicker.val = 1 - relY
+            UpdateColor()
+        end
+        Update()
+        local moveConn = mouse.Move:Connect(Update)
+        local releaseConn
+        releaseConn = UserInputService.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                draggingSatVal = false
+                moveConn:Disconnect()
+                releaseConn:Disconnect()
+            end
+        end)
+    end)
+    hueFrame.MouseButton1Down:Connect(function()
+        draggingHue = true
+        local mouse = Players.LocalPlayer:GetMouse()
+        local function Update()
+            local relY = math.clamp((mouse.Y - hueFrame.AbsolutePosition.Y) / hueFrame.AbsoluteSize.Y, 0, 1)
+            colorpicker.hue = relY
+            UpdateColor()
+        end
+        Update()
+        local moveConn = mouse.Move:Connect(Update)
+        local releaseConn
+        releaseConn = UserInputService.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                draggingHue = false
+                moveConn:Disconnect()
+                releaseConn:Disconnect()
+            end
+        end)
+    end)
+    hexInput.FocusLost:Connect(function()
+        local text = hexInput.Text:gsub("#", "")
+        local success, color = pcall(function() return Color3.fromHex(text) end)
+        if success then colorpicker:SetValue(color)
+        else hexInput.Text = "#" .. colorpicker.color:ToHex() end
+    end)
+    colorpickerFrame.MouseButton1Click:Connect(function()
+        colorpicker.open = not colorpicker.open
+        pickerPopup.Visible = colorpicker.open
+    end)
+    UpdateColor()
     Options[colorpicker.flag] = colorpicker
     table.insert(module.elements, colorpicker)
     return colorpicker
@@ -2310,16 +1812,16 @@ function Library:CreateKeybind(module, options)
     local keybind = {}
     keybind.title = options.title or "Keybind"
     keybind.flag = options.flag or keybind.title
-    keybind.default = options.default
     keybind.callback = options.callback or function() end
     keybind.Type = 'KeyPicker'
-    module.elementHeight = module.elementHeight + 20
+    keybind.Mode = options.mode or 'Toggle'
+    module.elementHeight = module.elementHeight + 26
     local theme = self.currentTheme
     local existingValue = Options[keybind.flag] and Options[keybind.flag].Value
-    keybind.key = existingValue or keybind.default
+    keybind.key = existingValue or options.default or nil
     local keybindFrame = Instance.new("TextButton")
     keybindFrame.Name = "Keybind"
-    keybindFrame.Size = UDim2.new(0, 207, 0, 15)
+    keybindFrame.Size = UDim2.new(0, 207, 0, 22)
     keybindFrame.BackgroundTransparency = 1
     keybindFrame.BorderSizePixel = 0
     keybindFrame.Text = ""
@@ -2338,49 +1840,43 @@ function Library:CreateKeybind(module, options)
     titleLabel.BackgroundTransparency = 1
     titleLabel.Parent = keybindFrame
     self:AddToRegistry(titleLabel, { TextColor3 = 'Text' })
-    local keyDisplay = Instance.new("Frame")
-    keyDisplay.Name = "Display"
-    keyDisplay.Size = UDim2.new(0, 33, 0, 15)
-    keyDisplay.Position = UDim2.new(1, 0, 0.5, 0)
-    keyDisplay.AnchorPoint = Vector2.new(1, 0.5)
-    keyDisplay.BackgroundColor3 = Color3.fromRGB(152, 181, 255)
-    keyDisplay.BackgroundTransparency = 0.7
-    keyDisplay.BorderSizePixel = 0
-    keyDisplay.Parent = keybindFrame
-    local displayCorner = Instance.new("UICorner")
-    displayCorner.CornerRadius = UDim.new(0, 3)
-    displayCorner.Parent = keyDisplay
+    local keyBox = Instance.new("Frame")
+    keyBox.Name = "KeyBox"
+    keyBox.Size = UDim2.new(0, 50, 0, 18)
+    keyBox.Position = UDim2.new(1, 0, 0.5, 0)
+    keyBox.AnchorPoint = Vector2.new(1, 0.5)
+    keyBox.BackgroundColor3 = theme.Primary
+    keyBox.BackgroundTransparency = 0.7
+    keyBox.BorderSizePixel = 0
+    keyBox.Parent = keybindFrame
+    self:AddToRegistry(keyBox, { BackgroundColor3 = 'Primary' })
+    local keyBoxCorner = Instance.new("UICorner")
+    keyBoxCorner.CornerRadius = UDim.new(0, 4)
+    keyBoxCorner.Parent = keyBox
     local keyLabel = Instance.new("TextLabel")
     keyLabel.Text = keybind.key and keybind.key:gsub("Enum.KeyCode.", "") or "None"
     keyLabel.Font = Enum.Font.GothamBold
     keyLabel.TextSize = 10
-    keyLabel.TextColor3 = Color3.fromRGB(209, 222, 255)
+    keyLabel.TextColor3 = theme.Text
+    keyLabel.TextTransparency = 0.2
     keyLabel.Size = UDim2.new(1, -4, 1, 0)
     keyLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
     keyLabel.AnchorPoint = Vector2.new(0.5, 0.5)
     keyLabel.BackgroundTransparency = 1
-    keyLabel.Parent = keyDisplay
+    keyLabel.Parent = keyBox
+    self:AddToRegistry(keyLabel, { TextColor3 = 'Text' })
     keybind.Value = keybind.key
-    local function UpdateKeySize(text)
-        local width = math.max(33, GetTextWidth(text, 10, Enum.Font.GothamBold) + 16)
-        keyDisplay.Size = UDim2.new(0, width, 0, 15)
-    end
-    if keybind.key then
-        UpdateKeySize(keyLabel.Text)
-    end
-    keybind.SetValue = function(self2, keycode)
-        keybind.key = keycode
-        keybind.Value = keycode
-        local displayText = keycode and keycode:gsub("Enum.KeyCode.", "") or "None"
-        keyLabel.Text = displayText
-        UpdateKeySize(displayText)
-        task.spawn(function() keybind.callback(keycode) end)
+    keybind.SetValue = function(self2, key)
+        keybind.key = key
+        keybind.Value = key
+        keyLabel.Text = key and key:gsub("Enum.KeyCode.", "") or "None"
+        local width = math.max(50, GetTextWidth(keyLabel.Text, 10, Enum.Font.GothamBold) + 16)
+        keyBox.Size = UDim2.new(0, width, 0, 18)
     end
     keybindFrame.MouseButton1Click:Connect(function()
         if self.choosingKeybind then return end
         self.choosingKeybind = true
         keyLabel.Text = "..."
-        keyDisplay.Size = UDim2.new(0, 33, 0, 15)
         local connection
         connection = UserInputService.InputBegan:Connect(function(input, processed)
             if processed then return end
@@ -2390,9 +1886,12 @@ function Library:CreateKeybind(module, options)
             self.choosingKeybind = false
             if input.KeyCode == Enum.KeyCode.Backspace then
                 keybind:SetValue(nil)
-            else
-                keybind:SetValue(tostring(input.KeyCode))
+                task.spawn(function() keybind.callback(nil) end)
+                return
             end
+            local keyStr = tostring(input.KeyCode)
+            keybind:SetValue(keyStr)
+            task.spawn(function() keybind.callback(keyStr) end)
         end)
     end)
     Options[keybind.flag] = keybind
@@ -2400,252 +1899,201 @@ function Library:CreateKeybind(module, options)
     return keybind
 end
 function Library:CreateNotificationContainer()
-    if self.notificationContainer then return end
-    local notificationGui = Instance.new("ScreenGui")
-    notificationGui.Name = "MarchUI_Notifications"
-    notificationGui.ResetOnSpawn = false
-    notificationGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    notificationGui.Parent = CoreGui
-    self.notificationGui = notificationGui
-    local container = Instance.new("Frame")
-    container.Name = "NotificationContainer"
-    container.Size = UDim2.new(0, 300, 0, 0)
-    container.Position = UDim2.new(0.8, 0, 0, 10)
-    container.BackgroundTransparency = 1
-    container.BorderSizePixel = 0
-    container.ClipsDescendants = false
-    container.Parent = notificationGui
-    container.AutomaticSize = Enum.AutomaticSize.Y
-    local layout = Instance.new("UIListLayout")
-    layout.FillDirection = Enum.FillDirection.Vertical
-    layout.SortOrder = Enum.SortOrder.LayoutOrder
-    layout.Padding = UDim.new(0, 10)
-    layout.Parent = container
-    self.notificationContainer = container
+    if self.notificationGui then return end
+    local notifGui = Instance.new("ScreenGui")
+    notifGui.Name = "MarchUI_Notifications"
+    notifGui.ResetOnSpawn = false
+    notifGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    notifGui.Parent = CoreGui
+    local notifContainer = Instance.new("Frame")
+    notifContainer.Name = "Container"
+    notifContainer.Size = UDim2.new(0, 300, 1, 0)
+    notifContainer.Position = UDim2.new(1, -20, 0, 0)
+    notifContainer.AnchorPoint = Vector2.new(1, 0)
+    notifContainer.BackgroundTransparency = 1
+    notifContainer.Parent = notifGui
+    local notifLayout = Instance.new("UIListLayout")
+    notifLayout.Padding = UDim.new(0, 8)
+    notifLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
+    notifLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
+    notifLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    notifLayout.Parent = notifContainer
+    local notifPadding = Instance.new("UIPadding")
+    notifPadding.PaddingBottom = UDim.new(0, 20)
+    notifPadding.Parent = notifContainer
+    self.notificationGui = notifGui
+    self.notificationContainer = notifContainer
 end
-function Library:SendNotification(settings)
+function Library:SendNotification(options)
     self:CreateNotificationContainer()
-    local title = settings.title or "Notification"
-    local text = settings.text or ""
-    local duration = settings.duration or 5
     local theme = self.currentTheme
-    local notification = Instance.new("Frame")
-    notification.Name = "Notification"
-    notification.Size = UDim2.new(1, 0, 0, 60)
-    notification.BackgroundTransparency = 1
-    notification.BorderSizePixel = 0
-    notification.AutomaticSize = Enum.AutomaticSize.Y
-    notification.Parent = self.notificationContainer
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 4)
-    corner.Parent = notification
-    local innerFrame = Instance.new("Frame")
-    innerFrame.Name = "InnerFrame"
-    innerFrame.Size = UDim2.new(1, 0, 0, 60)
-    innerFrame.Position = UDim2.new(0, 0, 0, 0)
-    innerFrame.BackgroundColor3 = theme.Secondary
-    innerFrame.BackgroundTransparency = 0.1
-    innerFrame.BorderSizePixel = 0
-    innerFrame.AutomaticSize = Enum.AutomaticSize.Y
-    innerFrame.Parent = notification
-    self:AddToRegistry(innerFrame, { BackgroundColor3 = 'Secondary' })
-    local innerCorner = Instance.new("UICorner")
-    innerCorner.CornerRadius = UDim.new(0, 4)
-    innerCorner.Parent = innerFrame
+    local title = options.title or "Notification"
+    local text = options.text or ""
+    local duration = options.duration or 3
+    local notif = Instance.new("Frame")
+    notif.Name = "Notification"
+    notif.Size = UDim2.new(0, 280, 0, 60)
+    notif.BackgroundColor3 = theme.Secondary
+    notif.BackgroundTransparency = 0.1
+    notif.BorderSizePixel = 0
+    notif.Parent = self.notificationContainer
+    self:AddToRegistry(notif, { BackgroundColor3 = 'Secondary' })
+    local notifCorner = Instance.new("UICorner")
+    notifCorner.CornerRadius = UDim.new(0, 6)
+    notifCorner.Parent = notif
+    local notifStroke = Instance.new("UIStroke")
+    notifStroke.Color = theme.Accent
+    notifStroke.Transparency = 0.5
+    notifStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    notifStroke.Parent = notif
+    self:AddToRegistry(notifStroke, { Color = 'Accent' })
+    local accentBar = Instance.new("Frame")
+    accentBar.Name = "AccentBar"
+    accentBar.Size = UDim2.new(0, 3, 1, -10)
+    accentBar.Position = UDim2.new(0, 5, 0.5, 0)
+    accentBar.AnchorPoint = Vector2.new(0, 0.5)
+    accentBar.BackgroundColor3 = theme.Primary
+    accentBar.BorderSizePixel = 0
+    accentBar.Parent = notif
+    self:AddToRegistry(accentBar, { BackgroundColor3 = 'Primary' })
+    local accentCorner = Instance.new("UICorner")
+    accentCorner.CornerRadius = UDim.new(0, 2)
+    accentCorner.Parent = accentBar
     local titleLabel = Instance.new("TextLabel")
-    titleLabel.Name = "Title"
     titleLabel.Text = title
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.TextSize = 12
     titleLabel.TextColor3 = theme.Primary
-    titleLabel.Font = self.currentFont
-    titleLabel.TextSize = 14
-    titleLabel.Size = UDim2.new(1, -10, 0, 20)
-    titleLabel.Position = UDim2.new(0, 5, 0, 5)
-    titleLabel.BackgroundTransparency = 1
+    titleLabel.TextTransparency = 0.1
     titleLabel.TextXAlignment = Enum.TextXAlignment.Left
-    titleLabel.TextYAlignment = Enum.TextYAlignment.Center
-    titleLabel.TextWrapped = true
-    titleLabel.AutomaticSize = Enum.AutomaticSize.Y
-    titleLabel.Parent = innerFrame
+    titleLabel.Size = UDim2.new(1, -25, 0, 16)
+    titleLabel.Position = UDim2.new(0, 15, 0, 10)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Parent = notif
     self:AddToRegistry(titleLabel, { TextColor3 = 'Primary' })
-    local bodyLabel = Instance.new("TextLabel")
-    bodyLabel.Name = "Body"
-    bodyLabel.Text = text
-    bodyLabel.TextColor3 = theme.Text
-    bodyLabel.Font = self.currentFont
-    bodyLabel.TextSize = 12
-    bodyLabel.Size = UDim2.new(1, -10, 0, 30)
-    bodyLabel.Position = UDim2.new(0, 5, 0, 25)
-    bodyLabel.BackgroundTransparency = 1
-    bodyLabel.TextXAlignment = Enum.TextXAlignment.Left
-    bodyLabel.TextYAlignment = Enum.TextYAlignment.Top
-    bodyLabel.TextWrapped = true
-    bodyLabel.AutomaticSize = Enum.AutomaticSize.Y
-    bodyLabel.Parent = innerFrame
-    self:AddToRegistry(bodyLabel, { TextColor3 = 'Text' })
-    task.spawn(function()
-        task.wait(0.1)
-        local totalHeight = titleLabel.TextBounds.Y + bodyLabel.TextBounds.Y + 10
-        innerFrame.Size = UDim2.new(1, 0, 0, totalHeight)
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Text = text
+    textLabel.Font = Enum.Font.Gotham
+    textLabel.TextSize = 11
+    textLabel.TextColor3 = theme.Text
+    textLabel.TextTransparency = 0.3
+    textLabel.TextXAlignment = Enum.TextXAlignment.Left
+    textLabel.TextWrapped = true
+    textLabel.Size = UDim2.new(1, -25, 0, 30)
+    textLabel.Position = UDim2.new(0, 15, 0, 28)
+    textLabel.BackgroundTransparency = 1
+    textLabel.Parent = notif
+    self:AddToRegistry(textLabel, { TextColor3 = 'Text' })
+    notif.Position = UDim2.new(1, 0, 0, 0)
+    Tween(notif, {Position = UDim2.new(0, 0, 0, 0)}, 0.3)
+    task.delay(duration, function()
+        Tween(notif, {Position = UDim2.new(1, 0, 0, 0), BackgroundTransparency = 1}, 0.3)
+        task.wait(0.3)
+        self:RemoveFromRegistry(notif)
+        self:RemoveFromRegistry(notifStroke)
+        self:RemoveFromRegistry(accentBar)
+        self:RemoveFromRegistry(titleLabel)
+        self:RemoveFromRegistry(textLabel)
+        notif:Destroy()
     end)
-    task.spawn(function()
-        task.wait(duration)
-        notification:Destroy()
-    end)
-    return notification
 end
 
 function Library:CreateWatermark()
     if self.watermark then return end
-    local Stats = game:GetService("Stats")
     local theme = self.currentTheme
     local watermarkGui = Instance.new("ScreenGui")
     watermarkGui.Name = "MarchUI_Watermark"
     watermarkGui.ResetOnSpawn = false
     watermarkGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     watermarkGui.Parent = CoreGui
-    self.watermarkGui = watermarkGui
     local watermark = Instance.new("Frame")
     watermark.Name = "Watermark"
-    watermark.Size = UDim2.new(0, 250, 0, 35)
-    watermark.Position = UDim2.new(0.5, 0, 0.05, 0)
-    watermark.AnchorPoint = Vector2.new(0.5, 0.5)
-    watermark.BackgroundColor3 = theme.Background
-    watermark.BackgroundTransparency = 0
+    watermark.Size = UDim2.new(0, 200, 0, 30)
+    watermark.Position = UDim2.new(0, 20, 0, 20)
+    watermark.BackgroundColor3 = theme.Secondary
+    watermark.BackgroundTransparency = 0.2
     watermark.BorderSizePixel = 0
-    watermark.Visible = false
-    watermark.Active = false
     watermark.Parent = watermarkGui
-    self:AddToRegistry(watermark, { BackgroundColor3 = 'Background' })
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 6)
-    corner.Parent = watermark
-    local stroke = Instance.new("UIStroke")
-    stroke.Color = theme.Accent
-    stroke.Transparency = 0
-    stroke.Thickness = 1
-    stroke.Parent = watermark
-    self:AddToRegistry(stroke, { Color = 'Accent' })
-    local iconButton = Instance.new("ImageButton")
-    iconButton.Name = "Icon"
-    iconButton.Image = "rbxassetid://107819132007001"
-    iconButton.Size = UDim2.new(0, 20, 0, 20)
-    iconButton.Position = UDim2.new(0, 8, 0.5, 0)
-    iconButton.AnchorPoint = Vector2.new(0, 0.5)
-    iconButton.BackgroundTransparency = 1
-    iconButton.ImageColor3 = theme.Primary
-    iconButton.ScaleType = Enum.ScaleType.Fit
-    iconButton.AutoButtonColor = false
-    iconButton.Parent = watermark
-    self:AddToRegistry(iconButton, { ImageColor3 = 'Primary' })
-    local infoLabel = Instance.new("TextLabel")
-    infoLabel.Name = "Info"
-    infoLabel.Text = "FPS: 60 | Ping: 50ms | 00:00"
-    infoLabel.Font = self.currentFont
-    infoLabel.TextSize = 12
-    infoLabel.TextColor3 = theme.Text
-    infoLabel.Size = UDim2.new(1, -40, 1, 0)
-    infoLabel.Position = UDim2.new(0, 32, 0, 0)
-    infoLabel.BackgroundTransparency = 1
-    infoLabel.TextXAlignment = Enum.TextXAlignment.Left
-    infoLabel.Parent = watermark
-    self:AddToRegistry(infoLabel, { TextColor3 = 'Text' })
-    local function UpdateWatermarkSize()
-        local textBounds = TextService:GetTextSize(infoLabel.Text, infoLabel.TextSize, infoLabel.Font, Vector2.new(math.huge, math.huge))
-        local newWidth = textBounds.X + 45
-        watermark.Size = UDim2.new(0, newWidth, 0, 35)
-    end
+    self:AddToRegistry(watermark, { BackgroundColor3 = 'Secondary' })
+    local watermarkCorner = Instance.new("UICorner")
+    watermarkCorner.CornerRadius = UDim.new(0, 6)
+    watermarkCorner.Parent = watermark
+    local watermarkStroke = Instance.new("UIStroke")
+    watermarkStroke.Color = theme.Accent
+    watermarkStroke.Transparency = 0.5
+    watermarkStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    watermarkStroke.Parent = watermark
+    self:AddToRegistry(watermarkStroke, { Color = 'Accent' })
+    local accentBar = Instance.new("Frame")
+    accentBar.Name = "AccentBar"
+    accentBar.Size = UDim2.new(0, 3, 1, -10)
+    accentBar.Position = UDim2.new(0, 5, 0.5, 0)
+    accentBar.AnchorPoint = Vector2.new(0, 0.5)
+    accentBar.BackgroundColor3 = theme.Primary
+    accentBar.BorderSizePixel = 0
+    accentBar.Parent = watermark
+    self:AddToRegistry(accentBar, { BackgroundColor3 = 'Primary' })
+    local accentCorner = Instance.new("UICorner")
+    accentCorner.CornerRadius = UDim.new(0, 2)
+    accentCorner.Parent = accentBar
+    local watermarkLabel = Instance.new("TextLabel")
+    watermarkLabel.Text = "MarchUI | " .. Players.LocalPlayer.Name
+    watermarkLabel.Font = Enum.Font.GothamBold
+    watermarkLabel.TextSize = 11
+    watermarkLabel.TextColor3 = theme.Text
+    watermarkLabel.TextTransparency = 0.1
+    watermarkLabel.TextXAlignment = Enum.TextXAlignment.Left
+    watermarkLabel.Size = UDim2.new(1, -20, 1, 0)
+    watermarkLabel.Position = UDim2.new(0, 15, 0, 0)
+    watermarkLabel.BackgroundTransparency = 1
+    watermarkLabel.Parent = watermark
+    self:AddToRegistry(watermarkLabel, { TextColor3 = 'Text' })
+    self.watermark = watermarkGui
+    self.watermarkFrame = watermark
+    self.watermarkLabel = watermarkLabel
     local dragging = false
     local dragStart = nil
     local startPos = nil
-    local dragArea = Instance.new("Frame")
-    dragArea.Name = "DragArea"
-    dragArea.Size = UDim2.new(1, -28, 1, 0)
-    dragArea.Position = UDim2.new(0, 28, 0, 0)
-    dragArea.BackgroundTransparency = 1
-    dragArea.Active = true
-    dragArea.Parent = watermark
-    dragArea.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+    watermark.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true
             dragStart = input.Position
             startPos = watermark.Position
             input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragging = false
-                end
+                if input.UserInputState == Enum.UserInputState.End then dragging = false end
             end)
         end
     end)
     UserInputService.InputChanged:Connect(function(input)
-        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
             local delta = input.Position - dragStart
             watermark.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
         end
     end)
-    iconButton.MouseButton1Click:Connect(function()
-        self:ToggleUI()
-    end)
-    local fps = 60
-    local frameCount = 0
-    local lastTime = tick()
-    local updateConnection = RunService.Heartbeat:Connect(function()
-        frameCount = frameCount + 1
-        local currentTime = tick()
-        if currentTime - lastTime >= 1 then
-            fps = math.floor(frameCount / (currentTime - lastTime))
-            frameCount = 0
-            lastTime = currentTime
-        end
-        local ping = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue())
-        local time = os.date("%H:%M")
-        infoLabel.Text = string.format("FPS: %d | Ping: %dms | %s", fps, ping, time)
-        UpdateWatermarkSize()
-    end)
-    UpdateWatermarkSize()
-    table.insert(self.connections, updateConnection)
-    self.watermark = watermark
-    self.watermarkVisible = false
 end
 function Library:ToggleUI()
     self.uiVisible = not self.uiVisible
-    if self.uiVisible then
-        self.ui.Enabled = true
-        self.container.Size = UDim2.new(0, 698, 0, 479)
-        if self.watermark then
-            self.watermark.Visible = false
-            self.watermarkVisible = false
-        end
-    else
-        self.container.Size = UDim2.new(0, 0, 0, 0)
-        self.ui.Enabled = false
-        if self.watermark then
-            self.watermark.Visible = true
-            self.watermarkVisible = true
+    if self.container then
+        if self.uiVisible then
+            self.container.Visible = true
+            Tween(self.container, {BackgroundTransparency = 0.05}, 0.3)
+        else
+            Tween(self.container, {BackgroundTransparency = 1}, 0.3)
+            task.delay(0.3, function() if not self.uiVisible then self.container.Visible = false end end)
         end
     end
 end
 function Library:Unload()
     for _, connection in ipairs(self.connections) do
-        if typeof(connection) == "RBXScriptConnection" then
-            connection:Disconnect()
-        end
+        if connection and connection.Connected then connection:Disconnect() end
     end
-    self.connections = {}
-    if self.uiKeybindConnection then
-        self.uiKeybindConnection:Disconnect()
-        self.uiKeybindConnection = nil
-    end
-    if self.notificationGui then
-        self.notificationGui:Destroy()
-        self.notificationGui = nil
-    end
-    if self.watermarkGui then
-        self.watermarkGui:Destroy()
-        self.watermarkGui = nil
-    end
-    if self.ui then
-        self.ui:Destroy()
-        self.ui = nil
-    end
+    if self.uiKeybindConnection then self.uiKeybindConnection:Disconnect() end
+    if self.ui then self.ui:Destroy() end
+    if self.notificationGui then self.notificationGui:Destroy() end
+    if self.watermark then self.watermark:Destroy() end
+    for k in pairs(Toggles) do Toggles[k] = nil end
+    for k in pairs(Options) do Options[k] = nil end
+    self.Registry = {}
+    self.RegistryMap = {}
 end
 return { Library = Library, SaveManager = SaveManager, ThemeManager = ThemeManager, Toggles = Toggles, Options = Options }
