@@ -353,8 +353,23 @@ function Library.new()
     self.currentTab = nil
     self.choosingKeybind = false
     self.connections = {}
-    self.currentTheme = self.Themes.Ocean -- Default theme Ocean
-    self.currentThemeName = "Ocean"
+    
+    -- Загружаем кастомные темы
+    local customThemes = self.config:GetCustomThemes()
+    for name, theme in pairs(customThemes) do
+        self.Themes[name] = theme
+    end
+    
+    -- Проверяем autoload тему
+    local defaultTheme = self.config:GetDefaultTheme()
+    if defaultTheme and self.Themes[defaultTheme] then
+        self.currentTheme = self.Themes[defaultTheme]
+        self.currentThemeName = defaultTheme
+    else
+        self.currentTheme = self.Themes.Ocean -- Default theme Ocean
+        self.currentThemeName = "Ocean"
+    end
+    
     local savedFont = self.config:GetFlag("_UI_Font", "GothamBold")
     self.currentFont = Enum.Font[savedFont] or Enum.Font.GothamBold
     self.uiVisible = true
@@ -1447,18 +1462,9 @@ function Library:CreateSettingsTab()
         end
     })
     
-    -- Load custom themes on startup
-    local customThemes = self.config:GetCustomThemes()
-    for name, theme in pairs(customThemes) do
-        self.Themes[name] = theme
-    end
+    -- Update lists (темы уже загружены в Library.new)
     UpdateCustomThemeList()
-    
-    -- Apply default theme if set
-    local defaultTheme = self.config:GetDefaultTheme()
-    if defaultTheme and self.Themes[defaultTheme] then
-        self:SetTheme(defaultTheme)
-    end
+    UpdateAutoloadDisplay()
     
     return settingsTab
 end
