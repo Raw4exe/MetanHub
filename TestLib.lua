@@ -107,6 +107,14 @@ function ConfigManager:Load(configName)
         if type(result.keybinds) == "table" then
             self.data.keybinds = result.keybinds
         end
+        -- Загружаем customThemes
+        if type(result.customThemes) == "table" then
+            self.data.customThemes = result.customThemes
+        end
+        -- Загружаем defaultTheme
+        if result.defaultTheme ~= nil then
+            self.data.defaultTheme = result.defaultTheme
+        end
     else
         warn("Failed to load config, using defaults")
         self:Save()
