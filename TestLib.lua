@@ -2262,7 +2262,7 @@ function Library:CreateColorpicker(module, options)
         Tween(acceptBtn, {BackgroundTransparency = 0}, 0.2)
     end)
     
-    acceptBtn.MouseLeaCo:Connect(function()
+    acceptBtn.MouseLeave:Connect(function()
         Tween(acceptBtn, {BackgroundTransparency = 0.2}, 0.2)
     end)
     
@@ -2270,7 +2270,7 @@ function Library:CreateColorpicker(module, options)
         Tween(cancelBtn, {BackgroundTransparency = 0}, 0.2)
     end)
     
-    cancelBeDialog()ave:Connect(function()
+    cancelBtn.MouseLeave:Connect(function()
         Tween(cancelBtn, {BackgroundTransparency = 0.2}, 0.2)
     end)
     
