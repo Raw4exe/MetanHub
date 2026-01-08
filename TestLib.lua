@@ -354,6 +354,7 @@ function Library.new()
     self.choosingKeybind = false
     self.connections = {}
     self.currentTheme = self.Themes.Ocean -- Default theme Ocean
+    self.currentThemeName = "Ocean"
     local savedFont = self.config:GetFlag("_UI_Font", "GothamBold")
     self.currentFont = Enum.Font[savedFont] or Enum.Font.GothamBold
     self.uiVisible = true
@@ -361,6 +362,21 @@ function Library.new()
     
     self:CreateUI()
     self:SetupUIKeybind()
+    
+    -- Apply saved UI transparency
+    local savedTransparency = self.config:GetFlag("_UI_Transparency", 5)
+    if self.container then
+        self.container.BackgroundTransparency = savedTransparency / 100
+    end
+    
+    -- Apply saved UI size
+    local savedSize = self.config:GetFlag("_UI_Size", 100)
+    if self.handler then
+        local scale = savedSize / 100
+        local baseWidth = 698
+        local baseHeight = 479
+        self.handler.Size = UDim2.new(0, baseWidth * scale, 0, baseHeight * scale)
+    end
     
     return self
 end
@@ -1209,6 +1225,38 @@ function Library:CreateSettingsTab()
         end
     })
     
+    uiModule:CreateSlider({
+        title = "UI Transparency",
+        min = 0,
+        max = 100,
+        default = self.config:GetFlag("_UI_Transparency", 5),
+        callback = function(value)
+            local transparency = value / 100
+            if self.container then
+                self.container.BackgroundTransparency = transparency
+            end
+            self.config:SetFlag("_UI_Transparency", value)
+            print("UI Transparency:", value .. "%")
+        end
+    })
+    
+    uiModule:CreateSlider({
+        title = "UI Size",
+        min = 50,
+        max = 150,
+        default = self.config:GetFlag("_UI_Size", 100),
+        callback = function(value)
+            local scale = value / 100
+            if self.handler then
+                local baseWidth = 698
+                local baseHeight = 479
+                self.handler.Size = UDim2.new(0, baseWidth * scale, 0, baseHeight * scale)
+            end
+            self.config:SetFlag("_UI_Size", value)
+            print("UI Size:", value .. "%")
+        end
+    })
+    
     uiModule:CreateDropdown({
         title = "Font",
         options = self.Fonts,
@@ -1226,112 +1274,14 @@ function Library:CreateSettingsTab()
         end
     })
     
-    -- MODULE 1: Preset Themes (left section)
-    local presetModule = settingsTab:CreateModule({
-        title = "Preset Themes",
-        description = "System themes",
+    -- Unified Theme Module (matching screenshot layout)
+    local themeModule = settingsTab:CreateModule({
+        title = "Themes",
+        description = "Manage themes",
         section = "left"
     })
     
-    local presetThemeList
-    local currentThemeDisplay
-    local autoloadStatusDisplay
-    local presetThemeNameBox
-    
-    local function UpdateCurrentThemeDisplay()
-        if currentThemeDisplay then
-            currentThemeDisplay.SetText(self.currentThemeName or "Ocean")
-        end
-    end
-    
-    local function UpdateAutoloadStatusDisplay()
-        local autoload = self.config:GetDefaultTheme()
-        if autoloadStatusDisplay then
-            autoloadStatusDisplay.SetText(autoload or "None")
-        end
-    end
-    
-    -- Preset Themes Dropdown
-    presetThemeList = presetModule:CreateDropdown({
-        title = "Preset Themes",
-        options = {"Ocean", "Sunset", "Forest", "Midnight", "Volcano", "Arctic", "Space", "Cherry", "Emerald", "Gold"},
-        callback = function(themeName)
-            if themeName then
-                self:SetTheme(themeName)
-                print("Applied preset theme:", themeName)
-                UpdateCurrentThemeDisplay()
-            end
-        end
-    })
-    
-    -- Current Theme Display (read-only)
-    currentThemeDisplay = presetModule:CreateTextbox({
-        title = "Current Theme",
-        default = self.currentThemeName or "Ocean",
-        placeholder = "No theme"
-    })
-    currentThemeDisplay.textboxFrame.TextEditable = false
-    
-    -- Autoload Status Display (read-only)
-    autoloadStatusDisplay = presetModule:CreateTextbox({
-        title = "Autoload Status",
-        default = self.config:GetDefaultTheme() or "None",
-        placeholder = "None"
-    })
-    autoloadStatusDisplay.textboxFrame.TextEditable = false
-    
-    -- Theme Name Input for Preset
-    presetThemeNameBox = presetModule:CreateTextbox({
-        title = "Theme Name",
-        placeholder = "Enter preset theme name..."
-    })
-    
-    -- Set Preset as Autoload
-    presetModule:CreateButton({
-        title = "Set as Autoload",
-        callback = function()
-            local name = presetThemeNameBox.text
-            if name and name ~= "" then
-                -- Check if it's a valid preset theme
-                local validPresets = {"Ocean", "Sunset", "Forest", "Midnight", "Volcano", "Arctic", "Space", "Cherry", "Emerald", "Gold"}
-                local isValid = false
-                for _, preset in ipairs(validPresets) do
-                    if preset == name then
-                        isValid = true
-                        break
-                    end
-                end
-                
-                if isValid then
-                    self.config:SetDefaultTheme(name)
-                    print("Set autoload theme:", name)
-                    UpdateAutoloadStatusDisplay()
-                else
-                    warn("Invalid preset theme name")
-                end
-            else
-                warn("Please enter a theme name")
-            end
-        end
-    })
-    
-    -- Delete Autoload
-    presetModule:CreateButton({
-        title = "Delete Autoload",
-        callback = function()
-            self.config:SetDefaultTheme(nil)
-            print("Removed autoload theme")
-            UpdateAutoloadStatusDisplay()
-        end
-    })
-    
-    -- MODULE 2: Custom Themes (right section)
-    local customModule = settingsTab:CreateModule({
-        title = "Custom Themes",
-        description = "Create custom themes",
-        section = "right"
-    })
-    
+    local themeList
     local customThemeList
     local customThemeNameBox
     
@@ -1342,7 +1292,7 @@ function Library:CreateSettingsTab()
             table.insert(themeNames, name)
         end
         if #themeNames == 0 then
-            themeNames = {"No custom themes"}
+            themeNames = {"--"}
         end
         if customThemeList then
             customThemeList.SetValue(themeNames)
@@ -1358,79 +1308,106 @@ function Library:CreateSettingsTab()
         Text = self.currentTheme.Text
     }
     
-    customModule:CreateColorpicker({
-        title = "Primary Color",
-        default = tempTheme.Primary,
-        callback = function(color)
-            tempTheme.Primary = color
-        end
-    })
-    
-    customModule:CreateColorpicker({
-        title = "Background Color",
+    themeModule:CreateColorpicker({
+        title = "Background color",
         default = tempTheme.Background,
         callback = function(color)
             tempTheme.Background = color
         end
     })
     
-    customModule:CreateColorpicker({
-        title = "Secondary Color",
-        default = tempTheme.Secondary,
+    themeModule:CreateColorpicker({
+        title = "Main color",
+        default = tempTheme.Primary,
         callback = function(color)
-            tempTheme.Secondary = color
+            tempTheme.Primary = color
         end
     })
     
-    customModule:CreateColorpicker({
-        title = "Accent Color",
+    themeModule:CreateColorpicker({
+        title = "Accent color",
         default = tempTheme.Accent,
         callback = function(color)
             tempTheme.Accent = color
         end
     })
     
-    customModule:CreateColorpicker({
-        title = "Text Color",
+    themeModule:CreateColorpicker({
+        title = "Outline color",
+        default = tempTheme.Secondary,
+        callback = function(color)
+            tempTheme.Secondary = color
+        end
+    })
+    
+    themeModule:CreateColorpicker({
+        title = "Font color",
         default = tempTheme.Text,
         callback = function(color)
             tempTheme.Text = color
         end
     })
     
+    -- Theme List Dropdown (Preset themes)
+    themeList = themeModule:CreateDropdown({
+        title = "Theme list",
+        options = {"Default", "Ocean", "Sunset", "Forest", "Midnight", "Volcano", "Arctic", "Space", "Cherry", "Emerald", "Gold"},
+        callback = function(themeName)
+            if themeName and themeName ~= "Default" then
+                self:SetTheme(themeName)
+                self.currentThemeName = themeName
+                print("Applied theme:", themeName)
+            end
+        end
+    })
+    
+    -- Set as Default Button
+    themeModule:CreateButton({
+        title = "Set as default",
+        callback = function()
+            local selectedTheme = themeList.selected
+            if selectedTheme and selectedTheme ~= "" then
+                self.config:SetDefaultTheme(selectedTheme)
+                print("Set default theme:", selectedTheme)
+            else
+                warn("Please select a theme from the list")
+            end
+        end
+    })
+    
+    -- Custom Theme Name Input
+    customThemeNameBox = themeModule:CreateTextbox({
+        title = "Custom theme name",
+        placeholder = "Enter name..."
+    })
+    
     -- Custom Themes Dropdown
-    customThemeList = customModule:CreateDropdown({
-        title = "Custom Themes",
+    customThemeList = themeModule:CreateDropdown({
+        title = "Custom themes",
         options = #self.config:GetCustomThemes() > 0 and (function()
             local names = {}
             for name, _ in pairs(self.config:GetCustomThemes()) do
                 table.insert(names, name)
             end
             return names
-        end)() or {"No custom themes"},
+        end)() or {"--"},
         callback = function(themeName)
-            if themeName and themeName ~= "No custom themes" then
+            if themeName and themeName ~= "--" then
                 local customThemes = self.config:GetCustomThemes()
                 local theme = customThemes[themeName]
                 if theme then
                     self.Themes[themeName] = theme
                     self:SetTheme(themeName)
+                    self.currentThemeName = themeName
                     print("Applied custom theme:", themeName)
-                    UpdateCurrentThemeDisplay()
                 end
             end
         end
     })
     
-    -- Theme Name Input for Custom
-    customThemeNameBox = customModule:CreateTextbox({
-        title = "Theme Name",
-        placeholder = "Enter custom theme name..."
-    })
-    
-    -- Create Custom Theme Button
-    customModule:CreateButton({
-        title = "Create Theme",
+    -- Save Theme and Load Theme buttons (side by side)
+    themeModule:CreateButton({
+        title = "Save theme",
         callback = function()
             local name = customThemeNameBox.text
             if name and name ~= "" then
@@ -1442,10 +1419,10 @@ function Library:CreateSettingsTab()
                         Accent = tempTheme.Accent,
                         Text = tempTheme.Text
                     }
-                    print("Created custom theme:", name)
+                    print("Saved custom theme:", name)
                     UpdateCustomThemeList()
                 else
-                    warn("Failed to create theme")
+                    warn("Failed to save theme")
                 end
             else
                 warn("Please enter a theme name")
@@ -1453,23 +1430,20 @@ function Library:CreateSettingsTab()
         end
     })
     
-    -- Delete Custom Theme Button
-    customModule:CreateButton({
-        title = "Delete Theme",
+    themeModule:CreateButton({
+        title = "Load theme",
         callback = function()
             local name = customThemeNameBox.text
             if name and name ~= "" then
-                if self.config:DeleteCustomTheme(name) then
-                    self.Themes[name] = nil
-                    print("Deleted theme:", name)
-                    -- Reset dropdown selection if deleted theme was selected
-                    if customThemeList.selected == name then
-                        customThemeList.selected = nil
-                    end
-                    UpdateCustomThemeList()
-                    UpdateAutoloadStatusDisplay()
+                local customThemes = self.config:GetCustomThemes()
+                local theme = customThemes[name]
+                if theme then
+                    self.Themes[name] = theme
+                    self:SetTheme(name)
+                    self.currentThemeName = name
+                    print("Loaded custom theme:", name)
                 else
-                    warn("Failed to delete theme")
+                    warn("Theme not found")
                 end
             else
                 warn("Please enter a theme name")
@@ -1477,17 +1451,25 @@ function Library:CreateSettingsTab()
         end
     })
     
-    -- Set Custom Theme as Autoload
-    customModule:CreateButton({
-        title = "Set as Autoload",
+    -- Refresh List Button
+    themeModule:CreateButton({
+        title = "Refresh list",
+        callback = function()
+            UpdateCustomThemeList()
+            print("Refreshed custom themes list")
+        end
+    })
+    
+    -- Set as Default Button (for custom themes)
+    themeModule:CreateButton({
+        title = "Set as default",
         callback = function()
             local name = customThemeNameBox.text
             if name and name ~= "" then
                 local customThemes = self.config:GetCustomThemes()
                 if customThemes[name] then
                     self.config:SetDefaultTheme(name)
-                    print("Set autoload theme:", name)
-                    UpdateAutoloadStatusDisplay()
+                    print("Set default theme:", name)
                 else
                     warn("Theme does not exist")
                 end
