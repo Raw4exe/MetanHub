@@ -521,10 +521,11 @@ function Library:CreateUI()
 end
 function Library:SetupDragging()
     local container = self.container
+    local handler = self.handler
     local dragging = false
     local dragStart = nil
     local startPos = nil
-    container.InputBegan:Connect(function(input)
+    handler.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true
             dragStart = input.Position
@@ -1646,9 +1647,12 @@ function Library:CreateColorpicker(module, options)
     dialogOverlay.Visible = false
     dialogOverlay.ZIndex = 1000
     dialogOverlay.Parent = self.container
+    local overlayCorner = Instance.new("UICorner")
+    overlayCorner.CornerRadius = UDim.new(0, 10)
+    overlayCorner.Parent = dialogOverlay
     local pickerPopup = Instance.new("Frame")
     pickerPopup.Name = "PickerPopup"
-    pickerPopup.Size = UDim2.new(0, 280, 0, 320)
+    pickerPopup.Size = UDim2.new(0, 280, 0, 295)
     pickerPopup.Position = UDim2.new(0.5, 0, 0.5, 0)
     pickerPopup.AnchorPoint = Vector2.new(0.5, 0.5)
     pickerPopup.BackgroundColor3 = theme.Background
@@ -1666,23 +1670,10 @@ function Library:CreateColorpicker(module, options)
     popupStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     popupStroke.Parent = pickerPopup
     self:AddToRegistry(popupStroke, { Color = 'Accent' })
-    local dialogTitle = Instance.new("TextLabel")
-    dialogTitle.Text = colorpicker.title
-    dialogTitle.Font = Enum.Font.GothamBold
-    dialogTitle.TextSize = 14
-    dialogTitle.TextColor3 = theme.Primary
-    dialogTitle.TextTransparency = 0.2
-    dialogTitle.Size = UDim2.new(1, -20, 0, 30)
-    dialogTitle.Position = UDim2.new(0, 10, 0, 10)
-    dialogTitle.BackgroundTransparency = 1
-    dialogTitle.TextXAlignment = Enum.TextXAlignment.Left
-    dialogTitle.ZIndex = 1002
-    dialogTitle.Parent = pickerPopup
-    self:AddToRegistry(dialogTitle, { TextColor3 = 'Primary' })
     local satValFrame = Instance.new("ImageButton")
     satValFrame.Name = "SatVal"
     satValFrame.Size = UDim2.new(0, 200, 0, 150)
-    satValFrame.Position = UDim2.new(0, 15, 0, 50)
+    satValFrame.Position = UDim2.new(0, 15, 0, 20)
     satValFrame.BackgroundColor3 = Color3.fromHSV(1, 1, 1)
     satValFrame.BorderSizePixel = 0
     satValFrame.AutoButtonColor = false
@@ -1730,7 +1721,7 @@ function Library:CreateColorpicker(module, options)
     local hueFrame = Instance.new("ImageButton")
     hueFrame.Name = "Hue"
     hueFrame.Size = UDim2.new(0, 30, 0, 150)
-    hueFrame.Position = UDim2.new(0, 230, 0, 50)
+    hueFrame.Position = UDim2.new(0, 230, 0, 20)
     hueFrame.BorderSizePixel = 0
     hueFrame.AutoButtonColor = false
     hueFrame.ZIndex = 1002
@@ -1765,7 +1756,7 @@ function Library:CreateColorpicker(module, options)
     hexLabel.TextColor3 = theme.Text
     hexLabel.TextTransparency = 0.2
     hexLabel.Size = UDim2.new(0, 40, 0, 20)
-    hexLabel.Position = UDim2.new(0, 15, 0, 215)
+    hexLabel.Position = UDim2.new(0, 15, 0, 185)
     hexLabel.BackgroundTransparency = 1
     hexLabel.TextXAlignment = Enum.TextXAlignment.Left
     hexLabel.ZIndex = 1002
@@ -1774,7 +1765,7 @@ function Library:CreateColorpicker(module, options)
     local hexInput = Instance.new("TextBox")
     hexInput.Name = "HexInput"
     hexInput.Size = UDim2.new(0, 190, 0, 28)
-    hexInput.Position = UDim2.new(0, 60, 0, 210)
+    hexInput.Position = UDim2.new(0, 60, 0, 180)
     hexInput.BackgroundColor3 = theme.Secondary
     hexInput.BackgroundTransparency = 0.5
     hexInput.BorderSizePixel = 0
@@ -1796,7 +1787,7 @@ function Library:CreateColorpicker(module, options)
     rgbLabel.TextColor3 = theme.Text
     rgbLabel.TextTransparency = 0.2
     rgbLabel.Size = UDim2.new(0, 40, 0, 20)
-    rgbLabel.Position = UDim2.new(0, 15, 0, 250)
+    rgbLabel.Position = UDim2.new(0, 15, 0, 220)
     rgbLabel.BackgroundTransparency = 1
     rgbLabel.TextXAlignment = Enum.TextXAlignment.Left
     rgbLabel.ZIndex = 1002
@@ -1810,7 +1801,7 @@ function Library:CreateColorpicker(module, options)
     rgbDisplay.TextColor3 = theme.Text
     rgbDisplay.TextTransparency = 0.2
     rgbDisplay.Size = UDim2.new(0, 190, 0, 28)
-    rgbDisplay.Position = UDim2.new(0, 60, 0, 245)
+    rgbDisplay.Position = UDim2.new(0, 60, 0, 215)
     rgbDisplay.BackgroundColor3 = theme.Secondary
     rgbDisplay.BackgroundTransparency = 0.5
     rgbDisplay.BorderSizePixel = 0
@@ -1823,7 +1814,7 @@ function Library:CreateColorpicker(module, options)
     local doneButton = Instance.new("TextButton")
     doneButton.Name = "Done"
     doneButton.Size = UDim2.new(0, 120, 0, 30)
-    doneButton.Position = UDim2.new(0, 15, 0, 280)
+    doneButton.Position = UDim2.new(0, 15, 0, 255)
     doneButton.BackgroundColor3 = theme.Primary
     doneButton.BackgroundTransparency = 0.3
     doneButton.BorderSizePixel = 0
@@ -1841,7 +1832,7 @@ function Library:CreateColorpicker(module, options)
     local cancelButton = Instance.new("TextButton")
     cancelButton.Name = "Cancel"
     cancelButton.Size = UDim2.new(0, 120, 0, 30)
-    cancelButton.Position = UDim2.new(0, 145, 0, 280)
+    cancelButton.Position = UDim2.new(0, 145, 0, 255)
     cancelButton.BackgroundColor3 = theme.Accent
     cancelButton.BackgroundTransparency = 0.5
     cancelButton.BorderSizePixel = 0
@@ -2240,13 +2231,14 @@ function Library:CreateWatermark()
     local function UpdateWatermarkSize()
         local textWidth = GetTextWidth(watermarkLabel.Text, 12, Enum.Font.GothamBold)
         local totalWidth = textWidth + 50
+        local oldSize = watermark.Size
         watermark.Size = UDim2.new(0, totalWidth, 0, 35)
         if not isDragged then
             watermark.Position = UDim2.new(0.5, -totalWidth / 2, 0, 10)
-        else
-            if savedPosition then
-                watermark.Position = savedPosition
-            end
+        elseif savedPosition then
+            local widthDiff = totalWidth - oldSize.X.Offset
+            watermark.Position = UDim2.new(savedPosition.X.Scale, savedPosition.X.Offset - widthDiff / 2, savedPosition.Y.Scale, savedPosition.Y.Offset)
+            savedPosition = watermark.Position
         end
     end
     local function UpdateWatermarkText()
