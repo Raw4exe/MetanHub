@@ -949,6 +949,13 @@ end
 function Library:Load()
     -- UI уже создан с полным размером, просто создаём watermark
     self:CreateWatermark()
+    
+    -- Применяем тему после создания всех элементов для гарантии
+    task.spawn(function()
+        task.wait(0.1) -- Минимальная задержка для завершения создания элементов
+        print("[DEBUG] Final theme application...")
+        self:ApplyTheme()
+    end)
 end
 
 function Library:CreateTab(name, icon)
@@ -1500,10 +1507,12 @@ function Library:CreateModule(tab, options)
     module.elementHeight = 8  
     module.multiplier = 0
     
+    local theme = self.currentTheme
+    
     local moduleFrame = Instance.new("Frame")
     moduleFrame.Name = "Module"
     moduleFrame.Size = UDim2.new(0, 241, 0, 93)
-    moduleFrame.BackgroundColor3 = Color3.fromRGB(22, 28, 38)
+    moduleFrame.BackgroundColor3 = theme.Secondary
     moduleFrame.BackgroundTransparency = 0.5
     moduleFrame.BorderSizePixel = 0
     moduleFrame.ClipsDescendants = true
@@ -1514,7 +1523,7 @@ function Library:CreateModule(tab, options)
     moduleCorner.Parent = moduleFrame
     
     local moduleStroke = Instance.new("UIStroke")
-    moduleStroke.Color = Color3.fromRGB(52, 66, 89)
+    moduleStroke.Color = theme.Accent
     moduleStroke.Transparency = 0.5
     moduleStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     moduleStroke.Parent = moduleFrame
@@ -1540,7 +1549,7 @@ function Library:CreateModule(tab, options)
     moduleIcon.Position = UDim2.new(0.071, 0, 0.82, 0)
     moduleIcon.AnchorPoint = Vector2.new(0, 0.5)
     moduleIcon.BackgroundTransparency = 1
-    moduleIcon.ImageColor3 = Color3.fromRGB(152, 181, 255)
+    moduleIcon.ImageColor3 = theme.Primary
     moduleIcon.ImageTransparency = 0.7
     moduleIcon.ScaleType = Enum.ScaleType.Fit
     moduleIcon.Parent = header
@@ -1550,7 +1559,7 @@ function Library:CreateModule(tab, options)
     moduleTitle.Text = module.title
     moduleTitle.Font = Enum.Font.GothamBold
     moduleTitle.TextSize = 14
-    moduleTitle.TextColor3 = Color3.fromRGB(152, 181, 255)
+    moduleTitle.TextColor3 = theme.Primary
     moduleTitle.TextTransparency = 0.2
     moduleTitle.TextXAlignment = Enum.TextXAlignment.Left
     moduleTitle.Size = UDim2.new(0, 205, 0, 13)
@@ -1564,7 +1573,7 @@ function Library:CreateModule(tab, options)
     moduleDesc.Text = module.description
     moduleDesc.Font = Enum.Font.GothamBold
     moduleDesc.TextSize = 10
-    moduleDesc.TextColor3 = Color3.fromRGB(152, 181, 255)
+    moduleDesc.TextColor3 = theme.Primary
     moduleDesc.TextTransparency = 0.7
     moduleDesc.TextXAlignment = Enum.TextXAlignment.Left
     moduleDesc.Size = UDim2.new(0, 205, 0, 13)
@@ -1577,8 +1586,8 @@ function Library:CreateModule(tab, options)
     toggleFrame.Name = "Toggle"
     toggleFrame.Size = UDim2.new(0, 25, 0, 12)
     toggleFrame.Position = UDim2.new(0.82, 0, 0.757, 0)
-    toggleFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    toggleFrame.BackgroundTransparency = 0.7
+    toggleFrame.BackgroundColor3 = theme.Accent
+    toggleFrame.BackgroundTransparency = 0.5
     toggleFrame.BorderSizePixel = 0
     toggleFrame.Parent = header
     
@@ -1591,8 +1600,8 @@ function Library:CreateModule(tab, options)
     toggleCircle.Size = UDim2.new(0, 12, 0, 12)
     toggleCircle.Position = UDim2.new(0, 0, 0.5, 0)
     toggleCircle.AnchorPoint = Vector2.new(0, 0.5)
-    toggleCircle.BackgroundColor3 = Color3.fromRGB(66, 80, 115)
-    toggleCircle.BackgroundTransparency = 0.2
+    toggleCircle.BackgroundColor3 = theme.Text
+    toggleCircle.BackgroundTransparency = 0.3
     toggleCircle.BorderSizePixel = 0
     toggleCircle.Parent = toggleFrame
     
@@ -1604,7 +1613,7 @@ function Library:CreateModule(tab, options)
     keybindFrame.Name = "Keybind"
     keybindFrame.Size = UDim2.new(0, 33, 0, 15)
     keybindFrame.Position = UDim2.new(0.15, 0, 0.735, 0)
-    keybindFrame.BackgroundColor3 = Color3.fromRGB(152, 181, 255)
+    keybindFrame.BackgroundColor3 = theme.Primary
     keybindFrame.BackgroundTransparency = 0.7
     keybindFrame.BorderSizePixel = 0
     keybindFrame.Parent = header
@@ -1629,7 +1638,7 @@ function Library:CreateModule(tab, options)
     divider1.Size = UDim2.new(0, 241, 0, 1)
     divider1.Position = UDim2.new(0.5, 0, 0.62, 0)
     divider1.AnchorPoint = Vector2.new(0.5, 0)
-    divider1.BackgroundColor3 = Color3.fromRGB(52, 66, 89)
+    divider1.BackgroundColor3 = theme.Accent
     divider1.BackgroundTransparency = 0.5
     divider1.BorderSizePixel = 0
     divider1.Parent = header
@@ -1639,7 +1648,7 @@ function Library:CreateModule(tab, options)
     divider2.Size = UDim2.new(0, 241, 0, 1)
     divider2.Position = UDim2.new(0.5, 0, 1, 0)
     divider2.AnchorPoint = Vector2.new(0.5, 0)
-    divider2.BackgroundColor3 = Color3.fromRGB(52, 66, 89)
+    divider2.BackgroundColor3 = theme.Accent
     divider2.BackgroundTransparency = 0.5
     divider2.BorderSizePixel = 0
     divider2.Parent = header
