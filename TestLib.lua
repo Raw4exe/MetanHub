@@ -526,9 +526,13 @@ function Library:ApplyTheme()
                     end
                 end
             
-            -- Кейбинды модулей - ТЕПЕРЬ TextLabel
-            elseif name == "Keybind" and parent and parent.Name == "Header" and descendant:IsA("TextLabel") then
-                Tween(descendant, {TextColor3 = theme.Text}, 0.3)
+            -- Кейбинды модулей - Frame с фоном
+            elseif name == "Keybind" and parent and parent.Name == "Header" and descendant:IsA("Frame") then
+                Tween(descendant, {BackgroundColor3 = theme.Primary, BackgroundTransparency = 0.7}, 0.3)
+                local label = descendant:FindFirstChild("TextLabel")
+                if label then
+                    Tween(label, {TextColor3 = Color3.fromRGB(209, 222, 255)}, 0.3)
+                end
             
             -- Toggle модуля - МЕНЯЕМ ЦВЕТА
             elseif name == "Toggle" and parent and parent.Name == "Header" then
@@ -1148,6 +1152,14 @@ function Library:CreateSettingsTab()
             if name and name ~= "" then
                 if self.config:DeleteConfig(name) then
                     print("Deleted config:", name)
+                    -- Сбросить выделение если удалили выбранный конфиг
+                    if configList.selected == name then
+                        configList.selected = nil
+                        local currentOption = configList.box:FindFirstChild("Header"):FindFirstChild("CurrentOption")
+                        if currentOption then
+                            currentOption.Text = "None"
+                        end
+                    end
                     UpdateConfigList()
                     UpdateAutoloadStatus()
                 else
@@ -1214,17 +1226,114 @@ function Library:CreateSettingsTab()
         end
     })
     
-    -- Theme Manager Module
-    local themeModule = settingsTab:CreateModule({
-        title = "Theme Manager",
-        description = "Manage themes and colors",
+    -- MODULE 1: Preset Themes (left section)
+    local presetModule = settingsTab:CreateModule({
+        title = "Preset Themes",
+        description = "System themes",
         section = "left"
     })
     
-    local themeNameBox
     local presetThemeList
+    local currentThemeDisplay
+    local autoloadStatusDisplay
+    local presetThemeNameBox
+    
+    local function UpdateCurrentThemeDisplay()
+        if currentThemeDisplay then
+            currentThemeDisplay.SetText(self.currentThemeName or "Ocean")
+        end
+    end
+    
+    local function UpdateAutoloadStatusDisplay()
+        local autoload = self.config:GetDefaultTheme()
+        if autoloadStatusDisplay then
+            autoloadStatusDisplay.SetText(autoload or "None")
+        end
+    end
+    
+    -- Preset Themes Dropdown
+    presetThemeList = presetModule:CreateDropdown({
+        title = "Preset Themes",
+        options = {"Ocean", "Sunset", "Forest", "Midnight", "Volcano", "Arctic", "Space", "Cherry", "Emerald", "Gold"},
+        callback = function(themeName)
+            if themeName then
+                self:SetTheme(themeName)
+                print("Applied preset theme:", themeName)
+                UpdateCurrentThemeDisplay()
+            end
+        end
+    })
+    
+    -- Current Theme Display (read-only)
+    currentThemeDisplay = presetModule:CreateTextbox({
+        title = "Current Theme",
+        default = self.currentThemeName or "Ocean",
+        placeholder = "No theme"
+    })
+    currentThemeDisplay.textboxFrame.TextEditable = false
+    
+    -- Autoload Status Display (read-only)
+    autoloadStatusDisplay = presetModule:CreateTextbox({
+        title = "Autoload Status",
+        default = self.config:GetDefaultTheme() or "None",
+        placeholder = "None"
+    })
+    autoloadStatusDisplay.textboxFrame.TextEditable = false
+    
+    -- Theme Name Input for Preset
+    presetThemeNameBox = presetModule:CreateTextbox({
+        title = "Theme Name",
+        placeholder = "Enter preset theme name..."
+    })
+    
+    -- Set Preset as Autoload
+    presetModule:CreateButton({
+        title = "Set as Autoload",
+        callback = function()
+            local name = presetThemeNameBox.text
+            if name and name ~= "" then
+                -- Check if it's a valid preset theme
+                local validPresets = {"Ocean", "Sunset", "Forest", "Midnight", "Volcano", "Arctic", "Space", "Cherry", "Emerald", "Gold"}
+                local isValid = false
+                for _, preset in ipairs(validPresets) do
+                    if preset == name then
+                        isValid = true
+                        break
+                    end
+                end
+                
+                if isValid then
+                    self.config:SetDefaultTheme(name)
+                    print("Set autoload theme:", name)
+                    UpdateAutoloadStatusDisplay()
+                else
+                    warn("Invalid preset theme name")
+                end
+            else
+                warn("Please enter a theme name")
+            end
+        end
+    })
+    
+    -- Delete Autoload
+    presetModule:CreateButton({
+        title = "Delete Autoload",
+        callback = function()
+            self.config:SetDefaultTheme(nil)
+            print("Removed autoload theme")
+            UpdateAutoloadStatusDisplay()
+        end
+    })
+    
+    -- MODULE 2: Custom Themes (right section)
+    local customModule = settingsTab:CreateModule({
+        title = "Custom Themes",
+        description = "Create custom themes",
+        section = "right"
+    })
+    
     local customThemeList
-    local autoloadThemeStatus
+    local customThemeNameBox
     
     local function UpdateCustomThemeList()
         local customThemes = self.config:GetCustomThemes()
@@ -1240,27 +1349,57 @@ function Library:CreateSettingsTab()
         end
     end
     
-    local function UpdateAutoloadThemeStatus()
-        local autoload = self.config:GetDefaultTheme()
-        if autoloadThemeStatus then
-            autoloadThemeStatus.SetText(autoload and ("Autoload: " .. autoload) or "Autoload: None")
-        end
-    end
+    -- Color Pickers for Custom Theme Creation
+    local tempTheme = {
+        Primary = self.currentTheme.Primary,
+        Background = self.currentTheme.Background,
+        Secondary = self.currentTheme.Secondary,
+        Accent = self.currentTheme.Accent,
+        Text = self.currentTheme.Text
+    }
     
-    -- Preset Themes Dropdown
-    presetThemeList = themeModule:CreateDropdown({
-        title = "Preset Themes",
-        options = {"Ocean", "Sunset", "Forest", "Midnight", "Volcano", "Arctic", "Space", "Cherry", "Emerald", "Gold"},
-        callback = function(themeName)
-            if themeName then
-                self:SetTheme(themeName)
-                print("Applied preset theme:", themeName)
-            end
+    customModule:CreateColorpicker({
+        title = "Primary Color",
+        default = tempTheme.Primary,
+        callback = function(color)
+            tempTheme.Primary = color
+        end
+    })
+    
+    customModule:CreateColorpicker({
+        title = "Background Color",
+        default = tempTheme.Background,
+        callback = function(color)
+            tempTheme.Background = color
+        end
+    })
+    
+    customModule:CreateColorpicker({
+        title = "Secondary Color",
+        default = tempTheme.Secondary,
+        callback = function(color)
+            tempTheme.Secondary = color
+        end
+    })
+    
+    customModule:CreateColorpicker({
+        title = "Accent Color",
+        default = tempTheme.Accent,
+        callback = function(color)
+            tempTheme.Accent = color
+        end
+    })
+    
+    customModule:CreateColorpicker({
+        title = "Text Color",
+        default = tempTheme.Text,
+        callback = function(color)
+            tempTheme.Text = color
         end
     })
     
     -- Custom Themes Dropdown
-    customThemeList = themeModule:CreateDropdown({
+    customThemeList = customModule:CreateDropdown({
         title = "Custom Themes",
         options = #self.config:GetCustomThemes() > 0 and (function()
             local names = {}
@@ -1277,79 +1416,23 @@ function Library:CreateSettingsTab()
                     self.Themes[themeName] = theme
                     self:SetTheme(themeName)
                     print("Applied custom theme:", themeName)
+                    UpdateCurrentThemeDisplay()
                 end
             end
         end
     })
     
-    -- Autoload Status
-    autoloadThemeStatus = themeModule:CreateTextbox({
-        title = "Autoload Status",
-        default = self.config:GetDefaultTheme() and ("Autoload: " .. self.config:GetDefaultTheme()) or "Autoload: None",
-        placeholder = "No autoload set"
-    })
-    autoloadThemeStatus.textboxFrame.TextEditable = false
-    
-    -- Theme Name Input
-    themeNameBox = themeModule:CreateTextbox({
+    -- Theme Name Input for Custom
+    customThemeNameBox = customModule:CreateTextbox({
         title = "Theme Name",
-        placeholder = "Enter theme name..."
-    })
-    
-    -- Color Pickers for Custom Theme Creation
-    local tempTheme = {
-        Primary = self.currentTheme.Primary,
-        Background = self.currentTheme.Background,
-        Secondary = self.currentTheme.Secondary,
-        Accent = self.currentTheme.Accent,
-        Text = self.currentTheme.Text
-    }
-    
-    themeModule:CreateColorpicker({
-        title = "Primary Color",
-        default = tempTheme.Primary,
-        callback = function(color)
-            tempTheme.Primary = color
-        end
-    })
-    
-    themeModule:CreateColorpicker({
-        title = "Background Color",
-        default = tempTheme.Background,
-        callback = function(color)
-            tempTheme.Background = color
-        end
-    })
-    
-    themeModule:CreateColorpicker({
-        title = "Secondary Color",
-        default = tempTheme.Secondary,
-        callback = function(color)
-            tempTheme.Secondary = color
-        end
-    })
-    
-    themeModule:CreateColorpicker({
-        title = "Accent Color",
-        default = tempTheme.Accent,
-        callback = function(color)
-            tempTheme.Accent = color
-        end
-    })
-    
-    themeModule:CreateColorpicker({
-        title = "Text Color",
-        default = tempTheme.Text,
-        callback = function(color)
-            tempTheme.Text = color
-        end
+        placeholder = "Enter custom theme name..."
     })
     
     -- Create Custom Theme Button
-    themeModule:CreateButton({
+    customModule:CreateButton({
         title = "Create Theme",
         callback = function()
-            local name = themeNameBox.text
+            local name = customThemeNameBox.text
             if name and name ~= "" then
                 if self.config:SaveCustomTheme(name, tempTheme) then
                     self.Themes[name] = {
@@ -1370,17 +1453,21 @@ function Library:CreateSettingsTab()
         end
     })
     
-    -- Delete Theme Button
-    themeModule:CreateButton({
+    -- Delete Custom Theme Button
+    customModule:CreateButton({
         title = "Delete Theme",
         callback = function()
-            local name = themeNameBox.text
+            local name = customThemeNameBox.text
             if name and name ~= "" then
                 if self.config:DeleteCustomTheme(name) then
                     self.Themes[name] = nil
                     print("Deleted theme:", name)
+                    -- Reset dropdown selection if deleted theme was selected
+                    if customThemeList.selected == name then
+                        customThemeList.selected = nil
+                    end
                     UpdateCustomThemeList()
-                    UpdateAutoloadThemeStatus()
+                    UpdateAutoloadStatusDisplay()
                 else
                     warn("Failed to delete theme")
                 end
@@ -1390,28 +1477,23 @@ function Library:CreateSettingsTab()
         end
     })
     
-    -- Set Autoload Button
-    themeModule:CreateButton({
+    -- Set Custom Theme as Autoload
+    customModule:CreateButton({
         title = "Set as Autoload",
         callback = function()
-            local name = themeNameBox.text
+            local name = customThemeNameBox.text
             if name and name ~= "" then
-                self.config:SetDefaultTheme(name)
-                print("Set autoload theme:", name)
-                UpdateAutoloadThemeStatus()
+                local customThemes = self.config:GetCustomThemes()
+                if customThemes[name] then
+                    self.config:SetDefaultTheme(name)
+                    print("Set autoload theme:", name)
+                    UpdateAutoloadStatusDisplay()
+                else
+                    warn("Theme does not exist")
+                end
             else
                 warn("Please enter a theme name")
             end
-        end
-    })
-    
-    -- Delete Autoload Button
-    themeModule:CreateButton({
-        title = "Delete Autoload",
-        callback = function()
-            self.config:SetDefaultTheme(nil)
-            print("Removed autoload theme")
-            UpdateAutoloadThemeStatus()
         end
     })
     
@@ -1543,18 +1625,29 @@ function Library:CreateModule(tab, options)
     circleCorner.CornerRadius = UDim.new(1, 0)
     circleCorner.Parent = toggleCircle
     
+    local keybindFrame = Instance.new("Frame")
+    keybindFrame.Name = "Keybind"
+    keybindFrame.Size = UDim2.new(0, 33, 0, 15)
+    keybindFrame.Position = UDim2.new(0.15, 0, 0.735, 0)
+    keybindFrame.BackgroundColor3 = Color3.fromRGB(152, 181, 255)
+    keybindFrame.BackgroundTransparency = 0.7
+    keybindFrame.BorderSizePixel = 0
+    keybindFrame.Parent = header
+    
+    local keybindCorner = Instance.new("UICorner")
+    keybindCorner.CornerRadius = UDim.new(0, 3)
+    keybindCorner.Parent = keybindFrame
+    
     local keybindLabel = Instance.new("TextLabel")
-    keybindLabel.Name = "Keybind"
-    keybindLabel.Text = "[None]"
+    keybindLabel.Text = "None"
     keybindLabel.Font = Enum.Font.GothamBold
     keybindLabel.TextSize = 10
-    keybindLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    keybindLabel.TextTransparency = 0.2
-    keybindLabel.TextXAlignment = Enum.TextXAlignment.Left
-    keybindLabel.Size = UDim2.new(0, 33, 0, 13)
-    keybindLabel.Position = UDim2.new(0.15, 0, 0.735, 0)
+    keybindLabel.TextColor3 = Color3.fromRGB(209, 222, 255)
+    keybindLabel.Size = UDim2.new(1, -4, 1, 0)
+    keybindLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
+    keybindLabel.AnchorPoint = Vector2.new(0.5, 0.5)
     keybindLabel.BackgroundTransparency = 1
-    keybindLabel.Parent = header
+    keybindLabel.Parent = keybindFrame
     
     local divider1 = Instance.new("Frame")
     divider1.Name = "Divider"
@@ -1649,10 +1742,10 @@ function Library:CreateModule(tab, options)
     local savedKeybind = self.config:GetKeybind(module.flag)
     if savedKeybind then
         local displayText = savedKeybind:gsub("Enum.KeyCode.", "")
-        keybindLabel.Text = "[" .. displayText .. "]"
+        keybindLabel.Text = displayText
         
-        local width = math.max(33, GetTextWidth(keybindLabel.Text, 10, Enum.Font.GothamBold) + 4)
-        keybindLabel.Size = UDim2.new(0, width, 0, 13)
+        local width = math.max(33, GetTextWidth(displayText, 10, Enum.Font.GothamBold) + 16)
+        keybindFrame.Size = UDim2.new(0, width, 0, 15)
         
         table.insert(self.connections, UserInputService.InputBegan:Connect(function(input, gameProcessed)
             if gameProcessed then return end
@@ -1668,9 +1761,8 @@ function Library:CreateModule(tab, options)
         if self.choosingKeybind then return end
         
         self.choosingKeybind = true
-        keybindLabel.Text = "[...]"
-        local width = math.max(33, GetTextWidth("[...]", 10, Enum.Font.GothamBold) + 4)
-        keybindLabel.Size = UDim2.new(0, width, 0, 13)
+        keybindLabel.Text = "..."
+        keybindFrame.Size = UDim2.new(0, 33, 0, 15)
         
         local connection
         connection = UserInputService.InputBegan:Connect(function(keyInput, processed)
@@ -1682,19 +1774,18 @@ function Library:CreateModule(tab, options)
             self.choosingKeybind = false
             
             if keyInput.KeyCode == Enum.KeyCode.Backspace then
-                keybindLabel.Text = "[None]"
-                local width = math.max(33, GetTextWidth("[None]", 10, Enum.Font.GothamBold) + 4)
-                keybindLabel.Size = UDim2.new(0, width, 0, 13)
+                keybindLabel.Text = "None"
+                keybindFrame.Size = UDim2.new(0, 33, 0, 15)
                 self.config:SetKeybind(module.flag, nil)
                 return
             end
             
             local keycodeStr = tostring(keyInput.KeyCode)
             local displayText = keycodeStr:gsub("Enum.KeyCode.", "")
-            keybindLabel.Text = "[" .. displayText .. "]"
+            keybindLabel.Text = displayText
             
-            local width = math.max(33, GetTextWidth(keybindLabel.Text, 10, Enum.Font.GothamBold) + 4)
-            keybindLabel.Size = UDim2.new(0, width, 0, 13)
+            local width = math.max(33, GetTextWidth(displayText, 10, Enum.Font.GothamBold) + 16)
+            keybindFrame.Size = UDim2.new(0, width, 0, 15)
             
             self.config:SetKeybind(module.flag, keycodeStr)
             
@@ -2471,10 +2562,10 @@ function Library:CreateColorpicker(module, options)
     blurCorner.CornerRadius = UDim.new(0, 10)
     blurCorner.Parent = blurOverlay
     
-    -- Диалог ColorPicker по центру (меньший размер)
+    -- Диалог ColorPicker по центру (меньший размер, более минималистичный)
     local dialog = Instance.new("Frame")
     dialog.Name = "ColorDialog"
-    dialog.Size = UDim2.fromOffset(280, 230)
+    dialog.Size = UDim2.fromOffset(250, 200)
     dialog.Position = UDim2.new(0.5, 0, 0.5, 0)
     dialog.AnchorPoint = Vector2.new(0.5, 0.5)
     dialog.BackgroundColor3 = Color3.fromRGB(22, 28, 38)
@@ -2496,8 +2587,8 @@ function Library:CreateColorpicker(module, options)
     
     -- Палитра цвета (меньший размер)
     local satVibMap = Instance.new("ImageButton")
-    satVibMap.Size = UDim2.fromOffset(200, 140)
-    satVibMap.Position = UDim2.fromOffset(12, 12)
+    satVibMap.Size = UDim2.fromOffset(170, 130)
+    satVibMap.Position = UDim2.fromOffset(10, 10)
     satVibMap.Image = "rbxassetid://4155801252"
     satVibMap.BackgroundColor3 = Color3.fromHSV(h, 1, 1)
     satVibMap.BorderSizePixel = 0
@@ -2520,10 +2611,10 @@ function Library:CreateColorpicker(module, options)
     cursor.ZIndex = 1002
     cursor.Parent = satVibMap
     
-    -- Слайдер оттенка (справа от палитры, меньший)
+    -- Слайдер оттенка (справа от палитры, меньший и ближе)
     local hueSlider = Instance.new("Frame")
-    hueSlider.Size = UDim2.fromOffset(16, 140)
-    hueSlider.Position = UDim2.fromOffset(220, 12)
+    hueSlider.Size = UDim2.fromOffset(14, 130)
+    hueSlider.Position = UDim2.fromOffset(186, 10)
     hueSlider.BorderSizePixel = 0
     hueSlider.ZIndex = 1001
     hueSlider.Active = true
@@ -2563,8 +2654,8 @@ function Library:CreateColorpicker(module, options)
     
     -- Превью цвета (слева внизу, меньший размер)
     local colorPreview = Instance.new("Frame")
-    colorPreview.Size = UDim2.fromOffset(40, 32)
-    colorPreview.Position = UDim2.fromOffset(12, 165)
+    colorPreview.Size = UDim2.fromOffset(30, 25)
+    colorPreview.Position = UDim2.fromOffset(10, 150)
     colorPreview.BackgroundColor3 = colorpicker.color
     colorPreview.BorderSizePixel = 0
     colorPreview.ZIndex = 1001
@@ -2574,34 +2665,14 @@ function Library:CreateColorpicker(module, options)
     previewCorner.CornerRadius = UDim.new(0, 6)
     previewCorner.Parent = colorPreview
     
-    -- Hex input (рядом с превью, меньший)
-    local hexInput = Instance.new("TextBox")
-    hexInput.Size = UDim2.fromOffset(80, 32)
-    hexInput.Position = UDim2.fromOffset(60, 165)
-    hexInput.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-    hexInput.BackgroundTransparency = 0.3
-    hexInput.BorderSizePixel = 0
-    hexInput.Font = Enum.Font.GothamBold
-    hexInput.TextSize = 11
-    hexInput.TextColor3 = Color3.fromRGB(255, 255, 255)
-    hexInput.Text = "#" .. colorpicker.color:ToHex()
-    hexInput.PlaceholderText = "#FFFFFF"
-    hexInput.ClearTextOnFocus = false
-    hexInput.ZIndex = 1001
-    hexInput.Parent = dialog
-    
-    local hexCorner = Instance.new("UICorner")
-    hexCorner.CornerRadius = UDim.new(0, 6)
-    hexCorner.Parent = hexInput
-    
     -- Accept Button (справа внизу, меньший)
     local acceptBtn = Instance.new("TextButton")
     acceptBtn.Text = "Accept"
     acceptBtn.Font = Enum.Font.GothamBold
     acceptBtn.TextSize = 11
     acceptBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    acceptBtn.Size = UDim2.fromOffset(60, 32)
-    acceptBtn.Position = UDim2.fromOffset(148, 165)
+    acceptBtn.Size = UDim2.fromOffset(50, 25)
+    acceptBtn.Position = UDim2.fromOffset(135, 150)
     acceptBtn.BackgroundColor3 = Color3.fromRGB(152, 181, 255)
     acceptBtn.BackgroundTransparency = 0.2
     acceptBtn.BorderSizePixel = 0
@@ -2619,8 +2690,8 @@ function Library:CreateColorpicker(module, options)
     cancelBtn.Font = Enum.Font.GothamBold
     cancelBtn.TextSize = 11
     cancelBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    cancelBtn.Size = UDim2.fromOffset(60, 32)
-    cancelBtn.Position = UDim2.fromOffset(214, 165)
+    cancelBtn.Size = UDim2.fromOffset(50, 25)
+    cancelBtn.Position = UDim2.fromOffset(190, 150)
     cancelBtn.BackgroundColor3 = Color3.fromRGB(152, 181, 255)
     cancelBtn.BackgroundTransparency = 0.2
     cancelBtn.BorderSizePixel = 0
@@ -2639,7 +2710,6 @@ function Library:CreateColorpicker(module, options)
         hueDrag.Position = UDim2.new(0, 0, h, -10)
         cursor.Position = UDim2.new(s, 0, 1 - v, 0)
         colorPreview.BackgroundColor3 = color
-        hexInput.Text = "#" .. color:ToHex()
     end
     
     local function ShowDialog()
@@ -2719,16 +2789,6 @@ function Library:CreateColorpicker(module, options)
     UserInputService.InputChanged:Connect(function(input)
         if draggingHue and input.UserInputType == Enum.UserInputType.MouseMovement then
             updateHue()
-        end
-    end)
-    
-    hexInput.FocusLost:Connect(function(enter)
-        if enter then
-            local success, result = pcall(Color3.fromHex, hexInput.Text)
-            if success and typeof(result) == "Color3" then
-                h, s, v = result:ToHSV()
-                UpdateDisplay()
-            end
         end
     end)
     
