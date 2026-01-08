@@ -395,6 +395,12 @@ function Library.new()
     self:CreateUI()
     self:SetupUIKeybind()
     
+    -- ВАЖНО: Применяем тему ПОСЛЕ создания UI
+    if defaultTheme and self.Themes[defaultTheme] then
+        print("[DEBUG] Applying theme to UI...")
+        self:ApplyTheme()
+    end
+    
     return self
 end
 
