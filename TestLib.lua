@@ -791,6 +791,8 @@ function Library:CreateUI()
         oldUI:Destroy()
     end
     
+    local theme = self.currentTheme
+    
     local screenGui = Instance.new("ScreenGui")
     screenGui.Name = "MarchUI"
     screenGui.ResetOnSpawn = false
@@ -802,7 +804,7 @@ function Library:CreateUI()
     container.Size = UDim2.new(0, 0, 0, 0)
     container.Position = UDim2.new(0.5, 0, 0.5, 0)
     container.AnchorPoint = Vector2.new(0.5, 0.5)
-    container.BackgroundColor3 = Color3.fromRGB(12, 13, 15)
+    container.BackgroundColor3 = theme.Background
     container.BackgroundTransparency = 0.05
     container.BorderSizePixel = 0
     container.ClipsDescendants = true
@@ -814,7 +816,7 @@ function Library:CreateUI()
     containerCorner.Parent = container
     
     local containerStroke = Instance.new("UIStroke")
-    containerStroke.Color = Color3.fromRGB(52, 66, 89)
+    containerStroke.Color = theme.Accent
     containerStroke.Transparency = 0.5
     containerStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     containerStroke.Parent = container
@@ -828,9 +830,9 @@ function Library:CreateUI()
     local logo = Instance.new("TextLabel")
     logo.Name = "Logo"
     logo.Text = "Metan"
-    logo.Font = Enum.Font.GothamBold
+    logo.Font = self.currentFont
     logo.TextSize = 16
-    logo.TextColor3 = Color3.fromRGB(152, 181, 255)
+    logo.TextColor3 = theme.Primary
     logo.TextTransparency = 0.2
     logo.TextXAlignment = Enum.TextXAlignment.Left
     logo.Size = UDim2.new(0, 100, 0, 16)
@@ -853,7 +855,7 @@ function Library:CreateUI()
     logoIconButton.Position = UDim2.new(0.025, 0, 0.055, 0)
     logoIconButton.AnchorPoint = Vector2.new(0, 0.5)
     logoIconButton.BackgroundTransparency = 1
-    logoIconButton.ImageColor3 = Color3.fromRGB(152, 181, 255)
+    logoIconButton.ImageColor3 = theme.Primary
     logoIconButton.ScaleType = Enum.ScaleType.Fit
     logoIconButton.AutoButtonColor = false
     logoIconButton.Parent = handler
@@ -866,7 +868,7 @@ function Library:CreateUI()
     pin.Name = "Pin"
     pin.Size = UDim2.new(0, 2, 0, 16)
     pin.Position = UDim2.new(0.026, 0, 0.136, 0)
-    pin.BackgroundColor3 = Color3.fromRGB(152, 181, 255)
+    pin.BackgroundColor3 = theme.Primary
     pin.BorderSizePixel = 0
     pin.Parent = handler
     
@@ -878,7 +880,7 @@ function Library:CreateUI()
     divider.Name = "Divider"
     divider.Size = UDim2.new(0, 1, 0, 479)
     divider.Position = UDim2.new(0.235, 0, 0, 0)
-    divider.BackgroundColor3 = Color3.fromRGB(52, 66, 89)
+    divider.BackgroundColor3 = theme.Accent
     divider.BackgroundTransparency = 0.5
     divider.BorderSizePixel = 0
     divider.Parent = handler
