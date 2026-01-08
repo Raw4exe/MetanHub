@@ -1352,7 +1352,7 @@ function Library:CreateModule(tab, options)
     
     local moduleFrame = Instance.new("Frame")
     moduleFrame.Name = "Module"
-    moduleFrame.Size = UDim2.new(0, 241, 0, 110)
+    moduleFrame.Size = UDim2.new(0, 241, 0, 93)
     moduleFrame.BackgroundColor3 = Color3.fromRGB(22, 28, 38)
     moduleFrame.BackgroundTransparency = 0.5
     moduleFrame.BorderSizePixel = 0
@@ -1375,7 +1375,7 @@ function Library:CreateModule(tab, options)
     
     local header = Instance.new("TextButton")
     header.Name = "Header"
-    header.Size = UDim2.new(0, 241, 0, 110)
+    header.Size = UDim2.new(0, 241, 0, 93)
     header.BackgroundTransparency = 1
     header.BorderSizePixel = 0
     header.Text = ""
@@ -1538,7 +1538,7 @@ function Library:CreateModule(tab, options)
             }, 0.5)
         end
         
-        local newSize = module.state and (110 + module.elementHeight + module.multiplier) or 110
+        local newSize = module.state and (93 + module.elementHeight + module.multiplier) or 93
         Tween(moduleFrame, {Size = UDim2.new(0, 241, 0, newSize)}, 0.5)
         Tween(optionsFrame, {Size = UDim2.new(0, 241, 0, module.elementHeight + module.multiplier)}, 0.5)
         
@@ -1642,7 +1642,7 @@ function Library:CreateSlider(module, options)
     slider.value = self.config:GetFlag(slider.flag, options.value or options.default or slider.min)
     slider.round = options.round_number or options.round or false
     slider.callback = options.callback or function() end
-    module.elementHeight = module.elementHeight + 30
+    module.elementHeight = module.elementHeight + 35  -- 30 (slider) + 5 (padding)
     local sliderFrame = Instance.new("TextButton")
     sliderFrame.Name = "Slider"
     sliderFrame.Size = UDim2.new(0, 207, 0, 25)
@@ -1758,7 +1758,7 @@ function Library:CreateCheckbox(module, options)
     checkbox.flag = options.flag or checkbox.title
     checkbox.state = self.config:GetFlag(checkbox.flag, options.default or false)
     checkbox.callback = options.callback or function() end
-    module.elementHeight = module.elementHeight + 22
+    module.elementHeight = module.elementHeight + 27  -- 22 (checkbox) + 5 (padding)
     local checkboxFrame = Instance.new("TextButton")
     checkboxFrame.Name = "Checkbox"
     checkboxFrame.Size = UDim2.new(0, 207, 0, 18)
@@ -1836,7 +1836,7 @@ function Library:CreateDropdown(module, options)
     dropdown.open = false
     dropdown.size = 0
     
-    local baseHeight = 48
+    local baseHeight = 53  -- 48 (dropdown) + 5 (padding)
     module.elementHeight = module.elementHeight + baseHeight
     
     local dropdownFrame = Instance.new("TextButton")
@@ -2138,7 +2138,7 @@ function Library:CreateTextbox(module, options)
     textbox.placeholder = options.placeholder or "Enter text..."
     textbox.text = self.config:GetFlag(textbox.flag, options.default or "")
     textbox.callback = options.callback or function() end
-    module.elementHeight = module.elementHeight + 32
+    module.elementHeight = module.elementHeight + 37  -- 32 (textbox) + 5 (padding)
     local titleLabel = Instance.new("TextLabel")
     titleLabel.Text = textbox.title
     titleLabel.Font = Enum.Font.GothamBold
@@ -2184,7 +2184,7 @@ function Library:CreateButton(module, options)
     local button = {}
     button.title = options.title or "Button"
     button.callback = options.callback or function() end
-    module.elementHeight = module.elementHeight + 25
+    module.elementHeight = module.elementHeight + 30  -- 25 (button) + 5 (padding)
     local buttonFrame = Instance.new("TextButton")
     buttonFrame.Name = "Button"
     buttonFrame.Size = UDim2.new(0, 207, 0, 20)
@@ -2237,7 +2237,7 @@ function Library:CreateColorpicker(module, options)
     colorpicker.sat = s
     colorpicker.vib = v
     
-    module.elementHeight = module.elementHeight + 22
+    module.elementHeight = module.elementHeight + 27  -- 22 (colorpicker) + 5 (padding)
     
     local colorFrame = Instance.new("TextButton")
     colorFrame.Name = "Colorpicker"
@@ -2635,7 +2635,7 @@ function Library:CreateKeybind(module, options)
     keybind.default = options.default
     keybind.key = self.config:GetKeybind(keybind.flag) or keybind.default
     keybind.callback = options.callback or function() end
-    module.elementHeight = module.elementHeight + 20
+    module.elementHeight = module.elementHeight + 25  -- 20 (keybind) + 5 (padding)
     local keybindFrame = Instance.new("TextButton")
     keybindFrame.Name = "Keybind"
     keybindFrame.Size = UDim2.new(0, 207, 0, 15)
