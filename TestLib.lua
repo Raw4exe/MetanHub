@@ -229,12 +229,16 @@ function ConfigManager:DeleteCustomTheme(themeName)
 end
 
 function ConfigManager:SetDefaultTheme(themeName)
+    print("[DEBUG] Setting default theme to:", themeName)
     self.data.defaultTheme = themeName
     self:Save()
+    print("[DEBUG] Theme saved to config")
 end
 
 function ConfigManager:GetDefaultTheme()
-    return self.data.defaultTheme
+    local theme = self.data.defaultTheme
+    print("[DEBUG] Getting default theme:", theme)
+    return theme
 end
 
 local Library = {}
@@ -358,16 +362,21 @@ function Library.new()
     local customThemes = self.config:GetCustomThemes()
     for name, theme in pairs(customThemes) do
         self.Themes[name] = theme
+        print("[DEBUG] Loaded custom theme:", name)
     end
     
     -- Проверяем autoload тему
     local defaultTheme = self.config:GetDefaultTheme()
+    print("[DEBUG] Default theme from config:", defaultTheme)
+    
     if defaultTheme and self.Themes[defaultTheme] then
         self.currentTheme = self.Themes[defaultTheme]
         self.currentThemeName = defaultTheme
+        print("[DEBUG] Applied autoload theme:", defaultTheme)
     else
         self.currentTheme = self.Themes.Ocean -- Default theme Ocean
         self.currentThemeName = "Ocean"
+        print("[DEBUG] Using default Ocean theme")
     end
     
     local savedFont = self.config:GetFlag("_UI_Font", "GothamBold")
@@ -1343,17 +1352,17 @@ function Library:CreateSettingsTab()
         end
     })
     
-    -- Set as Default Button
+    -- Set as Default Button (для preset тем)
     themeModule:CreateButton({
         title = "Set as default",
         callback = function()
-            local selectedTheme = themeList.selected
-            if selectedTheme and selectedTheme ~= "" then
-                self.config:SetDefaultTheme(selectedTheme)
-                print("Set default theme:", selectedTheme)
+            -- Используем currentThemeName вместо selected
+            if self.currentThemeName and self.currentThemeName ~= "" then
+                self.config:SetDefaultTheme(self.currentThemeName)
+                print("Set default theme:", self.currentThemeName)
                 UpdateAutoloadDisplay()
             else
-                warn("Please select a theme from the list")
+                warn("Please select a theme first")
             end
         end
     })
