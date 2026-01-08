@@ -2026,15 +2026,17 @@ function Library:CreateWatermark()
     watermarkGui.Parent = CoreGui
     local watermark = Instance.new("Frame")
     watermark.Name = "Watermark"
-    watermark.Size = UDim2.new(0, 200, 0, 30)
-    watermark.Position = UDim2.new(0, 20, 0, 20)
-    watermark.BackgroundColor3 = theme.Secondary
-    watermark.BackgroundTransparency = 0.2
+    watermark.Size = UDim2.new(0, 200, 0, 35)
+    watermark.Position = UDim2.new(0.5, -100, 0, 10)
+    watermark.AnchorPoint = Vector2.new(0.5, 0)
+    watermark.BackgroundColor3 = theme.Background
+    watermark.BackgroundTransparency = 0.1
     watermark.BorderSizePixel = 0
+    watermark.Visible = false
     watermark.Parent = watermarkGui
-    self:AddToRegistry(watermark, { BackgroundColor3 = 'Secondary' })
+    self:AddToRegistry(watermark, { BackgroundColor3 = 'Background' })
     local watermarkCorner = Instance.new("UICorner")
-    watermarkCorner.CornerRadius = UDim.new(0, 6)
+    watermarkCorner.CornerRadius = UDim.new(0, 8)
     watermarkCorner.Parent = watermark
     local watermarkStroke = Instance.new("UIStroke")
     watermarkStroke.Color = theme.Accent
@@ -2042,33 +2044,57 @@ function Library:CreateWatermark()
     watermarkStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     watermarkStroke.Parent = watermark
     self:AddToRegistry(watermarkStroke, { Color = 'Accent' })
-    local accentBar = Instance.new("Frame")
-    accentBar.Name = "AccentBar"
-    accentBar.Size = UDim2.new(0, 3, 1, -10)
-    accentBar.Position = UDim2.new(0, 5, 0.5, 0)
-    accentBar.AnchorPoint = Vector2.new(0, 0.5)
-    accentBar.BackgroundColor3 = theme.Primary
-    accentBar.BorderSizePixel = 0
-    accentBar.Parent = watermark
-    self:AddToRegistry(accentBar, { BackgroundColor3 = 'Primary' })
-    local accentCorner = Instance.new("UICorner")
-    accentCorner.CornerRadius = UDim.new(0, 2)
-    accentCorner.Parent = accentBar
+    local iconButton = Instance.new("ImageButton")
+    iconButton.Name = "Icon"
+    iconButton.Image = "rbxassetid://107819132007001"
+    iconButton.Size = UDim2.new(0, 20, 0, 20)
+    iconButton.Position = UDim2.new(0, 8, 0.5, 0)
+    iconButton.AnchorPoint = Vector2.new(0, 0.5)
+    iconButton.BackgroundTransparency = 1
+    iconButton.ImageColor3 = theme.Primary
+    iconButton.ScaleType = Enum.ScaleType.Fit
+    iconButton.AutoButtonColor = false
+    iconButton.Parent = watermark
+    self:AddToRegistry(iconButton, { ImageColor3 = 'Primary' })
     local watermarkLabel = Instance.new("TextLabel")
-    watermarkLabel.Text = "MarchUI | " .. Players.LocalPlayer.Name
+    watermarkLabel.Name = "Label"
+    watermarkLabel.Text = "FPS: 60 | Ping: 0ms | 00:00"
     watermarkLabel.Font = Enum.Font.GothamBold
-    watermarkLabel.TextSize = 11
+    watermarkLabel.TextSize = 12
     watermarkLabel.TextColor3 = theme.Text
     watermarkLabel.TextTransparency = 0.1
     watermarkLabel.TextXAlignment = Enum.TextXAlignment.Left
-    watermarkLabel.Size = UDim2.new(1, -20, 1, 0)
-    watermarkLabel.Position = UDim2.new(0, 15, 0, 0)
+    watermarkLabel.Size = UDim2.new(1, -40, 1, 0)
+    watermarkLabel.Position = UDim2.new(0, 35, 0, 0)
     watermarkLabel.BackgroundTransparency = 1
     watermarkLabel.Parent = watermark
     self:AddToRegistry(watermarkLabel, { TextColor3 = 'Text' })
+    local function UpdateWatermarkSize()
+        local textWidth = GetTextWidth(watermarkLabel.Text, 12, Enum.Font.GothamBold)
+        local totalWidth = textWidth + 50
+        watermark.Size = UDim2.new(0, totalWidth, 0, 35)
+        watermark.Position = UDim2.new(0.5, -totalWidth / 2, 0, 10)
+    end
+    local function UpdateWatermarkText()
+        local fps = math.floor(1 / RunService.RenderStepped:Wait())
+        local ping = math.floor(Players.LocalPlayer:GetNetworkPing() * 1000)
+        local time = os.date("%H:%M")
+        watermarkLabel.Text = string.format("FPS: %d | Ping: %dms | %s", fps, ping, time)
+        UpdateWatermarkSize()
+    end
+    iconButton.MouseButton1Click:Connect(function()
+        self:ToggleUI()
+    end)
     self.watermark = watermarkGui
     self.watermarkFrame = watermark
     self.watermarkLabel = watermarkLabel
+    self.watermarkIcon = iconButton
+    self.updateWatermarkText = UpdateWatermarkText
+    RunService.RenderStepped:Connect(function()
+        if watermark.Visible then
+            UpdateWatermarkText()
+        end
+    end)
     local dragging = false
     local dragStart = nil
     local startPos = nil
@@ -2093,6 +2119,9 @@ function Library:ToggleUI()
     self.uiVisible = not self.uiVisible
     if self.container then
         self.container.Visible = self.uiVisible
+    end
+    if self.watermarkFrame then
+        self.watermarkFrame.Visible = not self.uiVisible
     end
 end
 function Library:Unload()
