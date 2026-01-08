@@ -1645,10 +1645,16 @@ function Library:CreateColorpicker(module, options)
     dialogOverlay.BorderSizePixel = 0
     dialogOverlay.Visible = false
     dialogOverlay.ZIndex = 1000
-    dialogOverlay.Parent = self.ui
-    local blurEffect = Instance.new("BlurEffect")
-    blurEffect.Size = 0
-    blurEffect.Parent = game.Lighting
+    dialogOverlay.Parent = self.container
+    local blurFrame = Instance.new("Frame")
+    blurFrame.Name = "BlurFrame"
+    blurFrame.Size = UDim2.new(1, 0, 1, 0)
+    blurFrame.Position = UDim2.new(0, 0, 0, 0)
+    blurFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    blurFrame.BackgroundTransparency = 0.7
+    blurFrame.BorderSizePixel = 0
+    blurFrame.ZIndex = 999
+    blurFrame.Parent = self.container
     local pickerPopup = Instance.new("Frame")
     pickerPopup.Name = "PickerPopup"
     pickerPopup.Size = UDim2.new(0, 280, 0, 320)
@@ -1958,8 +1964,7 @@ function Library:CreateColorpicker(module, options)
         task.spawn(function() colorpicker.callback(colorpicker.tempColor) end)
         colorpicker.open = false
         dialogOverlay.Visible = false
-        Tween(blurEffect, {Size = 0}, 0.3)
-        Tween(dialogOverlay, {BackgroundTransparency = 1}, 0.3)
+        blurFrame.Visible = false
     end)
     cancelButton.MouseEnter:Connect(function() Tween(cancelButton, {BackgroundTransparency = 0.3}, 0.2) end)
     cancelButton.MouseLeave:Connect(function() Tween(cancelButton, {BackgroundTransparency = 0.5}, 0.2) end)
@@ -1971,19 +1976,14 @@ function Library:CreateColorpicker(module, options)
         UpdateColor(false)
         colorpicker.open = false
         dialogOverlay.Visible = false
-        Tween(blurEffect, {Size = 0}, 0.3)
-        Tween(dialogOverlay, {BackgroundTransparency = 1}, 0.3)
+        blurFrame.Visible = false
     end)
     colorpickerFrame.MouseButton1Click:Connect(function()
         colorpicker.open = not colorpicker.open
         dialogOverlay.Visible = colorpicker.open
+        blurFrame.Visible = colorpicker.open
         if colorpicker.open then
-            Tween(blurEffect, {Size = 15}, 0.3)
-            Tween(dialogOverlay, {BackgroundTransparency = 0.3}, 0.3)
             UpdateColor(false)
-        else
-            Tween(blurEffect, {Size = 0}, 0.3)
-            Tween(dialogOverlay, {BackgroundTransparency = 1}, 0.3)
         end
     end)
     dialogOverlay.MouseButton1Click:Connect(function()
@@ -1994,8 +1994,7 @@ function Library:CreateColorpicker(module, options)
         UpdateColor(false)
         colorpicker.open = false
         dialogOverlay.Visible = false
-        Tween(blurEffect, {Size = 0}, 0.3)
-        Tween(dialogOverlay, {BackgroundTransparency = 1}, 0.3)
+        blurFrame.Visible = false
     end)
     UpdateColor(false)
     Options[colorpicker.flag] = colorpicker
