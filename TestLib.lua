@@ -2183,7 +2183,9 @@ function Library:CreateColorpicker(module, options)
         dialog.Visible = false
     end
     
+    
     local draggingSat = false
+    local draggingHue = false
     local guiInset = game:GetService("GuiService"):GetGuiInset()
     
     satVibMap.InputBegan:Connect(function(input)
@@ -2223,7 +2225,6 @@ function Library:CreateColorpicker(module, options)
         end
     end)
     
-    local draggingHue = false
     local function updateHue()
         local minY = hueSlider.AbsolutePosition.Y
         local maxY = minY + hueSlider.AbsoluteSize.Y
@@ -2659,6 +2660,7 @@ function Library:CreateWatermark()
     if self.watermark then return end
     
     local Stats = game:GetService("Stats")
+    local TextService = game:GetService("TextService")
     
     -- Create separate ScreenGui for watermark so it stays visible when main UI is hidden
     local watermarkGui = Instance.new("ScreenGui")
@@ -2671,7 +2673,7 @@ function Library:CreateWatermark()
     
     local watermark = Instance.new("Frame")
     watermark.Name = "Watermark"
-    watermark.Size = UDim2.new(0, 240, 0, 35)
+    watermark.Size = UDim2.new(0, 200, 0, 28)
     watermark.Position = UDim2.new(0.5, 0, 0.4, 0)
     watermark.AnchorPoint = Vector2.new(0.5, 0.5)
     watermark.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
@@ -2695,13 +2697,25 @@ function Library:CreateWatermark()
     infoLabel.Name = "Info"
     infoLabel.Text = "FPS: 60 | Ping: 50ms | 00:00"
     infoLabel.Font = Enum.Font.GothamBold
-    infoLabel.TextSize = 12
+    infoLabel.TextSize = 11
     infoLabel.TextColor3 = Color3.fromRGB(210, 210, 210)
-    infoLabel.Size = UDim2.new(1, -20, 1, 0)
-    infoLabel.Position = UDim2.new(0, 10, 0, 0)
+    infoLabel.Size = UDim2.new(1, -16, 1, 0)
+    infoLabel.Position = UDim2.new(0, 8, 0, 0)
     infoLabel.BackgroundTransparency = 1
     infoLabel.TextXAlignment = Enum.TextXAlignment.Left
     infoLabel.Parent = watermark
+    
+    -- Функция для обновления размера watermark под текст
+    local function UpdateWatermarkSize()
+        local textBounds = TextService:GetTextSize(
+            infoLabel.Text,
+            infoLabel.TextSize,
+            infoLabel.Font,
+            Vector2.new(math.huge, math.huge)
+        )
+        local newWidth = textBounds.X + 16
+        watermark.Size = UDim2.new(0, newWidth, 0, 28)
+    end
     
     local dragging = false
     local dragStart = nil
@@ -2764,7 +2778,11 @@ function Library:CreateWatermark()
         local player = Players.LocalPlayer.Name
         
         infoLabel.Text = string.format("FPS: %d | Ping: %dms | %s", fps, ping, time)
+        UpdateWatermarkSize()
     end)
+    
+    -- Начальное обновление размера
+    UpdateWatermarkSize()
     
     table.insert(self.connections, updateConnection)
     
