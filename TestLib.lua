@@ -282,11 +282,30 @@ Library.Fonts = {
     "GothamBlack",
     "SourceSans",
     "SourceSansBold",
+    "SourceSansLight",
+    "SourceSansItalic",
     "Arial",
     "ArialBold",
     "RobotoMono",
+    "Roboto",
+    "RobotoCondensed",
     "Ubuntu",
-    "Oswald"
+    "Oswald",
+    "Michroma",
+    "Bangers",
+    "Creepster",
+    "DenkOne",
+    "Fondamento",
+    "FredokaOne",
+    "Jura",
+    "Merriweather",
+    "Nunito",
+    "PatrickHand",
+    "PermanentMarker",
+    "Sarpanch",
+    "SciFi",
+    "SpecialElite",
+    "TitilliumWeb"
 }
 
 function Library.new()
@@ -383,36 +402,55 @@ function Library:ApplyTheme()
     local theme = self.currentTheme
     if not self.container then return end
     
+    -- Основной контейнер
     Tween(self.container, {BackgroundColor3 = theme.Background}, 0.3)
     
+    -- Логотип и иконка
     Tween(self.logo, {TextColor3 = theme.Primary}, 0.3)
     Tween(self.logoIcon, {ImageColor3 = theme.Primary}, 0.3)
     Tween(self.pin, {BackgroundColor3 = theme.Primary}, 0.3)
     
+    -- Разделитель
     local divider = self.handler:FindFirstChild("Divider")
     if divider then
         Tween(divider, {BackgroundColor3 = theme.Accent}, 0.3)
     end
     
+    -- Обводка контейнера
     local containerStroke = self.container:FindFirstChildOfClass("UIStroke")
     if containerStroke then
         Tween(containerStroke, {Color = theme.Accent}, 0.3)
     end
     
+    -- Табы
     for _, tab in ipairs(self.tabs) do
         if tab.button then
             local isSelected = (tab == self.currentTab)
+            local icon = tab.button:FindFirstChild("Icon")
+            local label = tab.button:FindFirstChild("Label")
+            
             if isSelected then
+                -- Выбранный таб - используем Primary цвет
                 Tween(tab.button, {BackgroundColor3 = theme.Secondary}, 0.3)
-                local icon = tab.button:FindFirstChild("Icon")
-                local label = tab.button:FindFirstChild("Label")
-                if icon then Tween(icon, {ImageColor3 = theme.Primary}, 0.3) end
-                if label then Tween(label, {TextColor3 = theme.Primary}, 0.3) end
+                if icon then 
+                    Tween(icon, {ImageColor3 = theme.Primary, ImageTransparency = 0.2}, 0.3) 
+                end
+                if label then 
+                    Tween(label, {TextColor3 = theme.Primary, TextTransparency = 0.2}, 0.3) 
+                end
             else
+                -- Не выбранный таб - белый цвет с прозрачностью
                 Tween(tab.button, {BackgroundColor3 = theme.Secondary}, 0.3)
+                if icon then 
+                    Tween(icon, {ImageColor3 = Color3.fromRGB(255, 255, 255), ImageTransparency = 0.8}, 0.3) 
+                end
+                if label then 
+                    Tween(label, {TextColor3 = Color3.fromRGB(255, 255, 255), TextTransparency = 0.7}, 0.3) 
+                end
             end
         end
         
+        -- Модули
         for _, module in ipairs(tab.modules) do
             if module.frame then
                 Tween(module.frame, {BackgroundColor3 = theme.Secondary}, 0.3)
@@ -422,47 +460,82 @@ function Library:ApplyTheme()
                 end
             end
             
+            -- Toggle модуля
             if module.toggleFrame then
                 if module.state then
                     Tween(module.toggleFrame, {BackgroundColor3 = theme.Primary}, 0.3)
-                    Tween(module.toggleCircle, {BackgroundColor3 = theme.Primary}, 0.3)
+                    if module.toggleCircle then
+                        Tween(module.toggleCircle, {BackgroundColor3 = theme.Primary}, 0.3)
+                    end
+                else
+                    Tween(module.toggleFrame, {BackgroundColor3 = theme.Accent}, 0.3)
+                    if module.toggleCircle then
+                        Tween(module.toggleCircle, {BackgroundColor3 = Color3.fromRGB(255, 255, 255)}, 0.3)
+                    end
                 end
             end
             
+            -- Заголовок модуля
             local header = module.frame and module.frame:FindFirstChild("Header")
             if header then
                 local title = header:FindFirstChild("Title")
                 local desc = header:FindFirstChild("Description")
                 local icon = header:FindFirstChild("Icon")
                 if title then Tween(title, {TextColor3 = theme.Primary}, 0.3) end
-                if desc then Tween(desc, {TextColor3 = theme.Primary}, 0.3) end
+                if desc then Tween(desc, {TextColor3 = theme.Text}, 0.3) end
                 if icon then Tween(icon, {ImageColor3 = theme.Primary}, 0.3) end
                 
+                -- Разделители в заголовке
                 for _, child in ipairs(header:GetChildren()) do
                     if child.Name == "Divider" then
                         Tween(child, {BackgroundColor3 = theme.Accent}, 0.3)
                     end
                 end
                 
+                -- Кейбинд
                 local keybindFrame = header:FindFirstChild("Keybind")
                 if keybindFrame then
                     Tween(keybindFrame, {BackgroundColor3 = theme.Primary}, 0.3)
                 end
             end
             
+            -- Элементы модуля (слайдеры, чекбоксы и т.д.)
             for _, element in ipairs(module.elements or {}) do
+                -- Слайдеры
                 if element.dragFrame then
-                    Tween(element.dragFrame, {BackgroundColor3 = theme.Primary}, 0.3)
+                    Tween(element.dragFrame, {BackgroundColor3 = theme.Accent}, 0.3)
                     if element.fillFrame then
                         Tween(element.fillFrame, {BackgroundColor3 = theme.Primary}, 0.3)
                     end
+                    if element.dragCircle then
+                        Tween(element.dragCircle, {BackgroundColor3 = theme.Primary}, 0.3)
+                    end
                 end
                 
+                -- Чекбоксы
                 if element.boxFrame then
-                    Tween(element.boxFrame, {BackgroundColor3 = theme.Primary}, 0.3)
-                    if element.fillFrame and element.state then
-                        Tween(element.fillFrame, {BackgroundColor3 = theme.Primary}, 0.3)
+                    if element.state then
+                        Tween(element.boxFrame, {BackgroundColor3 = theme.Primary}, 0.3)
+                        if element.fillFrame then
+                            Tween(element.fillFrame, {BackgroundColor3 = theme.Primary}, 0.3)
+                        end
+                    else
+                        Tween(element.boxFrame, {BackgroundColor3 = theme.Accent}, 0.3)
                     end
+                end
+                
+                -- Дропдауны
+                if element.dropdownFrame then
+                    Tween(element.dropdownFrame, {BackgroundColor3 = theme.Secondary}, 0.3)
+                    local dropStroke = element.dropdownFrame:FindFirstChildOfClass("UIStroke")
+                    if dropStroke then
+                        Tween(dropStroke, {Color = theme.Accent}, 0.3)
+                    end
+                end
+                
+                -- Кнопки
+                if element.buttonFrame then
+                    Tween(element.buttonFrame, {BackgroundColor3 = theme.Primary}, 0.3)
                 end
             end
         end
@@ -1912,6 +1985,7 @@ function Library:CreateColorpicker(module, options)
     displayCorner2.CornerRadius = UDim.new(0, 4)
     displayCorner2.Parent = colorDisplay
     
+    -- Блокирующий оверлей поверх всей GUI
     local blurOverlay = Instance.new("Frame")
     blurOverlay.Name = "BlurOverlay"
     blurOverlay.Size = UDim2.new(1, 0, 1, 0)
@@ -1921,11 +1995,13 @@ function Library:CreateColorpicker(module, options)
     blurOverlay.BorderSizePixel = 0
     blurOverlay.ZIndex = 999
     blurOverlay.Visible = false
+    blurOverlay.Active = true
     blurOverlay.Parent = self.container
     
+    -- Диалог ColorPicker по центру
     local dialog = Instance.new("Frame")
     dialog.Name = "ColorDialog"
-    dialog.Size = UDim2.fromOffset(240, 195)
+    dialog.Size = UDim2.fromOffset(340, 280)
     dialog.Position = UDim2.new(0.5, 0, 0.5, 0)
     dialog.AnchorPoint = Vector2.new(0.5, 0.5)
     dialog.BackgroundColor3 = Color3.fromRGB(22, 28, 38)
@@ -1933,10 +2009,11 @@ function Library:CreateColorpicker(module, options)
     dialog.BorderSizePixel = 0
     dialog.Visible = false
     dialog.ZIndex = 1000
+    dialog.Active = true
     dialog.Parent = self.container
     
     local dialogCorner = Instance.new("UICorner")
-    dialogCorner.CornerRadius = UDim.new(0, 6)
+    dialogCorner.CornerRadius = UDim.new(0, 8)
     dialogCorner.Parent = dialog
     
     local dialogStroke = Instance.new("UIStroke")
@@ -1944,9 +2021,10 @@ function Library:CreateColorpicker(module, options)
     dialogStroke.Transparency = 0.5
     dialogStroke.Parent = dialog
     
+    -- Палитра цвета (больше размер)
     local satVibMap = Instance.new("ImageButton")
-    satVibMap.Size = UDim2.fromOffset(180, 120)
-    satVibMap.Position = UDim2.fromOffset(10, 10)
+    satVibMap.Size = UDim2.fromOffset(260, 180)
+    satVibMap.Position = UDim2.fromOffset(15, 15)
     satVibMap.Image = "rbxassetid://4155801252"
     satVibMap.BackgroundColor3 = Color3.fromHSV(h, 1, 1)
     satVibMap.BorderSizePixel = 0
@@ -1955,11 +2033,11 @@ function Library:CreateColorpicker(module, options)
     satVibMap.Parent = dialog
     
     local satVibCorner = Instance.new("UICorner")
-    satVibCorner.CornerRadius = UDim.new(0, 4)
+    satVibCorner.CornerRadius = UDim.new(0, 6)
     satVibCorner.Parent = satVibMap
     
     local cursor = Instance.new("ImageLabel")
-    cursor.Size = UDim2.fromOffset(18, 18)
+    cursor.Size = UDim2.fromOffset(20, 20)
     cursor.ScaleType = Enum.ScaleType.Fit
     cursor.AnchorPoint = Vector2.new(0.5, 0.5)
     cursor.BackgroundTransparency = 1
@@ -1968,15 +2046,16 @@ function Library:CreateColorpicker(module, options)
     cursor.ZIndex = 1002
     cursor.Parent = satVibMap
     
+    -- Слайдер оттенка (справа от палитры)
     local hueSlider = Instance.new("Frame")
-    hueSlider.Size = UDim2.fromOffset(14, 130)
-    hueSlider.Position = UDim2.fromOffset(215, 35)
+    hueSlider.Size = UDim2.fromOffset(20, 180)
+    hueSlider.Position = UDim2.fromOffset(285, 15)
     hueSlider.BorderSizePixel = 0
     hueSlider.ZIndex = 1001
     hueSlider.Parent = dialog
     
     local hueCorner = Instance.new("UICorner")
-    hueCorner.CornerRadius = UDim.new(1, 0)
+    hueCorner.CornerRadius = UDim.new(0, 10)
     hueCorner.Parent = hueSlider
     
     local hueGradient = Instance.new("UIGradient")
@@ -2000,33 +2079,35 @@ function Library:CreateColorpicker(module, options)
     hueDragHolder.Parent = hueSlider
     
     local hueDrag = Instance.new("ImageLabel")
-    hueDrag.Size = UDim2.fromOffset(14, 14)
+    hueDrag.Size = UDim2.fromOffset(20, 20)
     hueDrag.Image = "http://www.roblox.com/asset/?id=12266946128"
-    hueDrag.Position = UDim2.new(0, 0, h, -6)
+    hueDrag.Position = UDim2.new(0, 0, h, -10)
     hueDrag.BackgroundTransparency = 1
     hueDrag.ZIndex = 1003
     hueDrag.Parent = hueDragHolder
     
+    -- Превью цвета (слева внизу)
     local colorPreview = Instance.new("Frame")
-    colorPreview.Size = UDim2.fromOffset(35, 28)
-    colorPreview.Position = UDim2.fromOffset(15, 175)
+    colorPreview.Size = UDim2.fromOffset(50, 40)
+    colorPreview.Position = UDim2.fromOffset(15, 210)
     colorPreview.BackgroundColor3 = colorpicker.color
     colorPreview.BorderSizePixel = 0
     colorPreview.ZIndex = 1001
     colorPreview.Parent = dialog
     
     local previewCorner = Instance.new("UICorner")
-    previewCorner.CornerRadius = UDim.new(0, 4)
+    previewCorner.CornerRadius = UDim.new(0, 6)
     previewCorner.Parent = colorPreview
     
+    -- Hex input (рядом с превью)
     local hexInput = Instance.new("TextBox")
-    hexInput.Size = UDim2.fromOffset(80, 28)
-    hexInput.Position = UDim2.fromOffset(55, 175)
+    hexInput.Size = UDim2.fromOffset(100, 40)
+    hexInput.Position = UDim2.fromOffset(75, 210)
     hexInput.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
-    hexInput.BackgroundTransparency = 0.5
+    hexInput.BackgroundTransparency = 0.3
     hexInput.BorderSizePixel = 0
     hexInput.Font = Enum.Font.GothamBold
-    hexInput.TextSize = 11
+    hexInput.TextSize = 13
     hexInput.TextColor3 = Color3.fromRGB(255, 255, 255)
     hexInput.Text = "#" .. colorpicker.color:ToHex()
     hexInput.PlaceholderText = "#FFFFFF"
@@ -2035,48 +2116,52 @@ function Library:CreateColorpicker(module, options)
     hexInput.Parent = dialog
     
     local hexCorner = Instance.new("UICorner")
-    hexCorner.CornerRadius = UDim.new(0, 4)
+    hexCorner.CornerRadius = UDim.new(0, 6)
     hexCorner.Parent = hexInput
     
-    -- Accept Button
+    -- Accept Button (справа внизу)
     local acceptBtn = Instance.new("TextButton")
     acceptBtn.Text = "Accept"
     acceptBtn.Font = Enum.Font.GothamBold
-    acceptBtn.TextSize = 11
+    acceptBtn.TextSize = 13
     acceptBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    acceptBtn.Size = UDim2.fromOffset(55, 28)
-    acceptBtn.Position = UDim2.fromOffset(140, 175)
+    acceptBtn.Size = UDim2.fromOffset(70, 40)
+    acceptBtn.Position = UDim2.fromOffset(185, 210)
     acceptBtn.BackgroundColor3 = Color3.fromRGB(152, 181, 255)
-    acceptBtn.BackgroundTransparency = 0.3
+    acceptBtn.BackgroundTransparency = 0.2
     acceptBtn.BorderSizePixel = 0
     acceptBtn.ZIndex = 1001
+    acceptBtn.AutoButtonColor = false
     acceptBtn.Parent = dialog
     
     local acceptCorner = Instance.new("UICorner")
-    acceptCorner.CornerRadius = UDim.new(0, 4)
+    acceptCorner.CornerRadius = UDim.new(0, 6)
     acceptCorner.Parent = acceptBtn
     
+    -- Cancel Button (рядом с Accept)
     local cancelBtn = Instance.new("TextButton")
     cancelBtn.Text = "Cancel"
     cancelBtn.Font = Enum.Font.GothamBold
-    cancelBtn.TextSize = 11
+    cancelBtn.TextSize = 13
     cancelBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    cancelBtn.Size = UDim2.fromOffset(55, 28)
-    cancelBtn.Position = UDim2.fromOffset(200, 175)
+    cancelBtn.Size = UDim2.fromOffset(70, 40)
+    cancelBtn.Position = UDim2.fromOffset(260, 210)
     cancelBtn.BackgroundColor3 = Color3.fromRGB(152, 181, 255)
-    cancelBtn.BackgroundTransparency = 0.3
+    cancelBtn.BackgroundTransparency = 0.2
     cancelBtn.BorderSizePixel = 0
     cancelBtn.ZIndex = 1001
+    cancelBtn.AutoButtonColor = false
     cancelBtn.Parent = dialog
     
     local cancelCorner = Instance.new("UICorner")
-    cancelCorner.CornerRadius = UDim.new(0, 4)
+    cancelCorner.CornerRadius = UDim.new(0, 6)
     cancelCorner.Parent = cancelBtn
+    
     
     local function UpdateDisplay()
         local color = Color3.fromHSV(h, s, v)
         satVibMap.BackgroundColor3 = Color3.fromHSV(h, 1, 1)
-        hueDrag.Position = UDim2.new(0, 0, h, -6)
+        hueDrag.Position = UDim2.new(0, 0, h, -10)
         cursor.Position = UDim2.new(s, 0, 1 - v, 0)
         colorPreview.BackgroundColor3 = color
         hexInput.Text = "#" .. color:ToHex()
@@ -2134,6 +2219,7 @@ function Library:CreateColorpicker(module, options)
     UserInputService.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             draggingSat = false
+            draggingHue = false
         end
     end)
     
@@ -2160,12 +2246,6 @@ function Library:CreateColorpicker(module, options)
         end
     end)
     
-    UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            draggingHue = false
-        end
-    end)
-    
     hexInput.FocusLost:Connect(function(enter)
         if enter then
             local success, result = pcall(Color3.fromHex, hexInput.Text)
@@ -2174,6 +2254,23 @@ function Library:CreateColorpicker(module, options)
                 UpdateDisplay()
             end
         end
+    end)
+    
+    -- Hover эффекты для кнопок
+    acceptBtn.MouseEnter:Connect(function()
+        Tween(acceptBtn, {BackgroundTransparency = 0}, 0.2)
+    end)
+    
+    acceptBtn.MouseLeaCo:Connect(function()
+        Tween(acceptBtn, {BackgroundTransparency = 0.2}, 0.2)
+    end)
+    
+    cancelBtn.MouseEnter:Connect(function()
+        Tween(cancelBtn, {BackgroundTransparency = 0}, 0.2)
+    end)
+    
+    cancelBeDialog()ave:Connect(function()
+        Tween(cancelBtn, {BackgroundTransparency = 0.2}, 0.2)
     end)
     
     acceptBtn.MouseButton1Click:Connect(function()
@@ -2194,23 +2291,6 @@ function Library:CreateColorpicker(module, options)
     
     colorDisplay.MouseButton1Click:Connect(function()
         ShowDialog()
-    end)
-    
-    blurOverlay.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            -- Check if click is on dialog elements (don't close if interacting with controls)
-            local mousePos = UserInputService:GetMouseLocation() - guiInset
-            local dialogPos = dialog.AbsolutePosition
-            local dialogSize = dialog.AbsoluteSize
-            
-            -- If click is inside dialog bounds, don't close
-            if mousePos.X >= dialogPos.X and mousePos.X <= dialogPos.X + dialogSize.X and
-               mousePos.Y >= dialogPos.Y and mousePos.Y <= dialogPos.Y + dialogSize.Y then
-                return
-            end
-            
-            HideDialog()
-        end
     end)
     
     function colorpicker:SetColor(color)
@@ -2741,8 +2821,6 @@ function Library:Unload()
         self.ui:Destroy()
         self.ui = nil
     end
-    
-    print("MarchUI Unloaded")
 end
 
 return Library
