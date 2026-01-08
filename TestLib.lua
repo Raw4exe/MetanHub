@@ -452,123 +452,142 @@ function Library:ApplyTheme()
         Tween(containerStroke, {Color = theme.Accent}, 0.3)
     end
     
-    -- Проходим по ВСЕМ потомкам контейнера и обновляем по типам и именам
+    -- АГРЕССИВНЫЙ ПОДХОД: Обновляем ВСЕ элементы по типу и контексту
     for _, descendant in ipairs(self.container:GetDescendants()) do
         local name = descendant.Name
+        local parent = descendant.Parent
         
-        -- Чекбоксы (Box frame внутри Checkbox)
-        if name == "Box" and descendant:IsA("Frame") and descendant.Parent and descendant.Parent.Name == "Checkbox" then
-            local fill = descendant:FindFirstChild("Fill")
-            if fill and fill.Size.X.Offset > 0 then
-                -- Checked state
-                Tween(descendant, {BackgroundColor3 = theme.Primary, BackgroundTransparency = 0.7}, 0.3)
-                Tween(fill, {BackgroundColor3 = theme.Primary, BackgroundTransparency = 0.2}, 0.3)
-            else
-                -- Unchecked state
-                Tween(descendant, {BackgroundColor3 = theme.Primary, BackgroundTransparency = 0.9}, 0.3)
-            end
-        end
-        
-        -- Слайдеры (Drag frame внутри Slider)
-        if name == "Drag" and descendant:IsA("Frame") and descendant.Parent and descendant.Parent.Name == "Slider" then
-            Tween(descendant, {BackgroundColor3 = theme.Primary, BackgroundTransparency = 0.9}, 0.3)
-            local fill = descendant:FindFirstChild("Fill")
-            if fill then 
-                Tween(fill, {BackgroundColor3 = theme.Primary, BackgroundTransparency = 0.5}, 0.3) 
-            end
-        end
-        
-        -- Кнопки элементов
-        if name == "Button" and descendant:IsA("TextButton") and descendant.Parent and descendant.Parent.Name == "Options" then
-            Tween(descendant, {BackgroundColor3 = theme.Primary, BackgroundTransparency = 0.8}, 0.3)
-        end
-        
-        -- Дропдауны (Box frame внутри Dropdown)
-        if name == "Box" and descendant:IsA("Frame") and descendant.Parent and descendant.Parent.Name == "Dropdown" then
-            Tween(descendant, {BackgroundColor3 = theme.Primary, BackgroundTransparency = 0.9}, 0.3)
-        end
-        
-        -- Текстбоксы
-        if name == "Textbox" and descendant:IsA("TextBox") then
-            Tween(descendant, {BackgroundColor3 = theme.Primary, BackgroundTransparency = 0.9}, 0.3)
-            Tween(descendant, {TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.3)
-        end
-        
-        -- Кейбинды модулей (Frame с именем Keybind внутри Header)
-        if name == "Keybind" and descendant:IsA("Frame") and descendant.Parent and descendant.Parent.Name == "Header" then
-            Tween(descendant, {BackgroundColor3 = theme.Primary, BackgroundTransparency = 0.7}, 0.3)
-            local label = descendant:FindFirstChild("TextLabel")
-            if label then
-                Tween(label, {TextColor3 = Color3.fromRGB(209, 222, 255)}, 0.3)
-            end
-        end
-        
-        -- Кейбинды элементов (TextButton с именем Keybind)
-        if name == "Keybind" and descendant:IsA("TextButton") and descendant.Parent and descendant.Parent.Name == "Options" then
-            Tween(descendant, {BackgroundColor3 = theme.Primary, BackgroundTransparency = 0.8}, 0.3)
-            Tween(descendant, {TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.3)
-        end
-        
-        -- Toggle модуля (Frame с именем Toggle внутри Header)
-        if name == "Toggle" and descendant:IsA("Frame") and descendant.Parent and descendant.Parent.Name == "Header" then
-            local circle = descendant:FindFirstChild("Circle")
-            -- Проверяем позицию circle чтобы определить состояние
-            if circle and circle.Position.X.Scale > 0.4 then
-                -- Enabled state
-                Tween(descendant, {BackgroundColor3 = theme.Primary, BackgroundTransparency = 0}, 0.3)
-                Tween(circle, {BackgroundColor3 = theme.Primary, BackgroundTransparency = 0.2}, 0.3)
-            else
-                -- Disabled state
-                Tween(descendant, {BackgroundColor3 = Color3.fromRGB(0, 0, 0), BackgroundTransparency = 0.7}, 0.3)
-                if circle then 
-                    Tween(circle, {BackgroundColor3 = Color3.fromRGB(66, 80, 115), BackgroundTransparency = 0.2}, 0.3) 
+        -- === FRAMES ===
+        if descendant:IsA("Frame") then
+            -- Чекбоксы (Box frame внутри Checkbox)
+            if name == "Box" and parent and parent.Name == "Checkbox" then
+                local fill = descendant:FindFirstChild("Fill")
+                if fill and fill.Size.X.Offset > 0 then
+                    Tween(descendant, {BackgroundColor3 = theme.Primary, BackgroundTransparency = 0.7}, 0.3)
+                    Tween(fill, {BackgroundColor3 = theme.Primary, BackgroundTransparency = 0.2}, 0.3)
+                else
+                    Tween(descendant, {BackgroundColor3 = theme.Primary, BackgroundTransparency = 0.9}, 0.3)
                 end
-            end
-        end
-        
-        -- Разделители
-        if name == "Divider" and descendant:IsA("Frame") then
-            Tween(descendant, {BackgroundColor3 = theme.Accent}, 0.3)
-        end
-        
-        -- Заголовки модулей
-        if name == "Title" and descendant:IsA("TextLabel") and descendant.Parent and descendant.Parent.Name == "Header" then
-            Tween(descendant, {TextColor3 = theme.Primary}, 0.3)
-        end
-        
-        -- Описания модулей
-        if name == "Description" and descendant:IsA("TextLabel") and descendant.Parent and descendant.Parent.Name == "Header" then
-            Tween(descendant, {TextColor3 = theme.Primary}, 0.3)
-        end
-        
-        -- Иконки модулей
-        if name == "Icon" and descendant:IsA("ImageLabel") and descendant.Parent and descendant.Parent.Name == "Header" then
-            Tween(descendant, {ImageColor3 = theme.Primary}, 0.3)
-        end
-        
-        -- Фреймы модулей
-        if name == "Module" and descendant:IsA("Frame") then
-            Tween(descendant, {BackgroundColor3 = theme.Secondary}, 0.3)
-            local stroke = descendant:FindFirstChildOfClass("UIStroke")
-            if stroke then Tween(stroke, {Color = theme.Accent}, 0.3) end
-        end
-        
-        -- ColorPicker кнопки в диалоге
-        if (name == "ColorDialog") and descendant:IsA("Frame") then
-            Tween(descendant, {BackgroundColor3 = theme.Secondary}, 0.3)
-            local stroke = descendant:FindFirstChildOfClass("UIStroke")
-            if stroke then Tween(stroke, {Color = theme.Accent}, 0.3) end
             
-            -- Обновляем кнопки Accept и Cancel
-            for _, child in ipairs(descendant:GetChildren()) do
-                if child:IsA("TextButton") and (child.Text == "Accept" or child.Text == "Cancel") then
-                    Tween(child, {BackgroundColor3 = theme.Primary}, 0.3)
+            -- Слайдеры (Drag frame)
+            elseif name == "Drag" and parent and parent.Name == "Slider" then
+                Tween(descendant, {BackgroundColor3 = theme.Primary, BackgroundTransparency = 0.9}, 0.3)
+                local fill = descendant:FindFirstChild("Fill")
+                if fill then 
+                    Tween(fill, {BackgroundColor3 = theme.Primary, BackgroundTransparency = 0.5}, 0.3) 
                 end
+            
+            -- Дропдауны (Box frame)
+            elseif name == "Box" and parent and parent.Name == "Dropdown" then
+                Tween(descendant, {BackgroundColor3 = theme.Primary, BackgroundTransparency = 0.9}, 0.3)
+            
+            -- Кейбинды модулей
+            elseif name == "Keybind" and parent and parent.Name == "Header" then
+                Tween(descendant, {BackgroundColor3 = theme.Primary, BackgroundTransparency = 0.7}, 0.3)
+                local label = descendant:FindFirstChild("TextLabel")
+                if label then
+                    Tween(label, {TextColor3 = Color3.fromRGB(209, 222, 255)}, 0.3)
+                end
+            
+            -- Toggle модуля
+            elseif name == "Toggle" and parent and parent.Name == "Header" then
+                local circle = descendant:FindFirstChild("Circle")
+                if circle and circle.Position.X.Scale > 0.4 then
+                    Tween(descendant, {BackgroundColor3 = theme.Primary, BackgroundTransparency = 0}, 0.3)
+                    Tween(circle, {BackgroundColor3 = theme.Primary, BackgroundTransparency = 0.2}, 0.3)
+                else
+                    Tween(descendant, {BackgroundColor3 = Color3.fromRGB(0, 0, 0), BackgroundTransparency = 0.7}, 0.3)
+                    if circle then 
+                        Tween(circle, {BackgroundColor3 = Color3.fromRGB(66, 80, 115), BackgroundTransparency = 0.2}, 0.3) 
+                    end
+                end
+            
+            -- Разделители
+            elseif name == "Divider" then
+                Tween(descendant, {BackgroundColor3 = theme.Accent}, 0.3)
+            
+            -- Фреймы модулей
+            elseif name == "Module" then
+                Tween(descendant, {BackgroundColor3 = theme.Secondary}, 0.3)
+                local stroke = descendant:FindFirstChildOfClass("UIStroke")
+                if stroke then Tween(stroke, {Color = theme.Accent}, 0.3) end
+            
+            -- ColorPicker диалог
+            elseif name == "ColorDialog" then
+                Tween(descendant, {BackgroundColor3 = theme.Secondary}, 0.3)
+                local stroke = descendant:FindFirstChildOfClass("UIStroke")
+                if stroke then Tween(stroke, {Color = theme.Accent}, 0.3) end
+                
+                for _, child in ipairs(descendant:GetChildren()) do
+                    if child:IsA("TextButton") and (child.Text == "Accept" or child.Text == "Cancel") then
+                        Tween(child, {BackgroundColor3 = theme.Primary}, 0.3)
+                    end
+                end
+            
+            -- Кейбинд Display в элементах
+            elseif name == "Display" and parent and parent.Name == "Keybind" then
+                Tween(descendant, {BackgroundColor3 = theme.Primary, BackgroundTransparency = 0.7}, 0.3)
+            end
+            
+            -- Обновляем UIStroke для всех Frame
+            local stroke = descendant:FindFirstChildOfClass("UIStroke")
+            if stroke and name ~= "Module" and name ~= "ColorDialog" then
+                -- Проверяем что это не уже обработанный элемент
+                if not (name == "Box" or name == "Toggle" or name == "Keybind") then
+                    Tween(stroke, {Color = theme.Accent}, 0.3)
+                end
+            end
+        end
+        
+        -- === TEXT BUTTONS ===
+        if descendant:IsA("TextButton") then
+            -- Кнопки элементов
+            if name == "Button" and parent and parent.Name == "Options" then
+                Tween(descendant, {BackgroundColor3 = theme.Primary, BackgroundTransparency = 0.8}, 0.3)
+            
+            -- Кейбинды элементов
+            elseif name == "Keybind" and parent and parent.Name == "Options" then
+                Tween(descendant, {BackgroundColor3 = theme.Primary, BackgroundTransparency = 0.8}, 0.3)
+                Tween(descendant, {TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.3)
+            
+            -- Табы
+            elseif name == "Tab" then
+                Tween(descendant, {BackgroundColor3 = theme.Secondary}, 0.3)
+            end
+        end
+        
+        -- === TEXT BOXES ===
+        if descendant:IsA("TextBox") and name == "Textbox" then
+            Tween(descendant, {BackgroundColor3 = theme.Primary, BackgroundTransparency = 0.9}, 0.3)
+            Tween(descendant, {TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.3)
+        end
+        
+        -- === TEXT LABELS ===
+        if descendant:IsA("TextLabel") then
+            -- Заголовки модулей
+            if name == "Title" and parent and parent.Name == "Header" then
+                Tween(descendant, {TextColor3 = theme.Primary}, 0.3)
+            
+            -- Описания модулей
+            elseif name == "Description" and parent and parent.Name == "Header" then
+                Tween(descendant, {TextColor3 = theme.Primary}, 0.3)
+            
+            -- Лейблы табов
+            elseif name == "Label" and parent and parent.Name == "Tab" then
+                -- Обрабатывается в секции табов ниже
+            end
+        end
+        
+        -- === IMAGE LABELS ===
+        if descendant:IsA("ImageLabel") then
+            -- Иконки модулей
+            if name == "Icon" and parent and parent.Name == "Header" then
+                Tween(descendant, {ImageColor3 = theme.Primary}, 0.3)
             end
         end
     end
     
-    -- Обновляем табы
+    -- Обновляем табы с правильными цветами
     if self.tabs then
         for _, tab in ipairs(self.tabs) do
             if tab.button then
