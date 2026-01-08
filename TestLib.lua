@@ -395,12 +395,6 @@ function Library.new()
     self:CreateUI()
     self:SetupUIKeybind()
     
-    -- ВАЖНО: Применяем тему ПОСЛЕ создания UI
-    if defaultTheme and self.Themes[defaultTheme] then
-        print("[DEBUG] Applying theme to UI...")
-        self:ApplyTheme()
-    end
-    
     return self
 end
 
@@ -1490,6 +1484,14 @@ function Library:CreateSettingsTab()
     -- Update lists (темы уже загружены в Library.new)
     UpdateCustomThemeList()
     UpdateAutoloadDisplay()
+    
+    -- ВАЖНО: Применяем тему ко всем элементам после создания Settings таба
+    -- К этому моменту все табы и модули уже созданы
+    task.wait(0.1) -- Небольшая задержка чтобы все элементы успели создаться
+    if self.currentThemeName ~= "Ocean" then
+        print("[DEBUG] Applying autoload theme to all elements...")
+        self:ApplyTheme()
+    end
     
     return settingsTab
 end
