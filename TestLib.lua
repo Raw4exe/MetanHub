@@ -487,6 +487,26 @@ function Library:ApplyTheme()
             -- Дропдауны (Box frame)
             elseif name == "Box" and parent and parent.Name == "Dropdown" then
                 Tween(descendant, {BackgroundColor3 = theme.Primary, BackgroundTransparency = 0.9}, 0.3)
+                
+                -- Обновляем текст текущей опции
+                local header = descendant:FindFirstChild("Header")
+                if header then
+                    local currentOption = header:FindFirstChild("CurrentOption")
+                    if currentOption then
+                        Tween(currentOption, {TextColor3 = theme.Text}, 0.3)
+                    end
+                end
+                
+                -- Обновляем опции в списке
+                local optionsFrame = descendant:FindFirstChild("OptionsFrame")
+                if optionsFrame then
+                    for _, option in ipairs(optionsFrame:GetChildren()) do
+                        if option:IsA("TextButton") then
+                            Tween(option, {BackgroundColor3 = theme.Secondary}, 0.3)
+                            -- Цвет текста зависит от выбора (обновится через UpdateOptionAppearance)
+                        end
+                    end
+                end
             
             -- Кейбинды модулей - МЕНЯЕМ ФОН И ТЕКСТ
             elseif name == "Keybind" and parent and parent.Name == "Header" then
@@ -583,6 +603,10 @@ function Library:ApplyTheme()
             elseif name == "Description" and parent and parent.Name == "Header" then
                 Tween(descendant, {TextColor3 = theme.Primary}, 0.3)
             
+            -- Заголовки dropdown
+            elseif parent and parent.Name == "Dropdown" and name ~= "CurrentOption" then
+                Tween(descendant, {TextColor3 = theme.Text}, 0.3)
+            
             -- Лейблы табов
             elseif name == "Label" and parent and parent.Name == "Tab" then
                 -- Обрабатывается в секции табов ниже
@@ -652,6 +676,26 @@ function Library:ApplyTheme()
             if notification.Name == "ActionButton" and notification:IsA("TextButton") then
                 Tween(notification, {BackgroundColor3 = theme.Primary}, 0.3)
                 Tween(notification, {TextColor3 = theme.Text}, 0.3)
+            end
+        end
+    end
+    
+    -- Обновляем dropdown опции (вызываем updateFunctions для всех dropdown)
+    if self.tabs then
+        for _, tab in ipairs(self.tabs) do
+            if tab.modules then
+                for _, module in ipairs(tab.modules) do
+                    if module.elements then
+                        for _, element in ipairs(module.elements) do
+                            -- Если это dropdown с updateFunctions, вызываем их
+                            if element.updateFunctions then
+                                for _, updateFunc in ipairs(element.updateFunctions) do
+                                    updateFunc()
+                                end
+                            end
+                        end
+                    end
+                end
             end
         end
     end
@@ -1524,16 +1568,19 @@ function Library:CreateModule(tab, options)
         module.state = state
         self.config:SetFlag(module.flag, state)
         
+        local theme = self.currentTheme
         if state then
-            Tween(toggleFrame, {BackgroundColor3 = Color3.fromRGB(152, 181, 255)}, 0.5)
+            Tween(toggleFrame, {BackgroundColor3 = theme.Primary, BackgroundTransparency = 0.2}, 0.5)
             Tween(toggleCircle, {
-                BackgroundColor3 = Color3.fromRGB(152, 181, 255),
+                BackgroundColor3 = theme.Text,
+                BackgroundTransparency = 0,
                 Position = UDim2.fromScale(0.53, 0.5)
             }, 0.5)
         else
-            Tween(toggleFrame, {BackgroundColor3 = Color3.fromRGB(0, 0, 0)}, 0.5)
+            Tween(toggleFrame, {BackgroundColor3 = theme.Accent, BackgroundTransparency = 0.5}, 0.5)
             Tween(toggleCircle, {
-                BackgroundColor3 = Color3.fromRGB(66, 80, 115),
+                BackgroundColor3 = theme.Text,
+                BackgroundTransparency = 0.3,
                 Position = UDim2.fromScale(0, 0.5)
             }, 0.5)
         end
@@ -2043,12 +2090,13 @@ function Library:CreateDropdown(module, options)
                 isSelected = (dropdown.selected == option)
             end
             
+            local theme = self.currentTheme
             if isSelected then
                 optionButton.TextTransparency = 0.2
-                optionButton.TextColor3 = Color3.fromRGB(152, 181, 255)
+                optionButton.TextColor3 = theme.Primary
             else
                 optionButton.TextTransparency = 0.7
-                optionButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+                optionButton.TextColor3 = theme.Text
             end
         end
         
