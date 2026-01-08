@@ -1229,7 +1229,7 @@ function Library:CreateDropdown(module, options)
     local theme = self.currentTheme
     local existingValue = Options[dropdown.flag] and Options[dropdown.flag].Value
     dropdown.selected = existingValue or (dropdown.multi and {} or (options.default or nil))
-    local baseHeight = 48
+    local baseHeight = 46
     module.elementHeight = module.elementHeight + baseHeight
     local dropdownFrame = Instance.new("TextButton")
     dropdownFrame.Name = "Dropdown"
@@ -1443,13 +1443,13 @@ function Library:CreateTextbox(module, options)
     textbox.placeholder = options.placeholder or "Enter text..."
     textbox.callback = options.callback or function() end
     textbox.Type = 'Input'
-    module.elementHeight = module.elementHeight + 48
+    module.elementHeight = module.elementHeight + 44
     local theme = self.currentTheme
     local existingValue = Options[textbox.flag] and Options[textbox.flag].Value
     textbox.value = existingValue or options.default or ""
     local textboxContainer = Instance.new("Frame")
     textboxContainer.Name = "Textbox"
-    textboxContainer.Size = UDim2.new(0, 207, 0, 42)
+    textboxContainer.Size = UDim2.new(0, 207, 0, 40)
     textboxContainer.BackgroundTransparency = 1
     textboxContainer.BorderSizePixel = 0
     textboxContainer.Parent = module.optionsFrame
@@ -1461,14 +1461,14 @@ function Library:CreateTextbox(module, options)
     titleLabel.TextTransparency = 0.2
     titleLabel.TextXAlignment = Enum.TextXAlignment.Left
     titleLabel.Size = UDim2.new(0, 207, 0, 13)
+    titleLabel.Position = UDim2.new(0, 0, 0, 0)
     titleLabel.BackgroundTransparency = 1
     titleLabel.Parent = textboxContainer
     self:AddToRegistry(titleLabel, { TextColor3 = 'Text' })
     local inputFrame = Instance.new("Frame")
     inputFrame.Name = "InputFrame"
     inputFrame.Size = UDim2.new(0, 207, 0, 22)
-    inputFrame.Position = UDim2.new(0.5, 0, 0.7, 0)
-    inputFrame.AnchorPoint = Vector2.new(0.5, 0)
+    inputFrame.Position = UDim2.new(0, 0, 0, 16)
     inputFrame.BackgroundColor3 = theme.Primary
     inputFrame.BackgroundTransparency = 0.9
     inputFrame.BorderSizePixel = 0
@@ -2074,13 +2074,7 @@ end
 function Library:ToggleUI()
     self.uiVisible = not self.uiVisible
     if self.container then
-        if self.uiVisible then
-            self.container.Visible = true
-            Tween(self.container, {BackgroundTransparency = 0.05}, 0.3)
-        else
-            Tween(self.container, {BackgroundTransparency = 1}, 0.3)
-            task.delay(0.3, function() if not self.uiVisible then self.container.Visible = false end end)
-        end
+        self.container.Visible = self.uiVisible
     end
 end
 function Library:Unload()
