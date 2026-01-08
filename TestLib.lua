@@ -363,21 +363,6 @@ function Library.new()
     self:CreateUI()
     self:SetupUIKeybind()
     
-    -- Apply saved UI transparency
-    local savedTransparency = self.config:GetFlag("_UI_Transparency", 5)
-    if self.container then
-        self.container.BackgroundTransparency = savedTransparency / 100
-    end
-    
-    -- Apply saved UI size
-    local savedSize = self.config:GetFlag("_UI_Size", 100)
-    if self.handler then
-        local scale = savedSize / 100
-        local baseWidth = 698
-        local baseHeight = 479
-        self.handler.Size = UDim2.new(0, baseWidth * scale, 0, baseHeight * scale)
-    end
-    
     return self
 end
 
@@ -1069,6 +1054,8 @@ function Library:SelectTab(tab)
     tab.leftSection.Visible = true
     tab.rightSection.Visible = true
     
+    local theme = self.currentTheme
+    
     for i, t in ipairs(self.tabs) do
         local button = t.button
         local icon = button.Icon
@@ -1076,8 +1063,8 @@ function Library:SelectTab(tab)
         
         if t == tab then
             Tween(button, {BackgroundTransparency = 0.5}, 0.5)
-            Tween(icon, {ImageTransparency = 0.2, ImageColor3 = Color3.fromRGB(152, 181, 255)}, 0.5)
-            Tween(label, {TextTransparency = 0.2, TextColor3 = Color3.fromRGB(152, 181, 255)}, 0.5)
+            Tween(icon, {ImageTransparency = 0.2, ImageColor3 = theme.Primary}, 0.5)
+            Tween(label, {TextTransparency = 0.2, TextColor3 = theme.Primary}, 0.5)
             Tween(label.UIGradient, {Offset = Vector2.new(1, 0)}, 0.5)
             
             local offset = (i - 1) * (0.113 / 1.3)
@@ -1171,11 +1158,15 @@ function Library:CreateSettingsTab()
                     -- Сбросить выделение если удалили выбранный конфиг
                     if configList.selected == name then
                         configList.selected = nil
-                        local currentOption = configList.box:FindFirstChild("Header"):FindFirstChild("CurrentOption")
-                        if currentOption then
-                            currentOption.Text = "None"
+                        local header = configList.box:FindFirstChild("Header")
+                        if header then
+                            local currentOption = header:FindFirstChild("CurrentOption")
+                            if currentOption then
+                                currentOption.Text = "None"
+                            end
                         end
                     end
+                    -- Обновить список конфигов
                     UpdateConfigList()
                     UpdateAutoloadStatus()
                 else
@@ -1225,38 +1216,6 @@ function Library:CreateSettingsTab()
         end
     })
     
-    uiModule:CreateSlider({
-        title = "UI Transparency",
-        min = 0,
-        max = 100,
-        default = self.config:GetFlag("_UI_Transparency", 5),
-        callback = function(value)
-            local transparency = value / 100
-            if self.container then
-                self.container.BackgroundTransparency = transparency
-            end
-            self.config:SetFlag("_UI_Transparency", value)
-            print("UI Transparency:", value .. "%")
-        end
-    })
-    
-    uiModule:CreateSlider({
-        title = "UI Size",
-        min = 50,
-        max = 150,
-        default = self.config:GetFlag("_UI_Size", 100),
-        callback = function(value)
-            local scale = value / 100
-            if self.handler then
-                local baseWidth = 698
-                local baseHeight = 479
-                self.handler.Size = UDim2.new(0, baseWidth * scale, 0, baseHeight * scale)
-            end
-            self.config:SetFlag("_UI_Size", value)
-            print("UI Size:", value .. "%")
-        end
-    })
-    
     uiModule:CreateDropdown({
         title = "Font",
         options = self.Fonts,
@@ -1284,6 +1243,7 @@ function Library:CreateSettingsTab()
     local themeList
     local customThemeList
     local customThemeNameBox
+    local autoloadDisplay
     
     local function UpdateCustomThemeList()
         local customThemes = self.config:GetCustomThemes()
@@ -1296,6 +1256,13 @@ function Library:CreateSettingsTab()
         end
         if customThemeList then
             customThemeList.SetValue(themeNames)
+        end
+    end
+    
+    local function UpdateAutoloadDisplay()
+        local autoload = self.config:GetDefaultTheme()
+        if autoloadDisplay then
+            autoloadDisplay.SetText(autoload or "None")
         end
     end
     
@@ -1369,11 +1336,20 @@ function Library:CreateSettingsTab()
             if selectedTheme and selectedTheme ~= "" then
                 self.config:SetDefaultTheme(selectedTheme)
                 print("Set default theme:", selectedTheme)
+                UpdateAutoloadDisplay()
             else
                 warn("Please select a theme from the list")
             end
         end
     })
+    
+    -- Autoload Display (read-only)
+    autoloadDisplay = themeModule:CreateTextbox({
+        title = "Autoload theme",
+        default = self.config:GetDefaultTheme() or "None",
+        placeholder = "None"
+    })
+    autoloadDisplay.textboxFrame.TextEditable = false
     
     -- Custom Theme Name Input
     customThemeNameBox = themeModule:CreateTextbox({
@@ -1405,45 +1381,36 @@ function Library:CreateSettingsTab()
         end
     })
     
-    -- Save Theme and Load Theme buttons (side by side)
+    -- Save Theme and Load Theme buttons (side by side) - ОБЪЕДИНЕНЫ
     themeModule:CreateButton({
-        title = "Save theme",
+        title = "Save theme          Load theme",
         callback = function()
             local name = customThemeNameBox.text
             if name and name ~= "" then
-                if self.config:SaveCustomTheme(name, tempTheme) then
-                    self.Themes[name] = {
-                        Primary = tempTheme.Primary,
-                        Background = tempTheme.Background,
-                        Secondary = tempTheme.Secondary,
-                        Accent = tempTheme.Accent,
-                        Text = tempTheme.Text
-                    }
-                    print("Saved custom theme:", name)
-                    UpdateCustomThemeList()
-                else
-                    warn("Failed to save theme")
-                end
-            else
-                warn("Please enter a theme name")
-            end
-        end
-    })
-    
-    themeModule:CreateButton({
-        title = "Load theme",
-        callback = function()
-            local name = customThemeNameBox.text
-            if name and name ~= "" then
+                -- Проверяем существует ли тема
                 local customThemes = self.config:GetCustomThemes()
-                local theme = customThemes[name]
-                if theme then
+                if customThemes[name] then
+                    -- Если существует - загружаем
+                    local theme = customThemes[name]
                     self.Themes[name] = theme
                     self:SetTheme(name)
                     self.currentThemeName = name
                     print("Loaded custom theme:", name)
                 else
-                    warn("Theme not found")
+                    -- Если не существует - сохраняем
+                    if self.config:SaveCustomTheme(name, tempTheme) then
+                        self.Themes[name] = {
+                            Primary = tempTheme.Primary,
+                            Background = tempTheme.Background,
+                            Secondary = tempTheme.Secondary,
+                            Accent = tempTheme.Accent,
+                            Text = tempTheme.Text
+                        }
+                        print("Saved custom theme:", name)
+                        UpdateCustomThemeList()
+                    else
+                        warn("Failed to save theme")
+                    end
                 end
             else
                 warn("Please enter a theme name")
@@ -1470,6 +1437,7 @@ function Library:CreateSettingsTab()
                 if customThemes[name] then
                     self.config:SetDefaultTheme(name)
                     print("Set default theme:", name)
+                    UpdateAutoloadDisplay()
                 else
                     warn("Theme does not exist")
                 end
@@ -2696,7 +2664,7 @@ function Library:CreateColorpicker(module, options)
     
     local function ShowDialog()
         blurOverlay.Visible = true
-        Tween(blurOverlay, {BackgroundTransparency = 0.3}, 0.2)  -- Сильнее blur (0.3 вместо 0.5)
+        Tween(blurOverlay, {BackgroundTransparency = 0.1}, 0.2)  -- Сильный blur (0.1 вместо 0.3)
         dialog.Visible = true
         h, s, v = colorpicker.hue, colorpicker.sat, colorpicker.vib
         UpdateDisplay()
