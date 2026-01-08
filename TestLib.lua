@@ -526,13 +526,9 @@ function Library:ApplyTheme()
                     end
                 end
             
-            -- Кейбинды модулей - МЕНЯЕМ ФОН И ТЕКСТ
-            elseif name == "Keybind" and parent and parent.Name == "Header" then
-                Tween(descendant, {BackgroundColor3 = theme.Primary, BackgroundTransparency = 0.9}, 0.3)
-                local label = descendant:FindFirstChild("TextLabel")
-                if label then
-                    Tween(label, {TextColor3 = theme.Text}, 0.3)
-                end
+            -- Кейбинды модулей - ТЕПЕРЬ TextLabel
+            elseif name == "Keybind" and parent and parent.Name == "Header" and descendant:IsA("TextLabel") then
+                Tween(descendant, {TextColor3 = theme.Text}, 0.3)
             
             -- Toggle модуля - МЕНЯЕМ ЦВЕТА
             elseif name == "Toggle" and parent and parent.Name == "Header" then
@@ -1202,23 +1198,12 @@ function Library:CreateSettingsTab()
     })
     
     uiModule:CreateDropdown({
-        title = "Theme",
-        options = {"Ocean", "Sunset", "Forest", "Midnight", "Volcano", "Arctic", "Space", "Cherry", "Emerald", "Gold"},
-        default = "Ocean",
-        callback = function(theme)
-            self:SetTheme(theme)
-            print("Theme changed to:", theme)
-        end
-    })
-    
-    uiModule:CreateDropdown({
         title = "Font",
         options = self.Fonts,
         default = self.config:GetFlag("_UI_Font", "GothamBold"),
         callback = function(font)
             self:SetFont(font)
             print("Font changed to:", font)
-            print("Note: Restart UI to apply font changes")
         end
     })
     
@@ -1229,14 +1214,89 @@ function Library:CreateSettingsTab()
         end
     })
     
-    -- Theme Customization Module
+    -- Theme Manager Module
     local themeModule = settingsTab:CreateModule({
-        title = "Theme Customization",
-        description = "Create and manage custom themes",
+        title = "Theme Manager",
+        description = "Manage themes and colors",
         section = "left"
     })
     
-    -- Temporary theme storage
+    local themeNameBox
+    local presetThemeList
+    local customThemeList
+    local autoloadThemeStatus
+    
+    local function UpdateCustomThemeList()
+        local customThemes = self.config:GetCustomThemes()
+        local themeNames = {}
+        for name, _ in pairs(customThemes) do
+            table.insert(themeNames, name)
+        end
+        if #themeNames == 0 then
+            themeNames = {"No custom themes"}
+        end
+        if customThemeList then
+            customThemeList.SetValue(themeNames)
+        end
+    end
+    
+    local function UpdateAutoloadThemeStatus()
+        local autoload = self.config:GetDefaultTheme()
+        if autoloadThemeStatus then
+            autoloadThemeStatus.SetText(autoload and ("Autoload: " .. autoload) or "Autoload: None")
+        end
+    end
+    
+    -- Preset Themes Dropdown
+    presetThemeList = themeModule:CreateDropdown({
+        title = "Preset Themes",
+        options = {"Ocean", "Sunset", "Forest", "Midnight", "Volcano", "Arctic", "Space", "Cherry", "Emerald", "Gold"},
+        callback = function(themeName)
+            if themeName then
+                self:SetTheme(themeName)
+                print("Applied preset theme:", themeName)
+            end
+        end
+    })
+    
+    -- Custom Themes Dropdown
+    customThemeList = themeModule:CreateDropdown({
+        title = "Custom Themes",
+        options = #self.config:GetCustomThemes() > 0 and (function()
+            local names = {}
+            for name, _ in pairs(self.config:GetCustomThemes()) do
+                table.insert(names, name)
+            end
+            return names
+        end)() or {"No custom themes"},
+        callback = function(themeName)
+            if themeName and themeName ~= "No custom themes" then
+                local customThemes = self.config:GetCustomThemes()
+                local theme = customThemes[themeName]
+                if theme then
+                    self.Themes[themeName] = theme
+                    self:SetTheme(themeName)
+                    print("Applied custom theme:", themeName)
+                end
+            end
+        end
+    })
+    
+    -- Autoload Status
+    autoloadThemeStatus = themeModule:CreateTextbox({
+        title = "Autoload Status",
+        default = self.config:GetDefaultTheme() and ("Autoload: " .. self.config:GetDefaultTheme()) or "Autoload: None",
+        placeholder = "No autoload set"
+    })
+    autoloadThemeStatus.textboxFrame.TextEditable = false
+    
+    -- Theme Name Input
+    themeNameBox = themeModule:CreateTextbox({
+        title = "Theme Name",
+        placeholder = "Enter theme name..."
+    })
+    
+    -- Color Pickers for Custom Theme Creation
     local tempTheme = {
         Primary = self.currentTheme.Primary,
         Background = self.currentTheme.Background,
@@ -1245,7 +1305,6 @@ function Library:CreateSettingsTab()
         Text = self.currentTheme.Text
     }
     
-    -- Color pickers for each theme component
     themeModule:CreateColorpicker({
         title = "Primary Color",
         default = tempTheme.Primary,
@@ -1286,56 +1345,13 @@ function Library:CreateSettingsTab()
         end
     })
     
-    -- Theme list dropdown
-    local themeListDropdown
-    local customThemeNameBox
-    
-    local function UpdateThemeList()
-        local customThemes = self.config:GetCustomThemes()
-        local themeNames = {}
-        for name, _ in pairs(customThemes) do
-            table.insert(themeNames, name)
-        end
-        if #themeNames == 0 then
-            table.insert(themeNames, "--")
-        end
-        if themeListDropdown then
-            themeListDropdown.SetValue(themeNames)
-        end
-    end
-    
-    themeListDropdown = themeModule:CreateDropdown({
-        title = "Custom Themes",
-        options = {"--"},
-        callback = function(themeName)
-            if themeName and themeName ~= "--" then
-                local customThemes = self.config:GetCustomThemes()
-                local theme = customThemes[themeName]
-                if theme then
-                    -- Load theme into temp storage
-                    tempTheme.Primary = theme.Primary
-                    tempTheme.Background = theme.Background
-                    tempTheme.Secondary = theme.Secondary
-                    tempTheme.Accent = theme.Accent
-                    tempTheme.Text = theme.Text
-                    print("Loaded custom theme:", themeName)
-                end
-            end
-        end
-    })
-    
-    customThemeNameBox = themeModule:CreateTextbox({
-        title = "Theme Name",
-        placeholder = "Enter theme name..."
-    })
-    
+    -- Create Custom Theme Button
     themeModule:CreateButton({
         title = "Create Theme",
         callback = function()
-            local name = customThemeNameBox.text
+            local name = themeNameBox.text
             if name and name ~= "" then
                 if self.config:SaveCustomTheme(name, tempTheme) then
-                    -- Add to Library.Themes
                     self.Themes[name] = {
                         Primary = tempTheme.Primary,
                         Background = tempTheme.Background,
@@ -1344,7 +1360,7 @@ function Library:CreateSettingsTab()
                         Text = tempTheme.Text
                     }
                     print("Created custom theme:", name)
-                    UpdateThemeList()
+                    UpdateCustomThemeList()
                 else
                     warn("Failed to create theme")
                 end
@@ -1354,36 +1370,17 @@ function Library:CreateSettingsTab()
         end
     })
     
-    themeModule:CreateButton({
-        title = "Load Theme",
-        callback = function()
-            local name = customThemeNameBox.text
-            if name and name ~= "" then
-                local customThemes = self.config:GetCustomThemes()
-                local theme = customThemes[name]
-                if theme then
-                    -- Apply the theme
-                    self.Themes[name] = theme
-                    self:SetTheme(name)
-                    print("Loaded and applied theme:", name)
-                else
-                    warn("Theme not found:", name)
-                end
-            else
-                warn("Please enter a theme name")
-            end
-        end
-    })
-    
+    -- Delete Theme Button
     themeModule:CreateButton({
         title = "Delete Theme",
         callback = function()
-            local name = customThemeNameBox.text
+            local name = themeNameBox.text
             if name and name ~= "" then
                 if self.config:DeleteCustomTheme(name) then
                     self.Themes[name] = nil
                     print("Deleted theme:", name)
-                    UpdateThemeList()
+                    UpdateCustomThemeList()
+                    UpdateAutoloadThemeStatus()
                 else
                     warn("Failed to delete theme")
                 end
@@ -1393,24 +1390,28 @@ function Library:CreateSettingsTab()
         end
     })
     
+    -- Set Autoload Button
     themeModule:CreateButton({
-        title = "Set Autoload",
+        title = "Set as Autoload",
         callback = function()
-            local name = customThemeNameBox.text
+            local name = themeNameBox.text
             if name and name ~= "" then
                 self.config:SetDefaultTheme(name)
                 print("Set autoload theme:", name)
+                UpdateAutoloadThemeStatus()
             else
                 warn("Please enter a theme name")
             end
         end
     })
     
+    -- Delete Autoload Button
     themeModule:CreateButton({
-        title = "Remove Autoload",
+        title = "Delete Autoload",
         callback = function()
             self.config:SetDefaultTheme(nil)
             print("Removed autoload theme")
+            UpdateAutoloadThemeStatus()
         end
     })
     
@@ -1419,7 +1420,7 @@ function Library:CreateSettingsTab()
     for name, theme in pairs(customThemes) do
         self.Themes[name] = theme
     end
-    UpdateThemeList()
+    UpdateCustomThemeList()
     
     -- Apply default theme if set
     local defaultTheme = self.config:GetDefaultTheme()
@@ -1491,12 +1492,12 @@ function Library:CreateModule(tab, options)
     moduleTitle.Name = "Title"
     moduleTitle.Text = module.title
     moduleTitle.Font = Enum.Font.GothamBold
-    moduleTitle.TextSize = 13
+    moduleTitle.TextSize = 14
     moduleTitle.TextColor3 = Color3.fromRGB(152, 181, 255)
     moduleTitle.TextTransparency = 0.2
     moduleTitle.TextXAlignment = Enum.TextXAlignment.Left
     moduleTitle.Size = UDim2.new(0, 205, 0, 13)
-    moduleTitle.Position = UDim2.new(0.073, 0, 0.24, 0)
+    moduleTitle.Position = UDim2.new(0.073, 0, 0.23, 0)
     moduleTitle.AnchorPoint = Vector2.new(0, 0.5)
     moduleTitle.BackgroundTransparency = 1
     moduleTitle.Parent = header
@@ -1542,30 +1543,18 @@ function Library:CreateModule(tab, options)
     circleCorner.CornerRadius = UDim.new(1, 0)
     circleCorner.Parent = toggleCircle
     
-    local keybindFrame = Instance.new("Frame")
-    keybindFrame.Name = "Keybind"
-    keybindFrame.Size = UDim2.new(0, 33, 0, 15)
-    keybindFrame.Position = UDim2.new(0.15, 0, 0.735, 0)
-    keybindFrame.BackgroundColor3 = Color3.fromRGB(152, 181, 255)
-    keybindFrame.BackgroundTransparency = 0.7
-    keybindFrame.BorderSizePixel = 0
-    keybindFrame.Parent = header
-    
-    local keybindCorner = Instance.new("UICorner")
-    keybindCorner.CornerRadius = UDim.new(0, 3)
-    keybindCorner.Parent = keybindFrame
-    
     local keybindLabel = Instance.new("TextLabel")
-    keybindLabel.Text = "None"
+    keybindLabel.Name = "Keybind"
+    keybindLabel.Text = "[None]"
     keybindLabel.Font = Enum.Font.GothamBold
     keybindLabel.TextSize = 10
-    keybindLabel.TextColor3 = Color3.fromRGB(209, 222, 255)
+    keybindLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    keybindLabel.TextTransparency = 0.2
     keybindLabel.TextXAlignment = Enum.TextXAlignment.Left
-    keybindLabel.Size = UDim2.new(0, 25, 0, 13)
-    keybindLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
-    keybindLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+    keybindLabel.Size = UDim2.new(0, 33, 0, 13)
+    keybindLabel.Position = UDim2.new(0.15, 0, 0.735, 0)
     keybindLabel.BackgroundTransparency = 1
-    keybindLabel.Parent = keybindFrame
+    keybindLabel.Parent = header
     
     local divider1 = Instance.new("Frame")
     divider1.Name = "Divider"
@@ -1660,10 +1649,10 @@ function Library:CreateModule(tab, options)
     local savedKeybind = self.config:GetKeybind(module.flag)
     if savedKeybind then
         local displayText = savedKeybind:gsub("Enum.KeyCode.", "")
-        keybindLabel.Text = displayText
+        keybindLabel.Text = "[" .. displayText .. "]"
         
-        local width = math.max(33, GetTextWidth(displayText, 10, Enum.Font.GothamBold) + 16)
-        keybindFrame.Size = UDim2.new(0, width, 0, 15)
+        local width = math.max(33, GetTextWidth(keybindLabel.Text, 10, Enum.Font.GothamBold) + 4)
+        keybindLabel.Size = UDim2.new(0, width, 0, 13)
         
         table.insert(self.connections, UserInputService.InputBegan:Connect(function(input, gameProcessed)
             if gameProcessed then return end
@@ -1679,9 +1668,9 @@ function Library:CreateModule(tab, options)
         if self.choosingKeybind then return end
         
         self.choosingKeybind = true
-        keybindLabel.Text = "..."
-        local width = math.max(33, GetTextWidth("...", 10, Enum.Font.GothamBold) + 16)
-        keybindFrame.Size = UDim2.new(0, width, 0, 15)
+        keybindLabel.Text = "[...]"
+        local width = math.max(33, GetTextWidth("[...]", 10, Enum.Font.GothamBold) + 4)
+        keybindLabel.Size = UDim2.new(0, width, 0, 13)
         
         local connection
         connection = UserInputService.InputBegan:Connect(function(keyInput, processed)
@@ -1693,19 +1682,19 @@ function Library:CreateModule(tab, options)
             self.choosingKeybind = false
             
             if keyInput.KeyCode == Enum.KeyCode.Backspace then
-                keybindLabel.Text = "None"
-                local width = math.max(33, GetTextWidth("None", 10, Enum.Font.GothamBold) + 16)
-                keybindFrame.Size = UDim2.new(0, width, 0, 15)
+                keybindLabel.Text = "[None]"
+                local width = math.max(33, GetTextWidth("[None]", 10, Enum.Font.GothamBold) + 4)
+                keybindLabel.Size = UDim2.new(0, width, 0, 13)
                 self.config:SetKeybind(module.flag, nil)
                 return
             end
             
             local keycodeStr = tostring(keyInput.KeyCode)
             local displayText = keycodeStr:gsub("Enum.KeyCode.", "")
-            keybindLabel.Text = displayText
+            keybindLabel.Text = "[" .. displayText .. "]"
             
-            local width = math.max(33, GetTextWidth(displayText, 10, Enum.Font.GothamBold) + 16)
-            keybindFrame.Size = UDim2.new(0, width, 0, 15)
+            local width = math.max(33, GetTextWidth(keybindLabel.Text, 10, Enum.Font.GothamBold) + 4)
+            keybindLabel.Size = UDim2.new(0, width, 0, 13)
             
             self.config:SetKeybind(module.flag, keycodeStr)
             
