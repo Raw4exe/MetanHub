@@ -22,6 +22,16 @@ local function Round(number, decimals)
     return math.floor(number * mult + 0.5) / mult
 end
 
+local function GetTextWidth(text, textSize, font)
+    local size = TextService:GetTextSize(
+        text,
+        textSize,
+        font,
+        Vector2.new(math.huge, 100)
+    )
+    return size.X
+end
+
 local ConfigManager = {}
 ConfigManager.__index = ConfigManager
 
@@ -116,10 +126,6 @@ function ConfigManager:GetConfigList()
         end
     end
     
-    if #configs == 0 then
-        table.insert(configs, "default")
-    end
-    
     return configs
 end
 
@@ -131,12 +137,13 @@ function ConfigManager:CreateConfig(configName)
 end
 
 function ConfigManager:DeleteConfig(configName)
-    if not configName or configName == "" or configName == "default" then return false end
+    if not configName or configName == "" then return false end
     local filePath = self:GetConfigPath(configName)
     if isfile(filePath) then
         delfile(filePath)
         if self.currentConfig == configName then
-            self.currentConfig = "default"
+            local configs = self:GetConfigList()
+            self.currentConfig = configs[1] or "config1"
             self:Load()
         end
         if self.autoloadConfig == configName then
@@ -1046,18 +1053,10 @@ function Library:CreateSettingsTab()
     })
     
     configModule:CreateButton({
-        title = "Save Config",
-        callback = function()
-            self.config:Save()
-            print("Saved config:", self.config.currentConfig)
-        end
-    })
-    
-    configModule:CreateButton({
         title = "Delete Config",
         callback = function()
             local name = configNameBox.text
-            if name and name ~= "" and name ~= "default" then
+            if name and name ~= "" then
                 if self.config:DeleteConfig(name) then
                     print("Deleted config:", name)
                     UpdateConfigList()
@@ -1066,7 +1065,7 @@ function Library:CreateSettingsTab()
                     warn("Failed to delete config")
                 end
             else
-                warn("Cannot delete default config or invalid name")
+                warn("Please enter a config name")
             end
         end
     })
@@ -1111,8 +1110,8 @@ function Library:CreateSettingsTab()
     
     uiModule:CreateDropdown({
         title = "Theme",
-        options = {"Default", "Ocean", "Purple", "Green", "Red", "Orange", "Pink", "Cyan", "Yellow", "Dark"},
-        default = "Default",
+        options = {"Ocean", "Sunset", "Forest", "Midnight", "Volcano", "Arctic", "Space", "Cherry", "Emerald", "Gold"},
+        default = "Ocean",
         callback = function(theme)
             self:SetTheme(theme)
             print("Theme changed to:", theme)
@@ -1238,7 +1237,7 @@ function Library:CreateSettingsTab()
     })
     
     themeModule:CreateButton({
-        title = "Save Theme",
+        title = "Create Theme",
         callback = function()
             local name = customThemeNameBox.text
             if name and name ~= "" then
@@ -1251,10 +1250,10 @@ function Library:CreateSettingsTab()
                         Accent = tempTheme.Accent,
                         Text = tempTheme.Text
                     }
-                    print("Saved custom theme:", name)
+                    print("Created custom theme:", name)
                     UpdateThemeList()
                 else
-                    warn("Failed to save theme")
+                    warn("Failed to create theme")
                 end
             else
                 warn("Please enter a theme name")
@@ -1284,16 +1283,6 @@ function Library:CreateSettingsTab()
     })
     
     themeModule:CreateButton({
-        title = "Apply Preview",
-        callback = function()
-            -- Apply temp theme as preview
-            self.currentTheme = tempTheme
-            self:ApplyTheme()
-            print("Applied theme preview")
-        end
-    })
-    
-    themeModule:CreateButton({
         title = "Delete Theme",
         callback = function()
             local name = customThemeNameBox.text
@@ -1312,15 +1301,23 @@ function Library:CreateSettingsTab()
     })
     
     themeModule:CreateButton({
-        title = "Set as Default",
+        title = "Set Autoload",
         callback = function()
             local name = customThemeNameBox.text
             if name and name ~= "" then
                 self.config:SetDefaultTheme(name)
-                print("Set default theme:", name)
+                print("Set autoload theme:", name)
             else
                 warn("Please enter a theme name")
             end
+        end
+    })
+    
+    themeModule:CreateButton({
+        title = "Remove Autoload",
+        callback = function()
+            self.config:SetDefaultTheme(nil)
+            print("Removed autoload theme")
         end
     })
     
@@ -1562,8 +1559,7 @@ function Library:CreateModule(tab, options)
         local displayText = savedKeybind:gsub("Enum.KeyCode.", "")
         keybindLabel.Text = displayText
         
-        local length = #displayText
-        local width = math.max(33, length * 7 + 8)
+        local width = math.max(33, GetTextWidth(displayText, 10, Enum.Font.GothamBold) + 16)
         keybindFrame.Size = UDim2.new(0, width, 0, 15)
         
         table.insert(self.connections, UserInputService.InputBegan:Connect(function(input, gameProcessed)
@@ -1603,8 +1599,7 @@ function Library:CreateModule(tab, options)
             local displayText = keycodeStr:gsub("Enum.KeyCode.", "")
             keybindLabel.Text = displayText
             
-            local length = #displayText
-            local width = math.max(33, length * 7 + 8)
+            local width = math.max(33, GetTextWidth(displayText, 10, Enum.Font.GothamBold) + 16)
             keybindFrame.Size = UDim2.new(0, width, 0, 15)
             
             self.config:SetKeybind(module.flag, keycodeStr)
@@ -2684,8 +2679,7 @@ function Library:CreateKeybind(module, options)
     keyLabel.Parent = keyDisplay
     
     local function UpdateKeySize(text)
-        local length = #text
-        local width = math.max(33, length * 7 + 8)
+        local width = math.max(33, GetTextWidth(text, 10, Enum.Font.GothamBold) + 16)
         keyDisplay.Size = UDim2.new(0, width, 0, 15)
     end
     
