@@ -200,6 +200,36 @@ function ConfigManager:GetKeybind(flag)
     return self.data.keybinds[flag]
 end
 
+function ConfigManager:SaveCustomTheme(themeName, themeData)
+    if not themeName or themeName == "" then return false end
+    if not self.data.customThemes then
+        self.data.customThemes = {}
+    end
+    self.data.customThemes[themeName] = themeData
+    self:Save()
+    return true
+end
+
+function ConfigManager:GetCustomThemes()
+    return self.data.customThemes or {}
+end
+
+function ConfigManager:DeleteCustomTheme(themeName)
+    if not themeName or not self.data.customThemes then return false end
+    self.data.customThemes[themeName] = nil
+    self:Save()
+    return true
+end
+
+function ConfigManager:SetDefaultTheme(themeName)
+    self.data.defaultTheme = themeName
+    self:Save()
+end
+
+function ConfigManager:GetDefaultTheme()
+    return self.data.defaultTheme
+end
+
 local Library = {}
 Library.__index = Library
 
@@ -1083,6 +1113,206 @@ function Library:CreateSettingsTab()
             self:Unload()
         end
     })
+    
+    -- Theme Customization Module
+    local themeModule = settingsTab:CreateModule({
+        title = "Theme Customization",
+        description = "Create and manage custom themes",
+        section = "left"
+    })
+    
+    -- Temporary theme storage
+    local tempTheme = {
+        Primary = self.currentTheme.Primary,
+        Background = self.currentTheme.Background,
+        Secondary = self.currentTheme.Secondary,
+        Accent = self.currentTheme.Accent,
+        Text = self.currentTheme.Text
+    }
+    
+    -- Color pickers for each theme component
+    themeModule:CreateColorpicker({
+        title = "Primary Color",
+        default = tempTheme.Primary,
+        callback = function(color)
+            tempTheme.Primary = color
+        end
+    })
+    
+    themeModule:CreateColorpicker({
+        title = "Background Color",
+        default = tempTheme.Background,
+        callback = function(color)
+            tempTheme.Background = color
+        end
+    })
+    
+    themeModule:CreateColorpicker({
+        title = "Secondary Color",
+        default = tempTheme.Secondary,
+        callback = function(color)
+            tempTheme.Secondary = color
+        end
+    })
+    
+    themeModule:CreateColorpicker({
+        title = "Accent Color",
+        default = tempTheme.Accent,
+        callback = function(color)
+            tempTheme.Accent = color
+        end
+    })
+    
+    themeModule:CreateColorpicker({
+        title = "Text Color",
+        default = tempTheme.Text,
+        callback = function(color)
+            tempTheme.Text = color
+        end
+    })
+    
+    -- Theme list dropdown
+    local themeListDropdown
+    local customThemeNameBox
+    
+    local function UpdateThemeList()
+        local customThemes = self.config:GetCustomThemes()
+        local themeNames = {}
+        for name, _ in pairs(customThemes) do
+            table.insert(themeNames, name)
+        end
+        if #themeNames == 0 then
+            table.insert(themeNames, "--")
+        end
+        if themeListDropdown then
+            themeListDropdown.SetValue(themeNames)
+        end
+    end
+    
+    themeListDropdown = themeModule:CreateDropdown({
+        title = "Custom Themes",
+        options = {"--"},
+        callback = function(themeName)
+            if themeName and themeName ~= "--" then
+                local customThemes = self.config:GetCustomThemes()
+                local theme = customThemes[themeName]
+                if theme then
+                    -- Load theme into temp storage
+                    tempTheme.Primary = theme.Primary
+                    tempTheme.Background = theme.Background
+                    tempTheme.Secondary = theme.Secondary
+                    tempTheme.Accent = theme.Accent
+                    tempTheme.Text = theme.Text
+                    print("Loaded custom theme:", themeName)
+                end
+            end
+        end
+    })
+    
+    customThemeNameBox = themeModule:CreateTextbox({
+        title = "Theme Name",
+        placeholder = "Enter theme name..."
+    })
+    
+    themeModule:CreateButton({
+        title = "Save Theme",
+        callback = function()
+            local name = customThemeNameBox.text
+            if name and name ~= "" then
+                if self.config:SaveCustomTheme(name, tempTheme) then
+                    -- Add to Library.Themes
+                    self.Themes[name] = {
+                        Primary = tempTheme.Primary,
+                        Background = tempTheme.Background,
+                        Secondary = tempTheme.Secondary,
+                        Accent = tempTheme.Accent,
+                        Text = tempTheme.Text
+                    }
+                    print("Saved custom theme:", name)
+                    UpdateThemeList()
+                else
+                    warn("Failed to save theme")
+                end
+            else
+                warn("Please enter a theme name")
+            end
+        end
+    })
+    
+    themeModule:CreateButton({
+        title = "Load Theme",
+        callback = function()
+            local name = customThemeNameBox.text
+            if name and name ~= "" then
+                local customThemes = self.config:GetCustomThemes()
+                local theme = customThemes[name]
+                if theme then
+                    -- Apply the theme
+                    self.Themes[name] = theme
+                    self:SetTheme(name)
+                    print("Loaded and applied theme:", name)
+                else
+                    warn("Theme not found:", name)
+                end
+            else
+                warn("Please enter a theme name")
+            end
+        end
+    })
+    
+    themeModule:CreateButton({
+        title = "Apply Preview",
+        callback = function()
+            -- Apply temp theme as preview
+            self.currentTheme = tempTheme
+            self:ApplyTheme()
+            print("Applied theme preview")
+        end
+    })
+    
+    themeModule:CreateButton({
+        title = "Delete Theme",
+        callback = function()
+            local name = customThemeNameBox.text
+            if name and name ~= "" then
+                if self.config:DeleteCustomTheme(name) then
+                    self.Themes[name] = nil
+                    print("Deleted theme:", name)
+                    UpdateThemeList()
+                else
+                    warn("Failed to delete theme")
+                end
+            else
+                warn("Please enter a theme name")
+            end
+        end
+    })
+    
+    themeModule:CreateButton({
+        title = "Set as Default",
+        callback = function()
+            local name = customThemeNameBox.text
+            if name and name ~= "" then
+                self.config:SetDefaultTheme(name)
+                print("Set default theme:", name)
+            else
+                warn("Please enter a theme name")
+            end
+        end
+    })
+    
+    -- Load custom themes on startup
+    local customThemes = self.config:GetCustomThemes()
+    for name, theme in pairs(customThemes) do
+        self.Themes[name] = theme
+    end
+    UpdateThemeList()
+    
+    -- Apply default theme if set
+    local defaultTheme = self.config:GetDefaultTheme()
+    if defaultTheme and self.Themes[defaultTheme] then
+        self:SetTheme(defaultTheme)
+    end
     
     return settingsTab
 end
