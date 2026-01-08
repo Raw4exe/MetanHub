@@ -1636,18 +1636,32 @@ function Library:CreateColorpicker(module, options)
     colorBoxStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     colorBoxStroke.Parent = colorBox
     self:AddToRegistry(colorBoxStroke, { Color = 'Accent' })
+    local dialogOverlay = Instance.new("Frame")
+    dialogOverlay.Name = "DialogOverlay"
+    dialogOverlay.Size = UDim2.new(1, 0, 1, 0)
+    dialogOverlay.Position = UDim2.new(0, 0, 0, 0)
+    dialogOverlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    dialogOverlay.BackgroundTransparency = 1
+    dialogOverlay.BorderSizePixel = 0
+    dialogOverlay.Visible = false
+    dialogOverlay.ZIndex = 1000
+    dialogOverlay.Parent = self.ui
+    local blurEffect = Instance.new("BlurEffect")
+    blurEffect.Size = 0
+    blurEffect.Parent = game.Lighting
     local pickerPopup = Instance.new("Frame")
     pickerPopup.Name = "PickerPopup"
-    pickerPopup.Size = UDim2.new(0, 180, 0, 150)
-    pickerPopup.Position = UDim2.new(1, 5, 0, 0)
-    pickerPopup.BackgroundColor3 = theme.Secondary
+    pickerPopup.Size = UDim2.new(0, 280, 0, 320)
+    pickerPopup.Position = UDim2.new(0.5, 0, 0.5, 0)
+    pickerPopup.AnchorPoint = Vector2.new(0.5, 0.5)
+    pickerPopup.BackgroundColor3 = theme.Background
+    pickerPopup.BackgroundTransparency = 0.05
     pickerPopup.BorderSizePixel = 0
-    pickerPopup.Visible = false
-    pickerPopup.ZIndex = 100
-    pickerPopup.Parent = colorpickerFrame
-    self:AddToRegistry(pickerPopup, { BackgroundColor3 = 'Secondary' })
+    pickerPopup.ZIndex = 1001
+    pickerPopup.Parent = dialogOverlay
+    self:AddToRegistry(pickerPopup, { BackgroundColor3 = 'Background' })
     local popupCorner = Instance.new("UICorner")
-    popupCorner.CornerRadius = UDim.new(0, 6)
+    popupCorner.CornerRadius = UDim.new(0, 10)
     popupCorner.Parent = pickerPopup
     local popupStroke = Instance.new("UIStroke")
     popupStroke.Color = theme.Accent
@@ -1655,17 +1669,30 @@ function Library:CreateColorpicker(module, options)
     popupStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     popupStroke.Parent = pickerPopup
     self:AddToRegistry(popupStroke, { Color = 'Accent' })
+    local dialogTitle = Instance.new("TextLabel")
+    dialogTitle.Text = colorpicker.title
+    dialogTitle.Font = Enum.Font.GothamBold
+    dialogTitle.TextSize = 14
+    dialogTitle.TextColor3 = theme.Primary
+    dialogTitle.TextTransparency = 0.2
+    dialogTitle.Size = UDim2.new(1, -20, 0, 30)
+    dialogTitle.Position = UDim2.new(0, 10, 0, 10)
+    dialogTitle.BackgroundTransparency = 1
+    dialogTitle.TextXAlignment = Enum.TextXAlignment.Left
+    dialogTitle.ZIndex = 1002
+    dialogTitle.Parent = pickerPopup
+    self:AddToRegistry(dialogTitle, { TextColor3 = 'Primary' })
     local satValFrame = Instance.new("ImageButton")
     satValFrame.Name = "SatVal"
-    satValFrame.Size = UDim2.new(0, 120, 0, 100)
-    satValFrame.Position = UDim2.new(0, 10, 0, 10)
+    satValFrame.Size = UDim2.new(0, 200, 0, 150)
+    satValFrame.Position = UDim2.new(0, 15, 0, 50)
     satValFrame.BackgroundColor3 = Color3.fromHSV(1, 1, 1)
     satValFrame.BorderSizePixel = 0
     satValFrame.AutoButtonColor = false
-    satValFrame.ZIndex = 101
+    satValFrame.ZIndex = 1002
     satValFrame.Parent = pickerPopup
     local satValCorner = Instance.new("UICorner")
-    satValCorner.CornerRadius = UDim.new(0, 4)
+    satValCorner.CornerRadius = UDim.new(0, 6)
     satValCorner.Parent = satValFrame
     local satGradient = Instance.new("UIGradient")
     satGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)), ColorSequenceKeypoint.new(1, Color3.new(1, 1, 1))}
@@ -1677,10 +1704,10 @@ function Library:CreateColorpicker(module, options)
     valOverlay.BackgroundColor3 = Color3.new(0, 0, 0)
     valOverlay.BackgroundTransparency = 1
     valOverlay.BorderSizePixel = 0
-    valOverlay.ZIndex = 102
+    valOverlay.ZIndex = 1003
     valOverlay.Parent = satValFrame
     local valOverlayCorner = Instance.new("UICorner")
-    valOverlayCorner.CornerRadius = UDim.new(0, 4)
+    valOverlayCorner.CornerRadius = UDim.new(0, 6)
     valOverlayCorner.Parent = valOverlay
     local valGradient = Instance.new("UIGradient")
     valGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.new(0, 0, 0)), ColorSequenceKeypoint.new(1, Color3.new(0, 0, 0))}
@@ -1689,30 +1716,30 @@ function Library:CreateColorpicker(module, options)
     valGradient.Parent = valOverlay
     local satValCursor = Instance.new("Frame")
     satValCursor.Name = "Cursor"
-    satValCursor.Size = UDim2.new(0, 8, 0, 8)
+    satValCursor.Size = UDim2.new(0, 10, 0, 10)
     satValCursor.Position = UDim2.new(1, 0, 0, 0)
     satValCursor.AnchorPoint = Vector2.new(0.5, 0.5)
     satValCursor.BackgroundColor3 = Color3.new(1, 1, 1)
     satValCursor.BorderSizePixel = 0
-    satValCursor.ZIndex = 103
+    satValCursor.ZIndex = 1004
     satValCursor.Parent = satValFrame
     local satValCursorCorner = Instance.new("UICorner")
     satValCursorCorner.CornerRadius = UDim.new(1, 0)
     satValCursorCorner.Parent = satValCursor
     local satValCursorStroke = Instance.new("UIStroke")
     satValCursorStroke.Color = Color3.new(0, 0, 0)
-    satValCursorStroke.Thickness = 1
+    satValCursorStroke.Thickness = 2
     satValCursorStroke.Parent = satValCursor
     local hueFrame = Instance.new("ImageButton")
     hueFrame.Name = "Hue"
-    hueFrame.Size = UDim2.new(0, 20, 0, 100)
-    hueFrame.Position = UDim2.new(0, 140, 0, 10)
+    hueFrame.Size = UDim2.new(0, 30, 0, 150)
+    hueFrame.Position = UDim2.new(0, 230, 0, 50)
     hueFrame.BorderSizePixel = 0
     hueFrame.AutoButtonColor = false
-    hueFrame.ZIndex = 101
+    hueFrame.ZIndex = 1002
     hueFrame.Parent = pickerPopup
     local hueCorner = Instance.new("UICorner")
-    hueCorner.CornerRadius = UDim.new(0, 4)
+    hueCorner.CornerRadius = UDim.new(0, 6)
     hueCorner.Parent = hueFrame
     local hueGradient = Instance.new("UIGradient")
     hueGradient.Color = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromHSV(0, 1, 1)), ColorSequenceKeypoint.new(0.167, Color3.fromHSV(0.167, 1, 1)), ColorSequenceKeypoint.new(0.333, Color3.fromHSV(0.333, 1, 1)), ColorSequenceKeypoint.new(0.5, Color3.fromHSV(0.5, 1, 1)), ColorSequenceKeypoint.new(0.667, Color3.fromHSV(0.667, 1, 1)), ColorSequenceKeypoint.new(0.833, Color3.fromHSV(0.833, 1, 1)), ColorSequenceKeypoint.new(1, Color3.fromHSV(1, 1, 1))}
@@ -1720,57 +1747,148 @@ function Library:CreateColorpicker(module, options)
     hueGradient.Parent = hueFrame
     local hueCursor = Instance.new("Frame")
     hueCursor.Name = "Cursor"
-    hueCursor.Size = UDim2.new(1, 4, 0, 4)
+    hueCursor.Size = UDim2.new(1, 6, 0, 6)
     hueCursor.Position = UDim2.new(0.5, 0, 0, 0)
     hueCursor.AnchorPoint = Vector2.new(0.5, 0.5)
     hueCursor.BackgroundColor3 = Color3.new(1, 1, 1)
     hueCursor.BorderSizePixel = 0
-    hueCursor.ZIndex = 102
+    hueCursor.ZIndex = 1003
     hueCursor.Parent = hueFrame
     local hueCursorCorner = Instance.new("UICorner")
-    hueCursorCorner.CornerRadius = UDim.new(0, 2)
+    hueCursorCorner.CornerRadius = UDim.new(0, 3)
     hueCursorCorner.Parent = hueCursor
+    local hueCursorStroke = Instance.new("UIStroke")
+    hueCursorStroke.Color = Color3.new(0, 0, 0)
+    hueCursorStroke.Thickness = 2
+    hueCursorStroke.Parent = hueCursor
+    local hexLabel = Instance.new("TextLabel")
+    hexLabel.Text = "Hex:"
+    hexLabel.Font = Enum.Font.GothamBold
+    hexLabel.TextSize = 11
+    hexLabel.TextColor3 = theme.Text
+    hexLabel.TextTransparency = 0.2
+    hexLabel.Size = UDim2.new(0, 40, 0, 20)
+    hexLabel.Position = UDim2.new(0, 15, 0, 215)
+    hexLabel.BackgroundTransparency = 1
+    hexLabel.TextXAlignment = Enum.TextXAlignment.Left
+    hexLabel.ZIndex = 1002
+    hexLabel.Parent = pickerPopup
+    self:AddToRegistry(hexLabel, { TextColor3 = 'Text' })
     local hexInput = Instance.new("TextBox")
     hexInput.Name = "HexInput"
-    hexInput.Size = UDim2.new(0, 150, 0, 22)
-    hexInput.Position = UDim2.new(0, 10, 0, 118)
-    hexInput.BackgroundColor3 = theme.Accent
+    hexInput.Size = UDim2.new(0, 190, 0, 28)
+    hexInput.Position = UDim2.new(0, 60, 0, 210)
+    hexInput.BackgroundColor3 = theme.Secondary
     hexInput.BackgroundTransparency = 0.5
     hexInput.BorderSizePixel = 0
     hexInput.Font = Enum.Font.GothamBold
-    hexInput.TextSize = 10
+    hexInput.TextSize = 11
     hexInput.TextColor3 = theme.Text
     hexInput.Text = "#" .. colorpicker.color:ToHex()
     hexInput.ClearTextOnFocus = false
-    hexInput.ZIndex = 101
+    hexInput.ZIndex = 1002
     hexInput.Parent = pickerPopup
-    self:AddToRegistry(hexInput, { BackgroundColor3 = 'Accent', TextColor3 = 'Text' })
+    self:AddToRegistry(hexInput, { BackgroundColor3 = 'Secondary', TextColor3 = 'Text' })
     local hexInputCorner = Instance.new("UICorner")
-    hexInputCorner.CornerRadius = UDim.new(0, 4)
+    hexInputCorner.CornerRadius = UDim.new(0, 6)
     hexInputCorner.Parent = hexInput
+    local rgbLabel = Instance.new("TextLabel")
+    rgbLabel.Text = "RGB:"
+    rgbLabel.Font = Enum.Font.GothamBold
+    rgbLabel.TextSize = 11
+    rgbLabel.TextColor3 = theme.Text
+    rgbLabel.TextTransparency = 0.2
+    rgbLabel.Size = UDim2.new(0, 40, 0, 20)
+    rgbLabel.Position = UDim2.new(0, 15, 0, 250)
+    rgbLabel.BackgroundTransparency = 1
+    rgbLabel.TextXAlignment = Enum.TextXAlignment.Left
+    rgbLabel.ZIndex = 1002
+    rgbLabel.Parent = pickerPopup
+    self:AddToRegistry(rgbLabel, { TextColor3 = 'Text' })
+    local rgbDisplay = Instance.new("TextLabel")
+    rgbDisplay.Name = "RGBDisplay"
+    rgbDisplay.Text = string.format("%d, %d, %d", math.floor(colorpicker.color.R * 255), math.floor(colorpicker.color.G * 255), math.floor(colorpicker.color.B * 255))
+    rgbDisplay.Font = Enum.Font.GothamBold
+    rgbDisplay.TextSize = 11
+    rgbDisplay.TextColor3 = theme.Text
+    rgbDisplay.TextTransparency = 0.2
+    rgbDisplay.Size = UDim2.new(0, 190, 0, 28)
+    rgbDisplay.Position = UDim2.new(0, 60, 0, 245)
+    rgbDisplay.BackgroundColor3 = theme.Secondary
+    rgbDisplay.BackgroundTransparency = 0.5
+    rgbDisplay.BorderSizePixel = 0
+    rgbDisplay.ZIndex = 1002
+    rgbDisplay.Parent = pickerPopup
+    self:AddToRegistry(rgbDisplay, { BackgroundColor3 = 'Secondary', TextColor3 = 'Text' })
+    local rgbDisplayCorner = Instance.new("UICorner")
+    rgbDisplayCorner.CornerRadius = UDim.new(0, 6)
+    rgbDisplayCorner.Parent = rgbDisplay
+    local doneButton = Instance.new("TextButton")
+    doneButton.Name = "Done"
+    doneButton.Size = UDim2.new(0, 120, 0, 30)
+    doneButton.Position = UDim2.new(0, 15, 0, 280)
+    doneButton.BackgroundColor3 = theme.Primary
+    doneButton.BackgroundTransparency = 0.3
+    doneButton.BorderSizePixel = 0
+    doneButton.Font = Enum.Font.GothamBold
+    doneButton.TextSize = 12
+    doneButton.TextColor3 = theme.Text
+    doneButton.Text = "Done"
+    doneButton.AutoButtonColor = false
+    doneButton.ZIndex = 1002
+    doneButton.Parent = pickerPopup
+    self:AddToRegistry(doneButton, { BackgroundColor3 = 'Primary', TextColor3 = 'Text' })
+    local doneCorner = Instance.new("UICorner")
+    doneCorner.CornerRadius = UDim.new(0, 6)
+    doneCorner.Parent = doneButton
+    local cancelButton = Instance.new("TextButton")
+    cancelButton.Name = "Cancel"
+    cancelButton.Size = UDim2.new(0, 120, 0, 30)
+    cancelButton.Position = UDim2.new(0, 145, 0, 280)
+    cancelButton.BackgroundColor3 = theme.Accent
+    cancelButton.BackgroundTransparency = 0.5
+    cancelButton.BorderSizePixel = 0
+    cancelButton.Font = Enum.Font.GothamBold
+    cancelButton.TextSize = 12
+    cancelButton.TextColor3 = theme.Text
+    cancelButton.Text = "Cancel"
+    cancelButton.AutoButtonColor = false
+    cancelButton.ZIndex = 1002
+    cancelButton.Parent = pickerPopup
+    self:AddToRegistry(cancelButton, { BackgroundColor3 = 'Accent', TextColor3 = 'Text' })
+    local cancelCorner = Instance.new("UICorner")
+    cancelCorner.CornerRadius = UDim.new(0, 6)
+    cancelCorner.Parent = cancelButton
     local h, s, v = colorpicker.color:ToHSV()
     colorpicker.hue = h
     colorpicker.sat = s
     colorpicker.val = v
     colorpicker.Value = colorpicker.color
     colorpicker.Transparency = colorpicker.transparency
-    local function UpdateColor()
+    colorpicker.tempColor = colorpicker.color
+    local function UpdateColor(updateCallback)
         local newColor = Color3.fromHSV(colorpicker.hue, colorpicker.sat, colorpicker.val)
-        colorpicker.color = newColor
-        colorpicker.Value = newColor
+        colorpicker.tempColor = newColor
         colorBox.BackgroundColor3 = newColor
         satValFrame.BackgroundColor3 = Color3.fromHSV(colorpicker.hue, 1, 1)
         hexInput.Text = "#" .. newColor:ToHex()
+        rgbDisplay.Text = string.format("%d, %d, %d", math.floor(newColor.R * 255), math.floor(newColor.G * 255), math.floor(newColor.B * 255))
         satValCursor.Position = UDim2.new(colorpicker.sat, 0, 1 - colorpicker.val, 0)
         hueCursor.Position = UDim2.new(0.5, 0, colorpicker.hue, 0)
-        task.spawn(function() colorpicker.callback(newColor) end)
+        if updateCallback then
+            colorpicker.color = newColor
+            colorpicker.Value = newColor
+            task.spawn(function() colorpicker.callback(newColor) end)
+        end
     end
     colorpicker.SetValue = function(self2, color)
         local hue, sat, val = color:ToHSV()
         colorpicker.hue = hue
         colorpicker.sat = sat
         colorpicker.val = val
-        UpdateColor()
+        colorpicker.color = color
+        colorpicker.Value = color
+        UpdateColor(false)
     end
     colorpicker.SetValueRGB = function(self2, color, transparency)
         colorpicker:SetValue(color)
@@ -1787,7 +1905,7 @@ function Library:CreateColorpicker(module, options)
             local relY = math.clamp((mouse.Y - satValFrame.AbsolutePosition.Y) / satValFrame.AbsoluteSize.Y, 0, 1)
             colorpicker.sat = relX
             colorpicker.val = 1 - relY
-            UpdateColor()
+            UpdateColor(false)
         end
         Update()
         local moveConn = mouse.Move:Connect(Update)
@@ -1806,7 +1924,7 @@ function Library:CreateColorpicker(module, options)
         local function Update()
             local relY = math.clamp((mouse.Y - hueFrame.AbsolutePosition.Y) / hueFrame.AbsoluteSize.Y, 0, 1)
             colorpicker.hue = relY
-            UpdateColor()
+            UpdateColor(false)
         end
         Update()
         local moveConn = mouse.Move:Connect(Update)
@@ -1822,14 +1940,64 @@ function Library:CreateColorpicker(module, options)
     hexInput.FocusLost:Connect(function()
         local text = hexInput.Text:gsub("#", "")
         local success, color = pcall(function() return Color3.fromHex(text) end)
-        if success then colorpicker:SetValue(color)
-        else hexInput.Text = "#" .. colorpicker.color:ToHex() end
+        if success then
+            local hue, sat, val = color:ToHSV()
+            colorpicker.hue = hue
+            colorpicker.sat = sat
+            colorpicker.val = val
+            UpdateColor(false)
+        else
+            hexInput.Text = "#" .. colorpicker.tempColor:ToHex()
+        end
+    end)
+    doneButton.MouseEnter:Connect(function() Tween(doneButton, {BackgroundTransparency = 0.1}, 0.2) end)
+    doneButton.MouseLeave:Connect(function() Tween(doneButton, {BackgroundTransparency = 0.3}, 0.2) end)
+    doneButton.MouseButton1Click:Connect(function()
+        colorpicker.color = colorpicker.tempColor
+        colorpicker.Value = colorpicker.tempColor
+        task.spawn(function() colorpicker.callback(colorpicker.tempColor) end)
+        colorpicker.open = false
+        dialogOverlay.Visible = false
+        Tween(blurEffect, {Size = 0}, 0.3)
+        Tween(dialogOverlay, {BackgroundTransparency = 1}, 0.3)
+    end)
+    cancelButton.MouseEnter:Connect(function() Tween(cancelButton, {BackgroundTransparency = 0.3}, 0.2) end)
+    cancelButton.MouseLeave:Connect(function() Tween(cancelButton, {BackgroundTransparency = 0.5}, 0.2) end)
+    cancelButton.MouseButton1Click:Connect(function()
+        local hue, sat, val = colorpicker.color:ToHSV()
+        colorpicker.hue = hue
+        colorpicker.sat = sat
+        colorpicker.val = val
+        UpdateColor(false)
+        colorpicker.open = false
+        dialogOverlay.Visible = false
+        Tween(blurEffect, {Size = 0}, 0.3)
+        Tween(dialogOverlay, {BackgroundTransparency = 1}, 0.3)
     end)
     colorpickerFrame.MouseButton1Click:Connect(function()
         colorpicker.open = not colorpicker.open
-        pickerPopup.Visible = colorpicker.open
+        dialogOverlay.Visible = colorpicker.open
+        if colorpicker.open then
+            Tween(blurEffect, {Size = 15}, 0.3)
+            Tween(dialogOverlay, {BackgroundTransparency = 0.3}, 0.3)
+            UpdateColor(false)
+        else
+            Tween(blurEffect, {Size = 0}, 0.3)
+            Tween(dialogOverlay, {BackgroundTransparency = 1}, 0.3)
+        end
     end)
-    UpdateColor()
+    dialogOverlay.MouseButton1Click:Connect(function()
+        local hue, sat, val = colorpicker.color:ToHSV()
+        colorpicker.hue = hue
+        colorpicker.sat = sat
+        colorpicker.val = val
+        UpdateColor(false)
+        colorpicker.open = false
+        dialogOverlay.Visible = false
+        Tween(blurEffect, {Size = 0}, 0.3)
+        Tween(dialogOverlay, {BackgroundTransparency = 1}, 0.3)
+    end)
+    UpdateColor(false)
     Options[colorpicker.flag] = colorpicker
     table.insert(module.elements, colorpicker)
     return colorpicker
@@ -2079,11 +2247,19 @@ function Library:CreateWatermark()
     watermarkLabel.BackgroundTransparency = 1
     watermarkLabel.Parent = watermark
     self:AddToRegistry(watermarkLabel, { TextColor3 = 'Text' })
+    local isDragged = false
+    local savedPosition = nil
     local function UpdateWatermarkSize()
         local textWidth = GetTextWidth(watermarkLabel.Text, 12, Enum.Font.GothamBold)
         local totalWidth = textWidth + 50
         watermark.Size = UDim2.new(0, totalWidth, 0, 35)
-        watermark.Position = UDim2.new(0.5, -totalWidth / 2, 0, 10)
+        if not isDragged then
+            watermark.Position = UDim2.new(0.5, -totalWidth / 2, 0, 10)
+        else
+            if savedPosition then
+                watermark.Position = savedPosition
+            end
+        end
     end
     local function UpdateWatermarkText()
         local fps = math.floor(1 / RunService.RenderStepped:Wait())
@@ -2119,14 +2295,19 @@ function Library:CreateWatermark()
             dragStart = input.Position
             startPos = watermark.Position
             input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then dragging = false end
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                    isDragged = true
+                end
             end)
         end
     end)
     UserInputService.InputChanged:Connect(function(input)
         if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
             local delta = input.Position - dragStart
-            watermark.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+            local newPos = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+            watermark.Position = newPos
+            savedPosition = newPos
         end
     end)
 end
