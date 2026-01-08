@@ -433,6 +433,24 @@ function Library:ApplyFont()
             end
         end
     end
+    
+    -- Обновляем шрифт в нотификациях
+    if self.notificationGui then
+        for _, descendant in ipairs(self.notificationGui:GetDescendants()) do
+            if descendant:IsA("TextLabel") or descendant:IsA("TextButton") or descendant:IsA("TextBox") then
+                descendant.Font = font
+            end
+        end
+    end
+    
+    -- Обновляем шрифт в watermark
+    if self.watermark then
+        for _, descendant in ipairs(self.watermark:GetDescendants()) do
+            if descendant:IsA("TextLabel") or descendant:IsA("TextButton") or descendant:IsA("TextBox") then
+                descendant.Font = font
+            end
+        end
+    end
 end
 
 function Library:ApplyTheme()
@@ -651,28 +669,55 @@ function Library:ApplyTheme()
         end
     end
     
-    -- Обновляем watermark если он существует
+    -- Обновляем watermark если он существует (ПОЛНОСТЬЮ)
     if self.watermark then
         Tween(self.watermark, {BackgroundColor3 = theme.Background}, 0.3)
+        
+        -- Обводка
         local wmStroke = self.watermark:FindFirstChildOfClass("UIStroke")
-        if wmStroke then Tween(wmStroke, {Color = theme.Accent}, 0.3) end
-        local wmInfo = self.watermark:FindFirstChild("Info")
-        if wmInfo then Tween(wmInfo, {TextColor3 = theme.Text}, 0.3) end
-        local wmIcon = self.watermark:FindFirstChild("Icon")
-        if wmIcon then Tween(wmIcon, {ImageColor3 = theme.Primary}, 0.3) end
+        if wmStroke then 
+            Tween(wmStroke, {Color = theme.Accent}, 0.3) 
+        end
+        
+        -- Все текстовые элементы
+        for _, child in ipairs(self.watermark:GetDescendants()) do
+            if child:IsA("TextLabel") then
+                if child.Name == "Info" then
+                    Tween(child, {TextColor3 = theme.Text}, 0.3)
+                end
+            elseif child:IsA("ImageLabel") or child:IsA("ImageButton") then
+                if child.Name == "Icon" then
+                    Tween(child, {ImageColor3 = theme.Primary}, 0.3)
+                end
+            end
+        end
     end
     
-    -- Обновляем notifications если они существуют
+    -- Обновляем notifications если они существуют (ПОЛНОСТЬЮ)
     if self.notificationGui then
         for _, notification in ipairs(self.notificationGui:GetDescendants()) do
+            -- Фреймы нотификаций
             if notification.Name == "InnerFrame" and notification:IsA("Frame") then
                 Tween(notification, {BackgroundColor3 = theme.Secondary}, 0.3)
-                local title = notification:FindFirstChild("Title")
-                if title then Tween(title, {TextColor3 = theme.Primary}, 0.3) end
-                local body = notification:FindFirstChild("Body")
-                if body then Tween(body, {TextColor3 = theme.Text}, 0.3) end
+                
+                -- Обводка нотификации
+                local notiStroke = notification:FindFirstChildOfClass("UIStroke")
+                if notiStroke then
+                    Tween(notiStroke, {Color = theme.Accent}, 0.3)
+                end
             end
-            -- Обновляем кнопки в уведомлениях (ActionButton)
+            
+            -- Заголовки нотификаций
+            if notification.Name == "Title" and notification:IsA("TextLabel") then
+                Tween(notification, {TextColor3 = theme.Primary}, 0.3)
+            end
+            
+            -- Текст нотификаций
+            if notification.Name == "Body" and notification:IsA("TextLabel") then
+                Tween(notification, {TextColor3 = theme.Text}, 0.3)
+            end
+            
+            -- Кнопки в уведомлениях
             if notification.Name == "ActionButton" and notification:IsA("TextButton") then
                 Tween(notification, {BackgroundColor3 = theme.Primary}, 0.3)
                 Tween(notification, {TextColor3 = theme.Text}, 0.3)
@@ -1045,6 +1090,9 @@ function Library:CreateSettingsTab()
     
     local function UpdateConfigList()
         local configs = self.config:GetConfigList()
+        if #configs == 0 then
+            configs = {"No configs"}
+        end
         if configList then
             configList.SetValue(configs)
         end
@@ -1059,9 +1107,9 @@ function Library:CreateSettingsTab()
     
     configList = configModule:CreateDropdown({
         title = "Select Config",
-        options = self.config:GetConfigList(),
+        options = #self.config:GetConfigList() > 0 and self.config:GetConfigList() or {"No configs"},
         callback = function(value)
-            if value then
+            if value and value ~= "No configs" then
                 self.config:Load(value)
                 print("Loaded config:", value)
             end
@@ -2903,7 +2951,7 @@ function Library:SendNotification(settings)
     innerFrame.Name = "InnerFrame"
     innerFrame.Size = UDim2.new(1, 0, 0, 60)
     innerFrame.Position = UDim2.new(-1, 0, 0, 0)
-    innerFrame.BackgroundColor3 = Color3.fromRGB(32, 38, 51)
+    innerFrame.BackgroundColor3 = self.currentTheme.Secondary
     innerFrame.BackgroundTransparency = 0.1
     innerFrame.BorderSizePixel = 0
     innerFrame.AutomaticSize = Enum.AutomaticSize.Y
@@ -2916,8 +2964,8 @@ function Library:SendNotification(settings)
     local titleLabel = Instance.new("TextLabel")
     titleLabel.Name = "Title"
     titleLabel.Text = title
-    titleLabel.TextColor3 = Color3.fromRGB(210, 210, 210)
-    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.TextColor3 = self.currentTheme.Primary
+    titleLabel.Font = self.currentFont
     titleLabel.TextSize = 14
     titleLabel.Size = UDim2.new(1, -10, 0, 20)
     titleLabel.Position = UDim2.new(0, 5, 0, 5)
@@ -2931,8 +2979,8 @@ function Library:SendNotification(settings)
     local bodyLabel = Instance.new("TextLabel")
     bodyLabel.Name = "Body"
     bodyLabel.Text = text
-    bodyLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
-    bodyLabel.Font = Enum.Font.Gotham
+    bodyLabel.TextColor3 = self.currentTheme.Text
+    bodyLabel.Font = self.currentFont
     bodyLabel.TextSize = 12
     bodyLabel.Size = UDim2.new(1, -10, 0, 30)
     bodyLabel.Position = UDim2.new(0, 5, 0, 25)
@@ -2988,7 +3036,7 @@ function Library:SendNotificationWithButton(settings)
     innerFrame.Name = "InnerFrame"
     innerFrame.Size = UDim2.new(1, 0, 0, 70)
     innerFrame.Position = UDim2.new(-1, 0, 0, 0)
-    innerFrame.BackgroundColor3 = Color3.fromRGB(32, 38, 51)
+    innerFrame.BackgroundColor3 = self.currentTheme.Secondary
     innerFrame.BackgroundTransparency = 0.1
     innerFrame.BorderSizePixel = 0
     innerFrame.AutomaticSize = Enum.AutomaticSize.Y
@@ -3001,8 +3049,8 @@ function Library:SendNotificationWithButton(settings)
     local titleLabel = Instance.new("TextLabel")
     titleLabel.Name = "Title"
     titleLabel.Text = title
-    titleLabel.TextColor3 = Color3.fromRGB(210, 210, 210)
-    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.TextColor3 = self.currentTheme.Primary
+    titleLabel.Font = self.currentFont
     titleLabel.TextSize = 14
     titleLabel.Size = UDim2.new(1, -10, 0, 20)
     titleLabel.Position = UDim2.new(0, 5, 0, 5)
@@ -3016,8 +3064,8 @@ function Library:SendNotificationWithButton(settings)
     local bodyLabel = Instance.new("TextLabel")
     bodyLabel.Name = "Body"
     bodyLabel.Text = text
-    bodyLabel.TextColor3 = Color3.fromRGB(180, 180, 180)
-    bodyLabel.Font = Enum.Font.Gotham
+    bodyLabel.TextColor3 = self.currentTheme.Text
+    bodyLabel.Font = self.currentFont
     bodyLabel.TextSize = 12
     bodyLabel.Size = UDim2.new(1, -80, 0, 30)
     bodyLabel.Position = UDim2.new(0, 5, 0, 25)
@@ -3031,9 +3079,9 @@ function Library:SendNotificationWithButton(settings)
     local actionButton = Instance.new("TextButton")
     actionButton.Name = "ActionButton"
     actionButton.Text = buttonText
-    actionButton.Font = Enum.Font.GothamBold
+    actionButton.Font = self.currentFont
     actionButton.TextSize = 11
-    actionButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    actionButton.TextColor3 = self.currentTheme.Text
     actionButton.Size = UDim2.new(0, 70, 0, 28)
     actionButton.Position = UDim2.new(1, -75, 0, 28)
     actionButton.BackgroundColor3 = self.currentTheme.Primary
@@ -3105,7 +3153,7 @@ function Library:CreateWatermark()
     watermark.Size = UDim2.new(0, 250, 0, 35)
     watermark.Position = UDim2.new(0.5, 0, 0.05, 0)  -- Изменено с 0.4 на 0.05 (намного выше)
     watermark.AnchorPoint = Vector2.new(0.5, 0.5)
-    watermark.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+    watermark.BackgroundColor3 = self.currentTheme.Background
     watermark.BackgroundTransparency = 0
     watermark.BorderSizePixel = 0
     watermark.Visible = false
@@ -3117,7 +3165,7 @@ function Library:CreateWatermark()
     corner.Parent = watermark
     
     local stroke = Instance.new("UIStroke")
-    stroke.Color = Color3.fromRGB(40, 40, 40)
+    stroke.Color = self.currentTheme.Accent
     stroke.Transparency = 0
     stroke.Thickness = 1
     stroke.Parent = watermark
@@ -3130,7 +3178,7 @@ function Library:CreateWatermark()
     iconButton.Position = UDim2.new(0, 8, 0.5, 0)
     iconButton.AnchorPoint = Vector2.new(0, 0.5)
     iconButton.BackgroundTransparency = 1
-    iconButton.ImageColor3 = Color3.fromRGB(152, 181, 255)
+    iconButton.ImageColor3 = self.currentTheme.Primary
     iconButton.ScaleType = Enum.ScaleType.Fit
     iconButton.AutoButtonColor = false
     iconButton.Parent = watermark
@@ -3138,9 +3186,9 @@ function Library:CreateWatermark()
     local infoLabel = Instance.new("TextLabel")
     infoLabel.Name = "Info"
     infoLabel.Text = "FPS: 60 | Ping: 50ms | 00:00"
-    infoLabel.Font = Enum.Font.GothamBold
+    infoLabel.Font = self.currentFont
     infoLabel.TextSize = 12
-    infoLabel.TextColor3 = Color3.fromRGB(210, 210, 210)
+    infoLabel.TextColor3 = self.currentTheme.Text
     infoLabel.Size = UDim2.new(1, -40, 1, 0)
     infoLabel.Position = UDim2.new(0, 32, 0, 0)
     infoLabel.BackgroundTransparency = 1
