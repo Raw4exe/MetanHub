@@ -3012,7 +3012,7 @@ function Library:SendNotificationWithButton(settings)
     local function closeNotification()
         if closed then return end
         closed = true
-        innerFrame.Position = UDim2.new(-1.2, 0, 0, 0)  // Без анимации
+        innerFrame.Position = UDim2.new(-1.2, 0, 0, 0)  -- Без анимации
         notification:Destroy()
     end
     
