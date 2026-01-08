@@ -2378,7 +2378,7 @@ function Library:SendNotification(settings)
     local innerFrame = Instance.new("Frame")
     innerFrame.Name = "InnerFrame"
     innerFrame.Size = UDim2.new(1, 0, 0, 60)
-    innerFrame.Position = UDim2.new(0, 0, 0, 0)
+    innerFrame.Position = UDim2.new(-1, 0, 0, 0)
     innerFrame.BackgroundColor3 = Color3.fromRGB(32, 38, 51)
     innerFrame.BackgroundTransparency = 0.1
     innerFrame.BorderSizePixel = 0
@@ -2426,7 +2426,7 @@ function Library:SendNotification(settings)
         innerFrame.Size = UDim2.new(1, 0, 0, totalHeight)
     end)
     
-    -- Tween like Library.lua
+    -- Slide in from left, slide out to right
     task.spawn(function()
         local tweenIn = TweenService:Create(innerFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
             Position = UDim2.new(0, 0, 0, 0)
@@ -2472,7 +2472,7 @@ function Library:SendNotificationWithButton(settings)
     local innerFrame = Instance.new("Frame")
     innerFrame.Name = "InnerFrame"
     innerFrame.Size = UDim2.new(1, 0, 0, 70)
-    innerFrame.Position = UDim2.new(0, 0, 0, 0)
+    innerFrame.Position = UDim2.new(-1, 0, 0, 0)
     innerFrame.BackgroundColor3 = Color3.fromRGB(32, 38, 51)
     innerFrame.BackgroundTransparency = 0.1
     innerFrame.BorderSizePixel = 0
@@ -2574,6 +2574,15 @@ function Library:CreateWatermark()
     
     local Stats = game:GetService("Stats")
     
+    -- Create separate ScreenGui for watermark so it stays visible when main UI is hidden
+    local watermarkGui = Instance.new("ScreenGui")
+    watermarkGui.Name = "MarchUI_Watermark"
+    watermarkGui.ResetOnSpawn = false
+    watermarkGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    watermarkGui.Parent = CoreGui
+    
+    self.watermarkGui = watermarkGui
+    
     local watermark = Instance.new("Frame")
     watermark.Name = "Watermark"
     watermark.Size = UDim2.new(0, 220, 0, 30)
@@ -2584,7 +2593,7 @@ function Library:CreateWatermark()
     watermark.BorderSizePixel = 0
     watermark.Visible = false
     watermark.Active = true
-    watermark.Parent = self.ui
+    watermark.Parent = watermarkGui
     
     local corner = Instance.new("UICorner")
     corner.CornerRadius = UDim.new(0, 6)
@@ -2711,10 +2720,17 @@ function Library:Unload()
         self.uiKeybindConnection = nil
     end
     
+    if self.watermarkGui then
+        self.watermarkGui:Destroy()
+        self.watermarkGui = nil
+    end
+    
     if self.ui then
         self.ui:Destroy()
         self.ui = nil
     end
+    
+    print("MarchUI Unloaded")
 end
 
 return Library
