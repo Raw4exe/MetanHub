@@ -488,24 +488,24 @@ function Library:ApplyTheme()
             elseif name == "Box" and parent and parent.Name == "Dropdown" then
                 Tween(descendant, {BackgroundColor3 = theme.Primary, BackgroundTransparency = 0.9}, 0.3)
             
-            -- Кейбинды модулей - НЕ МЕНЯЕМ ФОН
+            -- Кейбинды модулей - МЕНЯЕМ ФОН И ТЕКСТ
             elseif name == "Keybind" and parent and parent.Name == "Header" then
-                -- Только обновляем цвет текста, фон оставляем как есть
+                Tween(descendant, {BackgroundColor3 = theme.Primary, BackgroundTransparency = 0.9}, 0.3)
                 local label = descendant:FindFirstChild("TextLabel")
                 if label then
-                    Tween(label, {TextColor3 = Color3.fromRGB(209, 222, 255)}, 0.3)
+                    Tween(label, {TextColor3 = theme.Text}, 0.3)
                 end
             
-            -- Toggle модуля
+            -- Toggle модуля - МЕНЯЕМ ЦВЕТА
             elseif name == "Toggle" and parent and parent.Name == "Header" then
                 local circle = descendant:FindFirstChild("Circle")
                 if circle and circle.Position.X.Scale > 0.4 then
-                    Tween(descendant, {BackgroundColor3 = theme.Primary, BackgroundTransparency = 0}, 0.3)
-                    Tween(circle, {BackgroundColor3 = theme.Primary, BackgroundTransparency = 0.2}, 0.3)
+                    Tween(descendant, {BackgroundColor3 = theme.Primary, BackgroundTransparency = 0.2}, 0.3)
+                    Tween(circle, {BackgroundColor3 = theme.Text, BackgroundTransparency = 0}, 0.3)
                 else
-                    Tween(descendant, {BackgroundColor3 = Color3.fromRGB(0, 0, 0), BackgroundTransparency = 0.7}, 0.3)
+                    Tween(descendant, {BackgroundColor3 = theme.Accent, BackgroundTransparency = 0.5}, 0.3)
                     if circle then 
-                        Tween(circle, {BackgroundColor3 = Color3.fromRGB(66, 80, 115), BackgroundTransparency = 0.2}, 0.3) 
+                        Tween(circle, {BackgroundColor3 = theme.Text, BackgroundTransparency = 0.3}, 0.3) 
                     end
                 end
             
@@ -648,9 +648,10 @@ function Library:ApplyTheme()
                 local body = notification:FindFirstChild("Body")
                 if body then Tween(body, {TextColor3 = theme.Text}, 0.3) end
             end
-            -- Обновляем кнопки в уведомлениях
-            if notification.Name == "Button" and notification:IsA("TextButton") and notification.Parent and notification.Parent.Name == "InnerFrame" then
+            -- Обновляем кнопки в уведомлениях (ActionButton)
+            if notification.Name == "ActionButton" and notification:IsA("TextButton") then
                 Tween(notification, {BackgroundColor3 = theme.Primary}, 0.3)
+                Tween(notification, {TextColor3 = theme.Text}, 0.3)
             end
         end
     end
@@ -1351,7 +1352,7 @@ function Library:CreateModule(tab, options)
     
     local moduleFrame = Instance.new("Frame")
     moduleFrame.Name = "Module"
-    moduleFrame.Size = UDim2.new(0, 241, 0, 93)
+    moduleFrame.Size = UDim2.new(0, 241, 0, 110)
     moduleFrame.BackgroundColor3 = Color3.fromRGB(22, 28, 38)
     moduleFrame.BackgroundTransparency = 0.5
     moduleFrame.BorderSizePixel = 0
@@ -1374,7 +1375,7 @@ function Library:CreateModule(tab, options)
     
     local header = Instance.new("TextButton")
     header.Name = "Header"
-    header.Size = UDim2.new(0, 241, 0, 93)
+    header.Size = UDim2.new(0, 241, 0, 110)
     header.BackgroundTransparency = 1
     header.BorderSizePixel = 0
     header.Text = ""
@@ -1537,7 +1538,7 @@ function Library:CreateModule(tab, options)
             }, 0.5)
         end
         
-        local newSize = module.state and (93 + module.elementHeight + module.multiplier) or 93
+        local newSize = module.state and (110 + module.elementHeight + module.multiplier) or 110
         Tween(moduleFrame, {Size = UDim2.new(0, 241, 0, newSize)}, 0.5)
         Tween(optionsFrame, {Size = UDim2.new(0, 241, 0, module.elementHeight + module.multiplier)}, 0.5)
         
@@ -2821,17 +2822,17 @@ function Library:SendNotification(settings)
         innerFrame.Size = UDim2.new(1, 0, 0, totalHeight)
     end)
     
-    -- Slide in from left, slide out to right
+    -- Slide in from left with bounce, slide out to left
     task.spawn(function()
-        local tweenIn = TweenService:Create(innerFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+        local tweenIn = TweenService:Create(innerFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
             Position = UDim2.new(0, 0, 0, 0)
         })
         tweenIn:Play()
         
         task.wait(duration)
         
-        local tweenOut = TweenService:Create(innerFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.In), {
-            Position = UDim2.new(1, 310, 0, 0)
+        local tweenOut = TweenService:Create(innerFrame, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
+            Position = UDim2.new(-1.2, 0, 0, 0)
         })
         tweenOut:Play()
         
@@ -2914,17 +2915,26 @@ function Library:SendNotificationWithButton(settings)
     actionButton.Font = Enum.Font.GothamBold
     actionButton.TextSize = 11
     actionButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    actionButton.Size = UDim2.new(0, 65, 0, 25)
-    actionButton.Position = UDim2.new(1, -70, 0, 30)
-    actionButton.BackgroundColor3 = Color3.fromRGB(152, 181, 255)
-    actionButton.BackgroundTransparency = 0.2
+    actionButton.Size = UDim2.new(0, 70, 0, 28)
+    actionButton.Position = UDim2.new(1, -75, 0, 28)
+    actionButton.BackgroundColor3 = self.currentTheme.Primary
+    actionButton.BackgroundTransparency = 0
     actionButton.BorderSizePixel = 0
     actionButton.AutoButtonColor = false
     actionButton.Parent = innerFrame
     
     local buttonCorner = Instance.new("UICorner")
-    buttonCorner.CornerRadius = UDim.new(0, 4)
+    buttonCorner.CornerRadius = UDim.new(0, 6)
     buttonCorner.Parent = actionButton
+    
+    -- Hover effect
+    actionButton.MouseEnter:Connect(function()
+        Tween(actionButton, {BackgroundTransparency = 0.2}, 0.2)
+    end)
+    
+    actionButton.MouseLeave:Connect(function()
+        Tween(actionButton, {BackgroundTransparency = 0}, 0.2)
+    end)
     
     task.spawn(function()
         task.wait(0.1)
@@ -2937,8 +2947,8 @@ function Library:SendNotificationWithButton(settings)
     local function closeNotification()
         if closed then return end
         closed = true
-        local tweenOut = TweenService:Create(innerFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.In), {
-            Position = UDim2.new(1, 310, 0, 0)
+        local tweenOut = TweenService:Create(innerFrame, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
+            Position = UDim2.new(-1.2, 0, 0, 0)
         })
         tweenOut:Play()
         tweenOut.Completed:Connect(function()
@@ -2947,12 +2957,17 @@ function Library:SendNotificationWithButton(settings)
     end
     
     actionButton.MouseButton1Click:Connect(function()
+        -- Click animation
+        Tween(actionButton, {Size = UDim2.new(0, 65, 0, 26)}, 0.1)
+        task.wait(0.1)
+        Tween(actionButton, {Size = UDim2.new(0, 70, 0, 28)}, 0.1)
         task.spawn(buttonCallback)
+        task.wait(0.1)
         closeNotification()
     end)
     
     task.spawn(function()
-        local tweenIn = TweenService:Create(innerFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+        local tweenIn = TweenService:Create(innerFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
             Position = UDim2.new(0, 0, 0, 0)
         })
         tweenIn:Play()
