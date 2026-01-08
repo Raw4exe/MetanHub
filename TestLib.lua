@@ -679,20 +679,25 @@ function Library:CreateSettingsTab()
     local configNameInput, configListDropdown, autoloadLabel
     local function UpdateConfigList()
         local configs = SaveManager:RefreshConfigList()
-        if #configs == 0 then configs = {"No configs"} end
-        if configListDropdown then configListDropdown:SetValues(configs) end
+        if configListDropdown then
+            if #configs == 0 then
+                configListDropdown:SetValues({"None"})
+            else
+                configListDropdown:SetValues(configs)
+            end
+        end
     end
     local function UpdateAutoloadLabel()
         local autoload = SaveManager:GetAutoloadConfig()
         if autoloadLabel then autoloadLabel:SetValue(autoload and ("Autoload: " .. autoload) or "Autoload: None") end
     end
-    configListDropdown = configModule:CreateDropdown({ title = "Select Config", flag = "SaveManager_ConfigList", options = #SaveManager:RefreshConfigList() > 0 and SaveManager:RefreshConfigList() or {"No configs"} })
+    configListDropdown = configModule:CreateDropdown({ title = "Select Config", flag = "SaveManager_ConfigList", options = SaveManager:RefreshConfigList() })
     autoloadLabel = configModule:CreateTextbox({ title = "Autoload Status", flag = "SaveManager_AutoloadStatus", default = SaveManager:GetAutoloadConfig() and ("Autoload: " .. SaveManager:GetAutoloadConfig()) or "Autoload: None", placeholder = "No autoload set" })
     autoloadLabel.textboxFrame.TextEditable = false
     configNameInput = configModule:CreateTextbox({ title = "Config Name", flag = "SaveManager_ConfigName", placeholder = "Enter config name..." })
     configModule:CreateButton({ title = "Load Config", callback = function()
         local name = Options["SaveManager_ConfigList"] and Options["SaveManager_ConfigList"].Value
-        if name and name ~= "" and name ~= "No configs" then
+        if name and name ~= "" then
             local success, err = SaveManager:Load(name)
             if success then self:SendNotification({ title = 'Config', text = 'Loaded config: ' .. name, duration = 3 })
             else self:SendNotification({ title = 'Config', text = 'Failed to load: ' .. tostring(err), duration = 3 }) end
@@ -708,17 +713,16 @@ function Library:CreateSettingsTab()
     end })
     configModule:CreateButton({ title = "Delete Config", callback = function()
         local name = Options["SaveManager_ConfigList"] and Options["SaveManager_ConfigList"].Value
-        if name and name ~= "" and name ~= "No configs" then
+        if name and name ~= "" then
             if SaveManager:Delete(name) then self:SendNotification({ title = 'Config', text = 'Deleted config: ' .. name, duration = 3 }) UpdateConfigList() UpdateAutoloadLabel()
             else self:SendNotification({ title = 'Config', text = 'Failed to delete config', duration = 3 }) end
         end
     end })
     configModule:CreateButton({ title = "Set as Autoload", callback = function()
         local name = Options["SaveManager_ConfigList"] and Options["SaveManager_ConfigList"].Value
-        if name and name ~= "" and name ~= "No configs" then SaveManager:SetAutoloadConfig(name) self:SendNotification({ title = 'Config', text = 'Set autoload: ' .. name, duration = 3 }) UpdateAutoloadLabel() end
+        if name and name ~= "" then SaveManager:SetAutoloadConfig(name) self:SendNotification({ title = 'Config', text = 'Set autoload: ' .. name, duration = 3 }) UpdateAutoloadLabel() end
     end })
     configModule:CreateButton({ title = "Delete Autoload", callback = function() SaveManager:DeleteAutoloadConfig() self:SendNotification({ title = 'Config', text = 'Removed autoload', duration = 3 }) UpdateAutoloadLabel() end })
-    configModule:CreateButton({ title = "Refresh List", callback = function() UpdateConfigList() self:SendNotification({ title = 'Config', text = 'Refreshed config list', duration = 2 }) end })
     local uiModule = settingsTab:CreateModule({ title = "UI Settings", description = "Customize your UI", section = "right" })
     uiModule:CreateKeybind({ title = "Toggle UI", flag = "_UI_Toggle", callback = function(key) self:SetUIKeybind(key) end })
     uiModule:CreateDropdown({ title = "Font", flag = "_UI_Font", options = self.Fonts, callback = function(font) self:SetFont(font) end })
@@ -728,8 +732,13 @@ function Library:CreateSettingsTab()
     local tempTheme = { Primary = self.currentTheme.Primary, Background = self.currentTheme.Background, Secondary = self.currentTheme.Secondary, Accent = self.currentTheme.Accent, Text = self.currentTheme.Text }
     local function UpdateCustomThemeList()
         local themes = ThemeManager:RefreshCustomThemeList()
-        if #themes == 0 then themes = {"--"} end
-        if customThemeListDropdown then customThemeListDropdown:SetValues(themes) end
+        if customThemeListDropdown then
+            if #themes == 0 then
+                customThemeListDropdown:SetValues({"None"})
+            else
+                customThemeListDropdown:SetValues(themes)
+            end
+        end
     end
     local function UpdateAutoloadThemeLabel()
         local autoload = ThemeManager:LoadDefault()
@@ -750,8 +759,8 @@ function Library:CreateSettingsTab()
     autoloadThemeLabel = themeModule:CreateTextbox({ title = "Autoload theme", flag = "ThemeManager_AutoloadTheme", default = ThemeManager:LoadDefault() or "None", placeholder = "None" })
     autoloadThemeLabel.textboxFrame.TextEditable = false
     customThemeNameInput = themeModule:CreateTextbox({ title = "Custom theme name", flag = "ThemeManager_CustomThemeName", placeholder = "Enter name..." })
-    customThemeListDropdown = themeModule:CreateDropdown({ title = "Custom themes", flag = "ThemeManager_CustomThemeList", options = #ThemeManager:RefreshCustomThemeList() > 0 and ThemeManager:RefreshCustomThemeList() or {"--"}, callback = function(themeName)
-        if themeName and themeName ~= "--" then
+    customThemeListDropdown = themeModule:CreateDropdown({ title = "Custom themes", flag = "ThemeManager_CustomThemeList", options = ThemeManager:RefreshCustomThemeList(), callback = function(themeName)
+        if themeName then
             local theme = ThemeManager:GetCustomTheme(themeName)
             if theme then self.currentTheme = theme self.currentThemeName = themeName self:UpdateColorsUsingRegistry() end
         end
@@ -765,15 +774,14 @@ function Library:CreateSettingsTab()
     end })
     themeModule:CreateButton({ title = "Load theme", callback = function()
         local name = Options["ThemeManager_CustomThemeList"] and Options["ThemeManager_CustomThemeList"].Value
-        if name and name ~= "" and name ~= "--" then
+        if name and name ~= "" then
             local theme = ThemeManager:GetCustomTheme(name)
             if theme then self.currentTheme = theme self.currentThemeName = name self:UpdateColorsUsingRegistry() self:SendNotification({ title = 'Theme', text = 'Loaded theme: ' .. name, duration = 3 }) end
         end
     end })
-    themeModule:CreateButton({ title = "Refresh list", callback = function() UpdateCustomThemeList() self:SendNotification({ title = 'Theme', text = 'Refreshed theme list', duration = 2 }) end })
     themeModule:CreateButton({ title = "Delete theme", callback = function()
         local name = Options["ThemeManager_CustomThemeList"] and Options["ThemeManager_CustomThemeList"].Value
-        if name and name ~= "" and name ~= "--" then
+        if name and name ~= "" then
             if ThemeManager:DeleteCustomTheme(name) then self:SendNotification({ title = 'Theme', text = 'Deleted theme: ' .. name, duration = 3 }) UpdateCustomThemeList() end
         end
     end })
@@ -2092,9 +2100,14 @@ function Library:CreateWatermark()
     self.watermarkLabel = watermarkLabel
     self.watermarkIcon = iconButton
     self.updateWatermarkText = UpdateWatermarkText
+    local lastUpdate = 0
     RunService.RenderStepped:Connect(function()
         if watermark.Visible then
-            UpdateWatermarkText()
+            local now = tick()
+            if now - lastUpdate >= 1 then
+                UpdateWatermarkText()
+                lastUpdate = now
+            end
         end
     end)
     local dragging = false
