@@ -406,12 +406,12 @@ function Library:ApplyTheme()
     Tween(self.container, {BackgroundColor3 = theme.Background}, 0.3)
     
     -- Логотип и иконка
-    Tween(self.logo, {TextColor3 = theme.Primary}, 0.3)
-    Tween(self.logoIcon, {ImageColor3 = theme.Primary}, 0.3)
-    Tween(self.pin, {BackgroundColor3 = theme.Primary}, 0.3)
+    if self.logo then Tween(self.logo, {TextColor3 = theme.Primary}, 0.3) end
+    if self.logoIcon then Tween(self.logoIcon, {ImageColor3 = theme.Primary}, 0.3) end
+    if self.pin then Tween(self.pin, {BackgroundColor3 = theme.Primary}, 0.3) end
     
     -- Разделитель
-    local divider = self.handler:FindFirstChild("Divider")
+    local divider = self.handler and self.handler:FindFirstChild("Divider")
     if divider then
         Tween(divider, {BackgroundColor3 = theme.Accent}, 0.3)
     end
@@ -422,22 +422,56 @@ function Library:ApplyTheme()
         Tween(containerStroke, {Color = theme.Accent}, 0.3)
     end
     
-    -- Проходим по всем потомкам и обновляем по именам
+    -- Проходим по ВСЕМ потомкам контейнера и обновляем по типам и именам
     for _, descendant in ipairs(self.container:GetDescendants()) do
+        local name = descendant.Name
+        
+        -- Чекбоксы
+        if name == "Checkbox" and descendant:IsA("Frame") then
+            local parent = descendant.Parent
+            if parent and parent.Parent then
+                -- Ищем состояние через parent structure
+                local isChecked = descendant:FindFirstChild("Fill") and descendant.Fill.Visible
+                if isChecked then
+                    Tween(descendant, {BackgroundColor3 = theme.Primary}, 0.3)
+                else
+                    Tween(descendant, {BackgroundColor3 = theme.Accent}, 0.3)
+                end
+            end
+            local stroke = descendant:FindFirstChildOfClass("UIStroke")
+            if stroke then Tween(stroke, {Color = theme.Accent}, 0.3) end
+        end
+        
+        -- Слайдеры
+        if name == "Slider" and descendant:IsA("Frame") then
+            Tween(descendant, {BackgroundColor3 = theme.Accent}, 0.3)
+            local fill = descendant:FindFirstChild("Fill")
+            if fill then Tween(fill, {BackgroundColor3 = theme.Primary}, 0.3) end
+            local drag = descendant:FindFirstChild("Drag")
+            if drag then Tween(drag, {BackgroundColor3 = theme.Primary}, 0.3) end
+        end
+        
+        -- ColorPicker display
+        if name == "ColorDisplay" and descendant:IsA("Frame") then
+            local stroke = descendant:FindFirstChildOfClass("UIStroke")
+            if stroke then Tween(stroke, {Color = theme.Accent}, 0.3) end
+        end
+        
         -- Кнопки
-        if descendant.Name == "Button" and descendant:IsA("TextButton") then
+        if name == "Button" and descendant:IsA("TextButton") then
             Tween(descendant, {BackgroundColor3 = theme.Primary}, 0.3)
+            Tween(descendant, {TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.3)
         end
         
         -- Дропдауны
-        if descendant.Name == "Dropdown" and descendant:IsA("Frame") then
+        if name == "Dropdown" and descendant:IsA("Frame") then
             Tween(descendant, {BackgroundColor3 = theme.Secondary}, 0.3)
             local stroke = descendant:FindFirstChildOfClass("UIStroke")
             if stroke then Tween(stroke, {Color = theme.Accent}, 0.3) end
         end
         
-        -- Текстбоксы/Инпуты
-        if (descendant.Name == "Textbox" or descendant.Name == "Input") and descendant:IsA("TextBox") then
+        -- Текстбоксы
+        if name == "Textbox" and descendant:IsA("TextBox") then
             Tween(descendant, {BackgroundColor3 = theme.Secondary}, 0.3)
             Tween(descendant, {TextColor3 = theme.Text}, 0.3)
             local stroke = descendant:FindFirstChildOfClass("UIStroke")
@@ -445,157 +479,95 @@ function Library:ApplyTheme()
         end
         
         -- Кейбинды
-        if descendant.Name == "Keybind" and descendant:IsA("TextButton") then
+        if name == "Keybind" and (descendant:IsA("TextButton") or descendant:IsA("TextLabel")) then
             Tween(descendant, {BackgroundColor3 = theme.Primary}, 0.3)
             Tween(descendant, {TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.3)
         end
         
-        -- Статус (Status label)
-        if descendant.Name == "Status" and descendant:IsA("TextLabel") then
+        -- Статус
+        if name == "Status" and descendant:IsA("TextLabel") then
             Tween(descendant, {TextColor3 = theme.Primary}, 0.3)
         end
-    end
-    
-    -- Табы
-    for _, tab in ipairs(self.tabs) do
-        if tab.button then
-            local isSelected = (tab == self.currentTab)
-            local icon = tab.button:FindFirstChild("Icon")
-            local label = tab.button:FindFirstChild("Label")
-            
-            if isSelected then
-                -- Выбранный таб - используем Primary цвет
-                Tween(tab.button, {BackgroundColor3 = theme.Secondary}, 0.3)
-                if icon then 
-                    Tween(icon, {ImageColor3 = theme.Primary, ImageTransparency = 0.2}, 0.3) 
-                end
-                if label then 
-                    Tween(label, {TextColor3 = theme.Primary, TextTransparency = 0.2}, 0.3) 
-                end
+        
+        -- Toggle модуля
+        if name == "Toggle" and descendant:IsA("Frame") then
+            local circle = descendant:FindFirstChild("Circle")
+            -- Проверяем позицию circle чтобы определить состояние
+            if circle and circle.Position.X.Scale > 0.4 then
+                Tween(descendant, {BackgroundColor3 = theme.Primary}, 0.3)
+                Tween(circle, {BackgroundColor3 = theme.Primary}, 0.3)
             else
-                -- Не выбранный таб - белый цвет с прозрачностью
-                Tween(tab.button, {BackgroundColor3 = theme.Secondary}, 0.3)
-                if icon then 
-                    Tween(icon, {ImageColor3 = Color3.fromRGB(255, 255, 255), ImageTransparency = 0.8}, 0.3) 
-                end
-                if label then 
-                    Tween(label, {TextColor3 = Color3.fromRGB(255, 255, 255), TextTransparency = 0.7}, 0.3) 
-                end
+                Tween(descendant, {BackgroundColor3 = theme.Accent}, 0.3)
+                if circle then Tween(circle, {BackgroundColor3 = Color3.fromRGB(255, 255, 255)}, 0.3) end
             end
         end
         
-        -- Модули
-        for _, module in ipairs(tab.modules) do
-            if module.frame then
-                Tween(module.frame, {BackgroundColor3 = theme.Secondary}, 0.3)
-                local stroke = module.frame:FindFirstChildOfClass("UIStroke")
-                if stroke then
-                    Tween(stroke, {Color = theme.Accent}, 0.3)
-                end
-            end
-            
-            -- Toggle модуля
-            if module.toggleFrame then
-                if module.state then
-                    Tween(module.toggleFrame, {BackgroundColor3 = theme.Primary}, 0.3)
-                    if module.toggleCircle then
-                        Tween(module.toggleCircle, {BackgroundColor3 = theme.Primary}, 0.3)
+        -- Разделители
+        if name == "Divider" and descendant:IsA("Frame") then
+            Tween(descendant, {BackgroundColor3 = theme.Accent}, 0.3)
+        end
+        
+        -- Заголовки модулей
+        if name == "Title" and descendant:IsA("TextLabel") then
+            Tween(descendant, {TextColor3 = theme.Primary}, 0.3)
+        end
+        
+        -- Описания
+        if name == "Description" and descendant:IsA("TextLabel") then
+            Tween(descendant, {TextColor3 = theme.Text}, 0.3)
+        end
+        
+        -- Иконки
+        if name == "Icon" and descendant:IsA("ImageLabel") then
+            Tween(descendant, {ImageColor3 = theme.Primary}, 0.3)
+        end
+        
+        -- Фреймы модулей
+        if name == "Module" and descendant:IsA("Frame") then
+            Tween(descendant, {BackgroundColor3 = theme.Secondary}, 0.3)
+            local stroke = descendant:FindFirstChildOfClass("UIStroke")
+            if stroke then Tween(stroke, {Color = theme.Accent}, 0.3) end
+        end
+    end
+    
+    -- Обновляем табы
+    if self.tabs then
+        for _, tab in ipairs(self.tabs) do
+            if tab.button then
+                local isSelected = (tab == self.currentTab)
+                local icon = tab.button:FindFirstChild("Icon")
+                local label = tab.button:FindFirstChild("Label")
+                
+                if isSelected then
+                    Tween(tab.button, {BackgroundColor3 = theme.Secondary}, 0.3)
+                    if icon then 
+                        Tween(icon, {ImageColor3 = theme.Primary, ImageTransparency = 0.2}, 0.3) 
+                    end
+                    if label then 
+                        Tween(label, {TextColor3 = theme.Primary, TextTransparency = 0.2}, 0.3) 
                     end
                 else
-                    Tween(module.toggleFrame, {BackgroundColor3 = theme.Accent}, 0.3)
-                    if module.toggleCircle then
-                        Tween(module.toggleCircle, {BackgroundColor3 = Color3.fromRGB(255, 255, 255)}, 0.3)
+                    Tween(tab.button, {BackgroundColor3 = theme.Secondary}, 0.3)
+                    if icon then 
+                        Tween(icon, {ImageColor3 = Color3.fromRGB(255, 255, 255), ImageTransparency = 0.8}, 0.3) 
                     end
-                end
-            end
-            
-            -- Заголовок модуля
-            local header = module.frame and module.frame:FindFirstChild("Header")
-            if header then
-                local title = header:FindFirstChild("Title")
-                local desc = header:FindFirstChild("Description")
-                local icon = header:FindFirstChild("Icon")
-                local status = header:FindFirstChild("Status")
-                if title then Tween(title, {TextColor3 = theme.Primary}, 0.3) end
-                if desc then Tween(desc, {TextColor3 = theme.Text}, 0.3) end
-                if icon then Tween(icon, {ImageColor3 = theme.Primary}, 0.3) end
-                if status then Tween(status, {TextColor3 = theme.Primary}, 0.3) end
-                
-                -- Разделители в заголовке
-                for _, child in ipairs(header:GetChildren()) do
-                    if child.Name == "Divider" then
-                        Tween(child, {BackgroundColor3 = theme.Accent}, 0.3)
-                    end
-                end
-                
-                -- Кейбинд в заголовке
-                local keybindFrame = header:FindFirstChild("Keybind")
-                if keybindFrame then
-                    Tween(keybindFrame, {BackgroundColor3 = theme.Primary}, 0.3)
-                    if keybindFrame:IsA("TextButton") or keybindFrame:IsA("TextLabel") then
-                        Tween(keybindFrame, {TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.3)
-                    end
-                end
-            end
-            
-            -- Элементы модуля (слайдеры, чекбоксы и т.д.)
-            for _, element in ipairs(module.elements or {}) do
-                -- Слайдеры
-                if element.dragFrame then
-                    Tween(element.dragFrame, {BackgroundColor3 = theme.Accent}, 0.3)
-                    if element.fillFrame then
-                        Tween(element.fillFrame, {BackgroundColor3 = theme.Primary}, 0.3)
-                    end
-                    if element.dragCircle then
-                        Tween(element.dragCircle, {BackgroundColor3 = theme.Primary}, 0.3)
-                    end
-                end
-                
-                -- Чекбоксы
-                if element.boxFrame then
-                    if element.state then
-                        Tween(element.boxFrame, {BackgroundColor3 = theme.Primary}, 0.3)
-                        if element.fillFrame then
-                            Tween(element.fillFrame, {BackgroundColor3 = theme.Primary}, 0.3)
-                        end
-                    else
-                        Tween(element.boxFrame, {BackgroundColor3 = theme.Accent}, 0.3)
-                    end
-                end
-                
-                -- Дропдауны
-                if element.dropdownFrame then
-                    Tween(element.dropdownFrame, {BackgroundColor3 = theme.Secondary}, 0.3)
-                    local dropStroke = element.dropdownFrame:FindFirstChildOfClass("UIStroke")
-                    if dropStroke then
-                        Tween(dropStroke, {Color = theme.Accent}, 0.3)
-                    end
-                end
-                
-                -- Кнопки
-                if element.buttonFrame then
-                    Tween(element.buttonFrame, {BackgroundColor3 = theme.Primary}, 0.3)
-                end
-                
-                -- Текстбоксы
-                if element.textboxFrame then
-                    Tween(element.textboxFrame, {BackgroundColor3 = theme.Secondary}, 0.3)
-                    Tween(element.textboxFrame, {TextColor3 = theme.Text}, 0.3)
-                    local textStroke = element.textboxFrame:FindFirstChildOfClass("UIStroke")
-                    if textStroke then
-                        Tween(textStroke, {Color = theme.Accent}, 0.3)
-                    end
-                end
-                
-                -- Кейбинды элементов
-                if element.keybindFrame then
-                    Tween(element.keybindFrame, {BackgroundColor3 = theme.Primary}, 0.3)
-                    if element.keybindFrame:IsA("TextButton") or element.keybindFrame:IsA("TextLabel") then
-                        Tween(element.keybindFrame, {TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.3)
+                    if label then 
+                        Tween(label, {TextColor3 = Color3.fromRGB(255, 255, 255), TextTransparency = 0.7}, 0.3) 
                     end
                 end
             end
         end
+    end
+    
+    -- Обновляем watermark если он существует
+    if self.watermark then
+        Tween(self.watermark, {BackgroundColor3 = theme.Background}, 0.3)
+        local wmStroke = self.watermark:FindFirstChildOfClass("UIStroke")
+        if wmStroke then Tween(wmStroke, {Color = theme.Accent}, 0.3) end
+        local wmInfo = self.watermark:FindFirstChild("Info")
+        if wmInfo then Tween(wmInfo, {TextColor3 = theme.Text}, 0.3) end
+        local wmIcon = self.watermark:FindFirstChild("Icon")
+        if wmIcon then Tween(wmIcon, {ImageColor3 = theme.Primary}, 0.3) end
     end
 end
 
@@ -2732,18 +2704,18 @@ function Library:CreateWatermark()
     
     local watermark = Instance.new("Frame")
     watermark.Name = "Watermark"
-    watermark.Size = UDim2.new(0, 200, 0, 28)
+    watermark.Size = UDim2.new(0, 250, 0, 35)
     watermark.Position = UDim2.new(0.5, 0, 0.4, 0)
     watermark.AnchorPoint = Vector2.new(0.5, 0.5)
     watermark.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
     watermark.BackgroundTransparency = 0
     watermark.BorderSizePixel = 0
     watermark.Visible = false
-    watermark.Active = true
+    watermark.Active = false
     watermark.Parent = watermarkGui
     
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 4)
+    corner.CornerRadius = UDim.new(0, 6)
     corner.Parent = watermark
     
     local stroke = Instance.new("UIStroke")
@@ -2752,14 +2724,27 @@ function Library:CreateWatermark()
     stroke.Thickness = 1
     stroke.Parent = watermark
     
+    -- Иконка слева
+    local iconButton = Instance.new("ImageButton")
+    iconButton.Name = "Icon"
+    iconButton.Image = "rbxassetid://107819132007001"
+    iconButton.Size = UDim2.new(0, 20, 0, 20)
+    iconButton.Position = UDim2.new(0, 8, 0.5, 0)
+    iconButton.AnchorPoint = Vector2.new(0, 0.5)
+    iconButton.BackgroundTransparency = 1
+    iconButton.ImageColor3 = Color3.fromRGB(152, 181, 255)
+    iconButton.ScaleType = Enum.ScaleType.Fit
+    iconButton.AutoButtonColor = false
+    iconButton.Parent = watermark
+    
     local infoLabel = Instance.new("TextLabel")
     infoLabel.Name = "Info"
     infoLabel.Text = "FPS: 60 | Ping: 50ms | 00:00"
     infoLabel.Font = Enum.Font.GothamBold
-    infoLabel.TextSize = 11
+    infoLabel.TextSize = 12
     infoLabel.TextColor3 = Color3.fromRGB(210, 210, 210)
-    infoLabel.Size = UDim2.new(1, -16, 1, 0)
-    infoLabel.Position = UDim2.new(0, 8, 0, 0)
+    infoLabel.Size = UDim2.new(1, -40, 1, 0)
+    infoLabel.Position = UDim2.new(0, 32, 0, 0)
     infoLabel.BackgroundTransparency = 1
     infoLabel.TextXAlignment = Enum.TextXAlignment.Left
     infoLabel.Parent = watermark
@@ -2772,15 +2757,24 @@ function Library:CreateWatermark()
             infoLabel.Font,
             Vector2.new(math.huge, math.huge)
         )
-        local newWidth = textBounds.X + 16
-        watermark.Size = UDim2.new(0, newWidth, 0, 28)
+        local newWidth = textBounds.X + 45
+        watermark.Size = UDim2.new(0, newWidth, 0, 35)
     end
     
     local dragging = false
     local dragStart = nil
     local startPos = nil
     
-    watermark.InputBegan:Connect(function(input)
+    -- Dragging только для фона, не для иконки
+    local dragArea = Instance.new("Frame")
+    dragArea.Name = "DragArea"
+    dragArea.Size = UDim2.new(1, -28, 1, 0)
+    dragArea.Position = UDim2.new(0, 28, 0, 0)
+    dragArea.BackgroundTransparency = 1
+    dragArea.Active = true
+    dragArea.Parent = watermark
+    
+    dragArea.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = true
             dragStart = input.Position
@@ -2806,17 +2800,9 @@ function Library:CreateWatermark()
         end
     end)
     
-    local clickButton = Instance.new("TextButton")
-    clickButton.Name = "ClickArea"
-    clickButton.Size = UDim2.new(1, 0, 1, 0)
-    clickButton.BackgroundTransparency = 1
-    clickButton.Text = ""
-    clickButton.Parent = watermark
-    
-    clickButton.MouseButton1Click:Connect(function()
-        if not dragging then
-            self:ToggleUI()
-        end
+    -- Клик по иконке открывает UI
+    iconButton.MouseButton1Click:Connect(function()
+        self:ToggleUI()
     end)
     
     local fps = 60
