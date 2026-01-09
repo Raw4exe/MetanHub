@@ -2105,9 +2105,14 @@ function Library:SendNotification(options)
     local title = options.title or "Notification"
     local text = options.text or ""
     local duration = options.duration or 3
+    local button = options.button -- {text = "Button", callback = function() end}
+    
+    -- Увеличиваем высоту если есть кнопка
+    local notifHeight = button and 85 or 60
+    
     local notif = Instance.new("Frame")
     notif.Name = "Notification"
-    notif.Size = UDim2.new(0, 280, 0, 60)
+    notif.Size = UDim2.new(0, 280, 0, notifHeight)
     notif.BackgroundColor3 = theme.Secondary
     notif.BackgroundTransparency = 0.1
     notif.BorderSizePixel = 0
@@ -2159,9 +2164,59 @@ function Library:SendNotification(options)
     textLabel.BackgroundTransparency = 1
     textLabel.Parent = notif
     self:AddToRegistry(textLabel, { TextColor3 = 'Text' })
+    
+    -- Кнопка в нотификации
+    local notifButton = nil
+    if button then
+        notifButton = Instance.new("TextButton")
+        notifButton.Name = "ActionButton"
+        notifButton.Text = button.text or "Action"
+        notifButton.Font = Enum.Font.GothamBold
+        notifButton.TextSize = 11
+        notifButton.TextColor3 = theme.Text
+        notifButton.Size = UDim2.new(0, 80, 0, 22)
+        notifButton.Position = UDim2.new(0, 15, 1, -28)
+        notifButton.BackgroundColor3 = theme.Primary
+        notifButton.BackgroundTransparency = 0.3
+        notifButton.BorderSizePixel = 0
+        notifButton.AutoButtonColor = false
+        notifButton.Parent = notif
+        self:AddToRegistry(notifButton, { BackgroundColor3 = 'Primary', TextColor3 = 'Text' })
+        
+        local btnCorner = Instance.new("UICorner")
+        btnCorner.CornerRadius = UDim.new(0, 4)
+        btnCorner.Parent = notifButton
+        
+        -- Hover эффект
+        notifButton.MouseEnter:Connect(function()
+            Tween(notifButton, {BackgroundTransparency = 0.1}, 0.2)
+        end)
+        notifButton.MouseLeave:Connect(function()
+            Tween(notifButton, {BackgroundTransparency = 0.3}, 0.2)
+        end)
+        
+        -- Callback при нажатии
+        notifButton.MouseButton1Click:Connect(function()
+            if button.callback then
+                task.spawn(button.callback)
+            end
+            -- Закрываем нотификацию после нажатия
+            Tween(notif, {Position = UDim2.new(1, 0, 0, 0), BackgroundTransparency = 1}, 0.3)
+            task.wait(0.3)
+            self:RemoveFromRegistry(notif)
+            self:RemoveFromRegistry(notifStroke)
+            self:RemoveFromRegistry(accentBar)
+            self:RemoveFromRegistry(titleLabel)
+            self:RemoveFromRegistry(textLabel)
+            if notifButton then self:RemoveFromRegistry(notifButton) end
+            notif:Destroy()
+        end)
+    end
+    
     notif.Position = UDim2.new(1, 0, 0, 0)
     Tween(notif, {Position = UDim2.new(0, 0, 0, 0)}, 0.3)
     task.delay(duration, function()
+        if not notif.Parent then return end -- Уже удалена кнопкой
         Tween(notif, {Position = UDim2.new(1, 0, 0, 0), BackgroundTransparency = 1}, 0.3)
         task.wait(0.3)
         self:RemoveFromRegistry(notif)
@@ -2169,6 +2224,7 @@ function Library:SendNotification(options)
         self:RemoveFromRegistry(accentBar)
         self:RemoveFromRegistry(titleLabel)
         self:RemoveFromRegistry(textLabel)
+        if notifButton then self:RemoveFromRegistry(notifButton) end
         notif:Destroy()
     end)
 end
