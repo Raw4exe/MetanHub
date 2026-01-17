@@ -503,8 +503,8 @@ function Library:CreateUI()
     logoIconButton.MouseButton1Click:Connect(function() self:ToggleUI() end)
     local logoDivider = Instance.new("Frame")
     logoDivider.Name = "LogoDivider"
-    logoDivider.Size = UDim2.new(0, 145, 0, 1)
-    logoDivider.Position = UDim2.new(0.0175, 0, 0.09, 0)
+    logoDivider.Size = UDim2.new(0, 135, 0, 1)
+    logoDivider.Position = UDim2.new(0.0245, 0, 0.095, 0)
     logoDivider.BackgroundColor3 = theme.Accent
     logoDivider.BackgroundTransparency = 0.5
     logoDivider.BorderSizePixel = 0
@@ -513,7 +513,7 @@ function Library:CreateUI()
     local pin = Instance.new("Frame")
     pin.Name = "Pin"
     pin.Size = UDim2.new(0, 2, 0, 16)
-    pin.Position = UDim2.new(0.026, 0, 0.136, 0)
+    pin.Position = UDim2.new(0.026, 0, 0.145, 0)
     pin.BackgroundColor3 = theme.Primary
     pin.BorderSizePixel = 0
     pin.Parent = handler
@@ -532,8 +532,8 @@ function Library:CreateUI()
     self:AddToRegistry(divider, { BackgroundColor3 = 'Accent' })
     local tabsFrame = Instance.new("ScrollingFrame")
     tabsFrame.Name = "Tabs"
-    tabsFrame.Size = UDim2.new(0, 129, 0, 401)
-    tabsFrame.Position = UDim2.new(0.026, 0, 0.111, 0)
+    tabsFrame.Size = UDim2.new(0, 129, 0, 385)
+    tabsFrame.Position = UDim2.new(0.026, 0, 0.12, 0)
     tabsFrame.BackgroundTransparency = 1
     tabsFrame.BorderSizePixel = 0
     tabsFrame.ScrollBarThickness = 0
@@ -1356,11 +1356,15 @@ function Library:CreateDropdown(module, options)
     local arrow = Instance.new("ImageLabel")
     arrow.Name = "Arrow"
     arrow.AnchorPoint = Vector2.new(0, 0.5)
-    arrow.Image = "rbxassetid://84232453189324"
+    arrow.Image = "rbxassetid://10747361219"
     arrow.BackgroundTransparency = 1
+    arrow.ImageColor3 = theme.Primary
+    arrow.ImageTransparency = 0.3
     arrow.Position = UDim2.new(0.91, 0, 0.5, 0)
-    arrow.Size = UDim2.new(0, 8, 0, 8)
+    arrow.Size = UDim2.new(0, 12, 0, 12)
+    arrow.ScaleType = Enum.ScaleType.Fit
     arrow.Parent = header
+    self:AddToRegistry(arrow, { ImageColor3 = 'Primary' })
     local optionsScrollFrame = Instance.new("ScrollingFrame")
     optionsScrollFrame.Name = "Options"
     optionsScrollFrame.ScrollBarImageColor3 = Color3.fromRGB(0, 0, 0)
@@ -1482,14 +1486,14 @@ function Library:CreateDropdown(module, options)
             Tween(module.optionsFrame, {Size = UDim2.new(0, 241, 0, module.elementHeight + module.multiplier)}, 0.5)
             Tween(dropdownFrame, {Size = UDim2.new(0, 207, 0, 42 + dropdown.size)}, 0.5)
             Tween(box, {Size = UDim2.new(0, 207, 0, 22 + dropdown.size)}, 0.5)
-            Tween(arrow, {Rotation = 180}, 0.5)
+            Tween(arrow, {Rotation = 180, ImageTransparency = 0}, 0.5)
         else
             module.multiplier = module.multiplier - dropdown.size
             Tween(module.frame, {Size = UDim2.new(0, 241, 0, 93 + module.elementHeight + module.multiplier)}, 0.5)
             Tween(module.optionsFrame, {Size = UDim2.new(0, 241, 0, module.elementHeight + module.multiplier)}, 0.5)
             Tween(dropdownFrame, {Size = UDim2.new(0, 207, 0, 42)}, 0.5)
             Tween(box, {Size = UDim2.new(0, 207, 0, 22)}, 0.5)
-            Tween(arrow, {Rotation = 0}, 0.5)
+            Tween(arrow, {Rotation = 0, ImageTransparency = 0.3}, 0.5)
         end
     end)
     UpdateText()
