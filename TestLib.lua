@@ -481,7 +481,7 @@ function Library:CreateUI()
     logo.TextTransparency = 0.2
     logo.TextXAlignment = Enum.TextXAlignment.Left
     logo.Size = UDim2.new(0, 100, 0, 20)
-    logo.Position = UDim2.new(0.065, 0, 0.055, 0)
+    logo.Position = UDim2.new(0.085, 0, 0.055, 0)
     logo.AnchorPoint = Vector2.new(0, 0.5)
     logo.BackgroundTransparency = 1
     logo.Parent = handler
