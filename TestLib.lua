@@ -988,6 +988,8 @@ function Library:CreateModule(tab, options)
         toggleCircle.Position = UDim2.fromScale(0.53, 0.5)
     end
     
+    local keybindConnection = nil
+    
     header.MouseButton1Click:Connect(function()
         module.state = not module.state
         local newSize = module.state and (93 + module.elementHeight + module.multiplier) or 93
@@ -999,6 +1001,12 @@ function Library:CreateModule(tab, options)
         if gameProcessed then return end
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             SetState(not toggleData.Value)
+            if toggleData.Value and not module.state then
+                module.state = true
+                local newSize = 93 + module.elementHeight + module.multiplier
+                Tween(moduleFrame, {Size = UDim2.new(0, 241, 0, newSize)}, 0.5)
+                Tween(optionsFrame, {Size = UDim2.new(0, 241, 0, module.elementHeight + module.multiplier)}, 0.5)
+            end
         end
     end)
     
@@ -1019,6 +1027,10 @@ function Library:CreateModule(tab, options)
             if keyInput.KeyCode == Enum.KeyCode.Backspace then
                 keybindLabel.Text = "None"
                 keybindFrame.Size = UDim2.new(0, 33, 0, 15)
+                if keybindConnection then
+                    keybindConnection:Disconnect()
+                    keybindConnection = nil
+                end
                 return
             end
             local keycodeStr = tostring(keyInput.KeyCode)
@@ -1026,10 +1038,23 @@ function Library:CreateModule(tab, options)
             keybindLabel.Text = displayText
             local width = math.max(33, GetTextWidth(displayText, 10, Enum.Font.GothamBold) + 16)
             keybindFrame.Size = UDim2.new(0, width, 0, 15)
-            table.insert(self.connections, UserInputService.InputBegan:Connect(function(input2, gameProcessed2)
+            if keybindConnection then
+                keybindConnection:Disconnect()
+                keybindConnection = nil
+            end
+            keybindConnection = UserInputService.InputBegan:Connect(function(input2, gameProcessed2)
                 if gameProcessed2 then return end
-                if tostring(input2.KeyCode) == keycodeStr then SetState(not toggleData.Value) end
-            end))
+                if tostring(input2.KeyCode) == keycodeStr then
+                    SetState(not toggleData.Value)
+                    if toggleData.Value and not module.state then
+                        module.state = true
+                        local newSize = 93 + module.elementHeight + module.multiplier
+                        Tween(moduleFrame, {Size = UDim2.new(0, 241, 0, newSize)}, 0.5)
+                        Tween(optionsFrame, {Size = UDim2.new(0, 241, 0, module.elementHeight + module.multiplier)}, 0.5)
+                    end
+                end
+            end)
+            table.insert(self.connections, keybindConnection)
         end)
     end)
     module.SetState = SetState
@@ -1039,6 +1064,9 @@ function Library:CreateModule(tab, options)
             moduleFrame.Size = UDim2.new(0, 241, 0, newSize)
             optionsFrame.Size = UDim2.new(0, 241, 0, module.elementHeight + module.multiplier)
         end
+    end
+    module.RefreshSize = function()
+        module.UpdateSize()
     end
     if module.state then task.spawn(function() task.wait(0.1) module.UpdateSize() end) end
     table.insert(tab.modules, module)
