@@ -501,6 +501,15 @@ function Library:CreateUI()
         end
     end)
     logoIconButton.MouseButton1Click:Connect(function() self:ToggleUI() end)
+    local logoDivider = Instance.new("Frame")
+    logoDivider.Name = "LogoDivider"
+    logoDivider.Size = UDim2.new(0, 145, 0, 1)
+    logoDivider.Position = UDim2.new(0.0175, 0, 0.09, 0)
+    logoDivider.BackgroundColor3 = theme.Accent
+    logoDivider.BackgroundTransparency = 0.5
+    logoDivider.BorderSizePixel = 0
+    logoDivider.Parent = handler
+    self:AddToRegistry(logoDivider, { BackgroundColor3 = 'Accent' })
     local pin = Instance.new("Frame")
     pin.Name = "Pin"
     pin.Size = UDim2.new(0, 2, 0, 16)
@@ -2285,8 +2294,8 @@ function Library:CreateWatermark()
     watermarkGui.Parent = CoreGui
     local watermark = Instance.new("ImageButton")
     watermark.Name = "Watermark"
-    watermark.Size = UDim2.new(0, 45, 0, 45)
-    watermark.Position = UDim2.new(0.5, -22.5, 0, 10)
+    watermark.Size = UDim2.new(0, 32, 0, 32)
+    watermark.Position = UDim2.new(0.5, -16, 0, 10)
     watermark.AnchorPoint = Vector2.new(0.5, 0)
     watermark.BackgroundColor3 = theme.Background
     watermark.BackgroundTransparency = 0.1
@@ -2299,7 +2308,7 @@ function Library:CreateWatermark()
     watermark.Parent = watermarkGui
     self:AddToRegistry(watermark, { BackgroundColor3 = 'Background', ImageColor3 = 'Primary' })
     local watermarkCorner = Instance.new("UICorner")
-    watermarkCorner.CornerRadius = UDim.new(1, 0)
+    watermarkCorner.CornerRadius = UDim.new(0, 6)
     watermarkCorner.Parent = watermark
     local watermarkStroke = Instance.new("UIStroke")
     watermarkStroke.Color = theme.Accent
