@@ -503,8 +503,8 @@ function Library:CreateUI()
     logoIconButton.MouseButton1Click:Connect(function() self:ToggleUI() end)
     local logoDivider = Instance.new("Frame")
     logoDivider.Name = "LogoDivider"
-    logoDivider.Size = UDim2.new(0, 150, 0, 1)
-    logoDivider.Position = UDim2.new(0.017, 0, 0.105, 0)
+    logoDivider.Size = UDim2.new(0, 155, 0, 1)
+    logoDivider.Position = UDim2.new(0.012, 0, 0.105, 0)
     logoDivider.BackgroundColor3 = theme.Accent
     logoDivider.BackgroundTransparency = 0.5
     logoDivider.BorderSizePixel = 0
@@ -632,8 +632,21 @@ function Library:CreateTab(name, icon)
     tabLabel.BackgroundTransparency = 1
     tabLabel.Parent = tabButton
     local labelGradient = Instance.new("UIGradient")
-    labelGradient.Color = ColorSequence.new{ ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)), ColorSequenceKeypoint.new(0.7, Color3.fromRGB(155, 155, 155)), ColorSequenceKeypoint.new(1, Color3.fromRGB(58, 58, 58)) }
+    labelGradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 150, 255)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 100, 200))
+    }
     labelGradient.Parent = tabLabel
+    task.spawn(function()
+        while tabLabel and tabLabel.Parent do
+            for i = 0, 360, 2 do
+                if not tabLabel or not tabLabel.Parent then break end
+                labelGradient.Rotation = i
+                task.wait(0.03)
+            end
+        end
+    end)
     local leftSection = Instance.new("ScrollingFrame")
     leftSection.Name = "LeftSection"
     leftSection.Size = UDim2.new(0, 243, 0, 445)
@@ -900,6 +913,22 @@ function Library:CreateModule(tab, options)
     moduleTitle.BackgroundTransparency = 1
     moduleTitle.Parent = header
     self:AddToRegistry(moduleTitle, { TextColor3 = 'Primary' })
+    local moduleTitleGradient = Instance.new("UIGradient")
+    moduleTitleGradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 150, 255)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 100, 200))
+    }
+    moduleTitleGradient.Parent = moduleTitle
+    task.spawn(function()
+        while moduleTitle and moduleTitle.Parent do
+            for i = 0, 360, 2 do
+                if not moduleTitle or not moduleTitle.Parent then break end
+                moduleTitleGradient.Rotation = i
+                task.wait(0.03)
+            end
+        end
+    end)
     local moduleDesc = Instance.new("TextLabel")
     moduleDesc.Name = "Description"
     moduleDesc.Text = module.description
@@ -914,11 +943,27 @@ function Library:CreateModule(tab, options)
     moduleDesc.BackgroundTransparency = 1
     moduleDesc.Parent = header
     self:AddToRegistry(moduleDesc, { TextColor3 = 'Primary' })
+    local moduleDescGradient = Instance.new("UIGradient")
+    moduleDescGradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 150, 255)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 100, 200))
+    }
+    moduleDescGradient.Parent = moduleDesc
+    task.spawn(function()
+        while moduleDesc and moduleDesc.Parent do
+            for i = 0, 360, 2 do
+                if not moduleDesc or not moduleDesc.Parent then break end
+                moduleDescGradient.Rotation = i
+                task.wait(0.03)
+            end
+        end
+    end)
     local decorIcon = Instance.new("ImageLabel")
     decorIcon.Name = "DecorIcon"
-    decorIcon.Image = "rbxassetid://87928148430878"
-    decorIcon.Size = UDim2.new(0, 16, 0, 16)
-    decorIcon.Position = UDim2.new(0.88, 0, 0.757, 0)
+    decorIcon.Image = "rbxassetid://10747361219"
+    decorIcon.Size = UDim2.new(0, 18, 0, 18)
+    decorIcon.Position = UDim2.new(0.89, 0, 0.23, 0)
     decorIcon.AnchorPoint = Vector2.new(0.5, 0.5)
     decorIcon.BackgroundTransparency = 1
     decorIcon.ImageColor3 = theme.Primary
