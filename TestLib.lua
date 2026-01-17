@@ -171,37 +171,6 @@ do
         local path = self.Folder .. '/settings/autoload.txt'
         if isfile(path) then delfile(path) end
     end
-    function SaveManager:GetAutosaveEnabled()
-        if isfile(self.Folder .. '/settings/autosave_enabled.txt') then
-            return readfile(self.Folder .. '/settings/autosave_enabled.txt') == 'true'
-        end
-        return false
-    end
-    function SaveManager:SetAutosaveEnabled(enabled)
-        writefile(self.Folder .. '/settings/autosave_enabled.txt', tostring(enabled))
-    end
-    function SaveManager:GetAutosaveConfig()
-        if isfile(self.Folder .. '/settings/autosave_config.txt') then
-            return readfile(self.Folder .. '/settings/autosave_config.txt')
-        end
-        return nil
-    end
-    function SaveManager:SetAutosaveConfig(name)
-        writefile(self.Folder .. '/settings/autosave_config.txt', name)
-    end
-    function SaveManager:LoadAutosaveConfig()
-        if self:GetAutosaveEnabled() then
-            local name = self:GetAutosaveConfig()
-            if name and name ~= "" then
-                local success, err = self:Load(name)
-                if success then
-                    if self.Library then self.Library:SendNotification({ title = 'Config', text = 'Auto loaded: ' .. name, duration = 3 }) end
-                else
-                    if self.Library then self.Library:SendNotification({ title = 'Config', text = 'Failed to auto load: ' .. tostring(err), duration = 3 }) end
-                end
-            end
-        end
-    end
     SaveManager:BuildFolderTree()
 end
 
@@ -507,7 +476,7 @@ function Library:CreateUI()
     logoIconButton.Name = "Icon"
     logoIconButton.Image = "rbxassetid://107819132007001"
     logoIconButton.Size = UDim2.new(0, 24, 0, 24)
-    logoIconButton.Position = UDim2.new(0.025, 0, 0.055, 0)
+    logoIconButton.Position = UDim2.new(0.015, 0, 0.055, 0)
     logoIconButton.AnchorPoint = Vector2.new(0, 0.5)
     logoIconButton.BackgroundTransparency = 1
     logoIconButton.ImageColor3 = theme.Primary
@@ -607,7 +576,6 @@ end
 function Library:Load()
     self:CreateWatermark()
     SaveManager:LoadAutoloadConfig()
-    SaveManager:LoadAutosaveConfig()
 end
 
 function Library:CreateTab(name, icon)
@@ -786,44 +754,6 @@ function Library:CreateSettingsTab()
         if name and name ~= "" then SaveManager:SetAutoloadConfig(name) self:SendNotification({ title = 'Config', text = 'Set autoload: ' .. name, duration = 3 }) UpdateAutoloadLabel() end
     end })
     configModule:CreateButton({ title = "Delete Autoload", callback = function() SaveManager:DeleteAutoloadConfig() self:SendNotification({ title = 'Config', text = 'Removed autoload', duration = 3 }) UpdateAutoloadLabel() end })
-    local autosaveDebounce = nil
-    configModule:CreateCheckbox({ title = "Auto Save", flag = "ConfigAutoSave", default = SaveManager:GetAutosaveEnabled(), callback = function(value)
-        SaveManager:SetAutosaveEnabled(value)
-        if value then
-            local configName = "autosave"
-            SaveManager:SetAutosaveConfig(configName)
-            SaveManager:Save(configName)
-            self:SendNotification({ title = 'Config', text = 'Autosave enabled', duration = 3 })
-            local function OnSettingChanged()
-                if autosaveDebounce then task.cancel(autosaveDebounce) end
-                autosaveDebounce = task.delay(2, function()
-                    SaveManager:Save(configName)
-                end)
-            end
-            for idx, toggle in pairs(Toggles) do
-                if idx ~= "ConfigAutoSave" then
-                    local oldSetValue = toggle.SetValue
-                    toggle.SetValue = function(self2, val)
-                        oldSetValue(self2, val)
-                        OnSettingChanged()
-                    end
-                end
-            end
-            for idx, option in pairs(Options) do
-                if not idx:match("^SaveManager_") and not idx:match("^ThemeManager_") and not idx:match("^_UI_") then
-                    local oldSetValue = option.SetValue
-                    if oldSetValue then
-                        option.SetValue = function(self2, val)
-                            oldSetValue(self2, val)
-                            OnSettingChanged()
-                        end
-                    end
-                end
-            end
-        else
-            self:SendNotification({ title = 'Config', text = 'Autosave disabled', duration = 3 })
-        end
-    end })
     local uiModule = settingsTab:CreateModule({ title = "UI Settings", description = "Customize your UI", section = "right" })
     uiModule:CreateKeybind({ title = "Toggle UI", flag = "_UI_Toggle", callback = function(key) self:SetUIKeybind(key) end })
     uiModule:CreateDropdown({ title = "Font", flag = "_UI_Font", options = self.Fonts, callback = function(font) self:SetFont(font) end })
@@ -1512,7 +1442,7 @@ function Library:CreateDropdown(module, options)
         optionButton.TextSize = 10
         optionButton.Size = UDim2.new(0, 186, 0, 16)
         optionButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-        optionButton.Text = option
+        optionButton.Text = "    " .. option
         optionButton.AutoButtonColor = false
         optionButton.BackgroundTransparency = 1
         optionButton.TextXAlignment = Enum.TextXAlignment.Left
@@ -1521,6 +1451,19 @@ function Library:CreateDropdown(module, options)
         local optGradient = Instance.new("UIGradient")
         optGradient.Transparency = NumberSequence.new{ NumberSequenceKeypoint.new(0, 0), NumberSequenceKeypoint.new(0.7, 0), NumberSequenceKeypoint.new(0.87, 0.36), NumberSequenceKeypoint.new(1, 1) }
         optGradient.Parent = optionButton
+        local dot = Instance.new("Frame")
+        dot.Name = "Dot"
+        dot.Size = UDim2.new(0, 4, 0, 4)
+        dot.Position = UDim2.new(0, 5, 0.5, 0)
+        dot.AnchorPoint = Vector2.new(0, 0.5)
+        dot.BackgroundColor3 = self.currentTheme.Primary
+        dot.BorderSizePixel = 0
+        dot.BackgroundTransparency = 1
+        dot.Parent = optionButton
+        self:AddToRegistry(dot, { BackgroundColor3 = 'Primary' })
+        local dotCorner = Instance.new("UICorner")
+        dotCorner.CornerRadius = UDim.new(1, 0)
+        dotCorner.Parent = dot
         local function UpdateOptionAppearance()
             local isSelected = false
             if dropdown.multi then
@@ -1529,8 +1472,15 @@ function Library:CreateDropdown(module, options)
                 end
             else isSelected = (dropdown.selected == option) end
             local t = self.currentTheme
-            if isSelected then optionButton.TextTransparency = 0.2 optionButton.TextColor3 = t.Primary
-            else optionButton.TextTransparency = 0.7 optionButton.TextColor3 = t.Text end
+            if isSelected then
+                Tween(optionButton, {TextTransparency = 0.2}, 0.3)
+                optionButton.TextColor3 = t.Primary
+                Tween(dot, {BackgroundTransparency = 0}, 0.3)
+            else
+                Tween(optionButton, {TextTransparency = 0.7}, 0.3)
+                optionButton.TextColor3 = t.Text
+                Tween(dot, {BackgroundTransparency = 1}, 0.3)
+            end
         end
         table.insert(dropdown.updateFunctions, UpdateOptionAppearance)
         UpdateOptionAppearance()
