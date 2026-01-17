@@ -457,9 +457,9 @@ function Library:CreateUI()
     self:AddToRegistry(logo, { TextColor3 = 'Primary' })
     local logoGradient = Instance.new("UIGradient")
     logoGradient.Color = ColorSequence.new{ 
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 150, 255)), 
+        ColorSequenceKeypoint.new(0, theme.Primary), 
         ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)), 
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 100, 200)) 
+        ColorSequenceKeypoint.new(1, theme.Accent) 
     }
     logoGradient.Parent = logo
     
@@ -486,9 +486,9 @@ function Library:CreateUI()
     self:AddToRegistry(logoIconButton, { ImageColor3 = 'Primary' })
     local logoIconGradient = Instance.new("UIGradient")
     logoIconGradient.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 150, 255)),
+        ColorSequenceKeypoint.new(0, theme.Primary),
         ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 100, 200))
+        ColorSequenceKeypoint.new(1, theme.Accent)
     }
     logoIconGradient.Parent = logoIconButton
     task.spawn(function()
@@ -633,9 +633,9 @@ function Library:CreateTab(name, icon)
     tabLabel.Parent = tabButton
     local labelGradient = Instance.new("UIGradient")
     labelGradient.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 150, 255)),
+        ColorSequenceKeypoint.new(0, theme.Primary),
         ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 100, 200))
+        ColorSequenceKeypoint.new(1, theme.Accent)
     }
     labelGradient.Parent = tabLabel
     task.spawn(function()
@@ -915,9 +915,9 @@ function Library:CreateModule(tab, options)
     self:AddToRegistry(moduleTitle, { TextColor3 = 'Primary' })
     local moduleTitleGradient = Instance.new("UIGradient")
     moduleTitleGradient.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 150, 255)),
+        ColorSequenceKeypoint.new(0, theme.Primary),
         ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 100, 200))
+        ColorSequenceKeypoint.new(1, theme.Accent)
     }
     moduleTitleGradient.Parent = moduleTitle
     task.spawn(function()
@@ -945,9 +945,9 @@ function Library:CreateModule(tab, options)
     self:AddToRegistry(moduleDesc, { TextColor3 = 'Primary' })
     local moduleDescGradient = Instance.new("UIGradient")
     moduleDescGradient.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 150, 255)),
-        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 100, 200))
+        ColorSequenceKeypoint.new(0, theme.Primary),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(200, 200, 200)),
+        ColorSequenceKeypoint.new(1, theme.Accent)
     }
     moduleDescGradient.Parent = moduleDesc
     task.spawn(function()
@@ -1041,9 +1041,9 @@ function Library:CreateModule(tab, options)
         Tween(moduleFrame, {Size = UDim2.new(0, 241, 0, newSize)}, 0.5)
         Tween(optionsFrame, {Size = UDim2.new(0, 241, 0, module.state and (module.elementHeight + module.multiplier) or 0)}, 0.5)
         if module.state then
-            Tween(decorIcon, {ImageTransparency = 0}, 0.3)
+            Tween(decorIcon, {ImageTransparency = 0, Rotation = 360}, 0.5)
         else
-            Tween(decorIcon, {ImageTransparency = 0.3}, 0.3)
+            Tween(decorIcon, {ImageTransparency = 0.3, Rotation = 0}, 0.5)
         end
     end)
     
@@ -2367,9 +2367,9 @@ function Library:CreateWatermark()
     self:AddToRegistry(watermarkStroke, { Color = 'Accent' })
     local iconGradient = Instance.new("UIGradient")
     iconGradient.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 150, 255)),
+        ColorSequenceKeypoint.new(0, theme.Primary),
         ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 100, 200))
+        ColorSequenceKeypoint.new(1, theme.Accent)
     }
     iconGradient.Parent = watermark
     task.spawn(function()
