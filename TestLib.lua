@@ -1454,7 +1454,7 @@ function Library:CreateDropdown(module, options)
         local dot = Instance.new("Frame")
         dot.Name = "Dot"
         dot.Size = UDim2.new(0, 4, 0, 4)
-        dot.Position = UDim2.new(0, 5, 0.5, 0)
+        dot.Position = UDim2.new(0, 2, 0.5, 0)
         dot.AnchorPoint = Vector2.new(0, 0.5)
         dot.BackgroundColor3 = self.currentTheme.Primary
         dot.BorderSizePixel = 0
@@ -2319,19 +2319,23 @@ function Library:CreateWatermark()
     watermarkGui.ResetOnSpawn = false
     watermarkGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     watermarkGui.Parent = CoreGui
-    local watermark = Instance.new("Frame")
+    local watermark = Instance.new("ImageButton")
     watermark.Name = "Watermark"
-    watermark.Size = UDim2.new(0, 200, 0, 35)
-    watermark.Position = UDim2.new(0.5, -100, 0, 10)
+    watermark.Size = UDim2.new(0, 45, 0, 45)
+    watermark.Position = UDim2.new(0.5, -22.5, 0, 10)
     watermark.AnchorPoint = Vector2.new(0.5, 0)
     watermark.BackgroundColor3 = theme.Background
     watermark.BackgroundTransparency = 0.1
     watermark.BorderSizePixel = 0
     watermark.Visible = false
+    watermark.AutoButtonColor = false
+    watermark.Image = "rbxassetid://107819132007001"
+    watermark.ImageColor3 = theme.Primary
+    watermark.ScaleType = Enum.ScaleType.Fit
     watermark.Parent = watermarkGui
-    self:AddToRegistry(watermark, { BackgroundColor3 = 'Background' })
+    self:AddToRegistry(watermark, { BackgroundColor3 = 'Background', ImageColor3 = 'Primary' })
     local watermarkCorner = Instance.new("UICorner")
-    watermarkCorner.CornerRadius = UDim.new(0, 8)
+    watermarkCorner.CornerRadius = UDim.new(1, 0)
     watermarkCorner.Parent = watermark
     local watermarkStroke = Instance.new("UIStroke")
     watermarkStroke.Color = theme.Accent
@@ -2339,70 +2343,24 @@ function Library:CreateWatermark()
     watermarkStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     watermarkStroke.Parent = watermark
     self:AddToRegistry(watermarkStroke, { Color = 'Accent' })
-    local iconButton = Instance.new("ImageButton")
-    iconButton.Name = "Icon"
-    iconButton.Image = "rbxassetid://107819132007001"
-    iconButton.Size = UDim2.new(0, 20, 0, 20)
-    iconButton.Position = UDim2.new(0, 8, 0.5, 0)
-    iconButton.AnchorPoint = Vector2.new(0, 0.5)
-    iconButton.BackgroundTransparency = 1
-    iconButton.ImageColor3 = theme.Primary
-    iconButton.ScaleType = Enum.ScaleType.Fit
-    iconButton.AutoButtonColor = false
-    iconButton.Parent = watermark
-    self:AddToRegistry(iconButton, { ImageColor3 = 'Primary' })
-    local watermarkLabel = Instance.new("TextLabel")
-    watermarkLabel.Name = "Label"
-    watermarkLabel.Text = "FPS: 60 | Ping: 0ms | 00:00"
-    watermarkLabel.Font = Enum.Font.GothamBold
-    watermarkLabel.TextSize = 12
-    watermarkLabel.TextColor3 = theme.Text
-    watermarkLabel.TextTransparency = 0.1
-    watermarkLabel.TextXAlignment = Enum.TextXAlignment.Left
-    watermarkLabel.Size = UDim2.new(1, -40, 1, 0)
-    watermarkLabel.Position = UDim2.new(0, 35, 0, 0)
-    watermarkLabel.BackgroundTransparency = 1
-    watermarkLabel.Parent = watermark
-    self:AddToRegistry(watermarkLabel, { TextColor3 = 'Text' })
-    local isDragged = false
-    local savedPosition = nil
-    local function UpdateWatermarkSize()
-        local textWidth = GetTextWidth(watermarkLabel.Text, 12, Enum.Font.GothamBold)
-        local totalWidth = textWidth + 50
-        local oldSize = watermark.Size
-        watermark.Size = UDim2.new(0, totalWidth, 0, 35)
-        if not isDragged then
-            watermark.Position = UDim2.new(0.5, -totalWidth / 2, 0, 10)
-        elseif savedPosition then
-            local widthDiff = totalWidth - oldSize.X.Offset
-            watermark.Position = UDim2.new(savedPosition.X.Scale, savedPosition.X.Offset - widthDiff / 2, savedPosition.Y.Scale, savedPosition.Y.Offset)
-            savedPosition = watermark.Position
-        end
-    end
-    local function UpdateWatermarkText()
-        local fps = math.floor(1 / RunService.RenderStepped:Wait())
-        local ping = math.floor(Players.LocalPlayer:GetNetworkPing() * 1000)
-        local time = os.date("%H:%M")
-        watermarkLabel.Text = string.format("FPS: %d | Ping: %dms | %s", fps, ping, time)
-        UpdateWatermarkSize()
-    end
-    iconButton.MouseButton1Click:Connect(function()
-        self:ToggleUI()
-    end)
-    self.watermark = watermarkGui
-    self.watermarkFrame = watermark
-    self.watermarkLabel = watermarkLabel
-    self.watermarkIcon = iconButton
-    self.updateWatermarkText = UpdateWatermarkText
-    local lastUpdate = 0
-    RunService.RenderStepped:Connect(function()
-        if watermark.Visible then
-            local now = tick()
-            if now - lastUpdate >= 1 then
-                UpdateWatermarkText()
-                lastUpdate = now
+    local iconGradient = Instance.new("UIGradient")
+    iconGradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 150, 255)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 100, 200))
+    }
+    iconGradient.Parent = watermark
+    task.spawn(function()
+        while watermark and watermark.Parent do
+            for i = 0, 360, 2 do
+                if not watermark or not watermark.Parent then break end
+                iconGradient.Rotation = i
+                task.wait(0.03)
             end
         end
+    end)
+    watermark.MouseButton1Click:Connect(function()
+        self:ToggleUI()
     end)
     local dragging = false
     local dragStart = nil
@@ -2412,22 +2370,22 @@ function Library:CreateWatermark()
             dragging = true
             dragStart = input.Position
             startPos = watermark.Position
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragging = false
-                    isDragged = true
-                    savedPosition = watermark.Position
-                end
-            end)
+        end
+    end)
+    watermark.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
         end
     end)
     UserInputService.InputChanged:Connect(function(input)
         if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
             local delta = input.Position - dragStart
             local newPos = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-            watermark.Position = newPos
+            Tween(watermark, {Position = newPos}, 0.1)
         end
     end)
+    self.watermark = watermarkGui
+    self.watermarkFrame = watermark
 end
 function Library:ToggleUI()
     self.uiVisible = not self.uiVisible
@@ -2439,30 +2397,14 @@ function Library:ToggleUI()
     end
 end
 function Library:Unload()
-    for _, connection in ipairs(self.connections) do
-        if connection and typeof(connection) == "RBXScriptConnection" then
-            pcall(function() connection:Disconnect() end)
-        end
-    end
-    if self.uiKeybindConnection then
-        pcall(function() self.uiKeybindConnection:Disconnect() end)
-    end
     if self.ui then
-        pcall(function() self.ui:Destroy() end)
+        self.ui:Destroy()
     end
     if self.notificationGui then
-        pcall(function() self.notificationGui:Destroy() end)
+        self.notificationGui:Destroy()
     end
     if self.watermark then
-        pcall(function() self.watermark:Destroy() end)
-    end
-    for k in pairs(Toggles) do Toggles[k] = nil end
-    for k in pairs(Options) do Options[k] = nil end
-    if self.Registry then
-        for k in pairs(self.Registry) do self.Registry[k] = nil end
-    end
-    if self.RegistryMap then
-        for k in pairs(self.RegistryMap) do self.RegistryMap[k] = nil end
+        self.watermark:Destroy()
     end
 end
 return { Library = Library, SaveManager = SaveManager, ThemeManager = ThemeManager, Toggles = Toggles, Options = Options }
