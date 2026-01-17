@@ -456,8 +456,22 @@ function Library:CreateUI()
     logo.Parent = handler
     self:AddToRegistry(logo, { TextColor3 = 'Primary' })
     local logoGradient = Instance.new("UIGradient")
-    logoGradient.Color = ColorSequence.new{ ColorSequenceKeypoint.new(0, Color3.fromRGB(155, 155, 155)), ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255)) }
+    logoGradient.Color = ColorSequence.new{ 
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 150, 255)), 
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)), 
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 100, 200)) 
+    }
     logoGradient.Parent = logo
+    
+    task.spawn(function()
+        while true do
+            for i = 0, 360, 2 do
+                if not logo or not logo.Parent then break end
+                logoGradient.Rotation = i
+                task.wait(0.03)
+            end
+        end
+    end)
     local logoIconButton = Instance.new("ImageButton")
     logoIconButton.Name = "Icon"
     logoIconButton.Image = "rbxassetid://107819132007001"
