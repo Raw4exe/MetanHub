@@ -474,14 +474,14 @@ function Library:CreateUI()
     handler.Parent = container
     local logo = Instance.new("TextLabel")
     logo.Name = "Logo"
-    logo.Text = "Metan"
+    logo.Text = "METAN"
     logo.Font = self.currentFont
     logo.TextSize = 20
     logo.TextColor3 = theme.Primary
     logo.TextTransparency = 0.2
     logo.TextXAlignment = Enum.TextXAlignment.Left
     logo.Size = UDim2.new(0, 100, 0, 20)
-    logo.Position = UDim2.new(0.056, 0, 0.055, 0)
+    logo.Position = UDim2.new(0.065, 0, 0.055, 0)
     logo.AnchorPoint = Vector2.new(0, 0.5)
     logo.BackgroundTransparency = 1
     logo.Parent = handler
