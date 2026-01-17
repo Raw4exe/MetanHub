@@ -503,8 +503,8 @@ function Library:CreateUI()
     logoIconButton.MouseButton1Click:Connect(function() self:ToggleUI() end)
     local logoDivider = Instance.new("Frame")
     logoDivider.Name = "LogoDivider"
-    logoDivider.Size = UDim2.new(0, 135, 0, 1)
-    logoDivider.Position = UDim2.new(0.0245, 0, 0.095, 0)
+    logoDivider.Size = UDim2.new(0, 150, 0, 1)
+    logoDivider.Position = UDim2.new(0.017, 0, 0.105, 0)
     logoDivider.BackgroundColor3 = theme.Accent
     logoDivider.BackgroundTransparency = 0.5
     logoDivider.BorderSizePixel = 0
@@ -513,7 +513,7 @@ function Library:CreateUI()
     local pin = Instance.new("Frame")
     pin.Name = "Pin"
     pin.Size = UDim2.new(0, 2, 0, 16)
-    pin.Position = UDim2.new(0.026, 0, 0.145, 0)
+    pin.Position = UDim2.new(0.026, 0, 0.155, 0)
     pin.BackgroundColor3 = theme.Primary
     pin.BorderSizePixel = 0
     pin.Parent = handler
@@ -532,8 +532,8 @@ function Library:CreateUI()
     self:AddToRegistry(divider, { BackgroundColor3 = 'Accent' })
     local tabsFrame = Instance.new("ScrollingFrame")
     tabsFrame.Name = "Tabs"
-    tabsFrame.Size = UDim2.new(0, 129, 0, 385)
-    tabsFrame.Position = UDim2.new(0.026, 0, 0.12, 0)
+    tabsFrame.Size = UDim2.new(0, 129, 0, 375)
+    tabsFrame.Position = UDim2.new(0.026, 0, 0.13, 0)
     tabsFrame.BackgroundTransparency = 1
     tabsFrame.BorderSizePixel = 0
     tabsFrame.ScrollBarThickness = 0
@@ -703,7 +703,7 @@ function Library:SelectTab(tab)
             Tween(label, {TextTransparency = 0.2, TextColor3 = theme.Primary}, 0.5)
             Tween(label.UIGradient, {Offset = Vector2.new(1, 0)}, 0.5)
             local offset = (i - 1) * (0.113 / 1.3)
-            Tween(self.pin, {Position = UDim2.fromScale(0.026, 0.135 + offset)}, 0.5)
+            Tween(self.pin, {Position = UDim2.fromScale(0.026, 0.155 + offset)}, 0.5)
         else
             Tween(button, {BackgroundTransparency = 1}, 0.5)
             Tween(icon, {ImageTransparency = 0.8, ImageColor3 = Color3.fromRGB(255, 255, 255)}, 0.5)
