@@ -501,6 +501,8 @@ function Library:CreateUI()
         end
     end)
     logoIconButton.MouseButton1Click:Connect(function() self:ToggleUI() end)
+    self.logoIcon = logoIconButton
+    self.logoText = logo
     local pin = Instance.new("Frame")
     pin.Name = "Pin"
     pin.Size = UDim2.new(0, 2, 0, 16)
@@ -757,6 +759,30 @@ function Library:CreateSettingsTab()
     local uiModule = settingsTab:CreateModule({ title = "UI Settings", description = "Customize your UI", section = "right" })
     uiModule:CreateKeybind({ title = "Toggle UI", flag = "_UI_Toggle", callback = function(key) self:SetUIKeybind(key) end })
     uiModule:CreateDropdown({ title = "Font", flag = "_UI_Font", options = self.Fonts, callback = function(font) self:SetFont(font) end })
+    uiModule:CreateSlider({ title = "Icon X Position", flag = "_UI_IconX", minimum_value = 0, maximum_value = 100, value = 3.5, round_number = false, callback = function(value)
+        if self.logoIcon then
+            local currentPos = self.logoIcon.Position
+            self.logoIcon.Position = UDim2.new(value / 100, 0, currentPos.Y.Scale, currentPos.Y.Offset)
+        end
+    end })
+    uiModule:CreateSlider({ title = "Icon Y Position", flag = "_UI_IconY", minimum_value = 0, maximum_value = 100, value = 5.5, round_number = false, callback = function(value)
+        if self.logoIcon then
+            local currentPos = self.logoIcon.Position
+            self.logoIcon.Position = UDim2.new(currentPos.X.Scale, currentPos.X.Offset, value / 100, 0)
+        end
+    end })
+    uiModule:CreateSlider({ title = "Text X Position", flag = "_UI_TextX", minimum_value = 0, maximum_value = 100, value = 8.5, round_number = false, callback = function(value)
+        if self.logoText then
+            local currentPos = self.logoText.Position
+            self.logoText.Position = UDim2.new(value / 100, 0, currentPos.Y.Scale, currentPos.Y.Offset)
+        end
+    end })
+    uiModule:CreateSlider({ title = "Text Y Position", flag = "_UI_TextY", minimum_value = 0, maximum_value = 100, value = 5.5, round_number = false, callback = function(value)
+        if self.logoText then
+            local currentPos = self.logoText.Position
+            self.logoText.Position = UDim2.new(currentPos.X.Scale, currentPos.X.Offset, value / 100, 0)
+        end
+    end })
     uiModule:CreateButton({ title = "Unload UI", callback = function() self:Unload() end })
     local themeModule = settingsTab:CreateModule({ title = "Themes", description = "Manage themes", section = "left" })
     local themeListDropdown, customThemeListDropdown, customThemeNameInput, autoloadThemeLabel
