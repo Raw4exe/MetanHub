@@ -450,7 +450,7 @@ function Library:CreateUI()
     logo.TextTransparency = 0.2
     logo.TextXAlignment = Enum.TextXAlignment.Left
     logo.Size = UDim2.new(0, 100, 0, 20)
-    logo.Position = UDim2.new(0.085, 0, 0.055, 0)
+    logo.Position = UDim2.new(0.067, 0, 0.055, 0)
     logo.AnchorPoint = Vector2.new(0, 0.5)
     logo.BackgroundTransparency = 1
     logo.Parent = handler
@@ -476,7 +476,7 @@ function Library:CreateUI()
     logoIconButton.Name = "Icon"
     logoIconButton.Image = "rbxassetid://107819132007001"
     logoIconButton.Size = UDim2.new(0, 24, 0, 24)
-    logoIconButton.Position = UDim2.new(0.035, 0, 0.055, 0)
+    logoIconButton.Position = UDim2.new(0.024, 0, 0.058, 0)
     logoIconButton.AnchorPoint = Vector2.new(0, 0.5)
     logoIconButton.BackgroundTransparency = 1
     logoIconButton.ImageColor3 = theme.Primary
@@ -501,8 +501,6 @@ function Library:CreateUI()
         end
     end)
     logoIconButton.MouseButton1Click:Connect(function() self:ToggleUI() end)
-    self.logoIcon = logoIconButton
-    self.logoText = logo
     local pin = Instance.new("Frame")
     pin.Name = "Pin"
     pin.Size = UDim2.new(0, 2, 0, 16)
@@ -759,30 +757,6 @@ function Library:CreateSettingsTab()
     local uiModule = settingsTab:CreateModule({ title = "UI Settings", description = "Customize your UI", section = "right" })
     uiModule:CreateKeybind({ title = "Toggle UI", flag = "_UI_Toggle", callback = function(key) self:SetUIKeybind(key) end })
     uiModule:CreateDropdown({ title = "Font", flag = "_UI_Font", options = self.Fonts, callback = function(font) self:SetFont(font) end })
-    uiModule:CreateSlider({ title = "Icon X Position", flag = "_UI_IconX", minimum_value = 0, maximum_value = 100, value = 3.5, round_number = false, callback = function(value)
-        if self.logoIcon then
-            local currentPos = self.logoIcon.Position
-            self.logoIcon.Position = UDim2.new(value / 100, 0, currentPos.Y.Scale, currentPos.Y.Offset)
-        end
-    end })
-    uiModule:CreateSlider({ title = "Icon Y Position", flag = "_UI_IconY", minimum_value = 0, maximum_value = 100, value = 5.5, round_number = false, callback = function(value)
-        if self.logoIcon then
-            local currentPos = self.logoIcon.Position
-            self.logoIcon.Position = UDim2.new(currentPos.X.Scale, currentPos.X.Offset, value / 100, 0)
-        end
-    end })
-    uiModule:CreateSlider({ title = "Text X Position", flag = "_UI_TextX", minimum_value = 0, maximum_value = 100, value = 8.5, round_number = false, callback = function(value)
-        if self.logoText then
-            local currentPos = self.logoText.Position
-            self.logoText.Position = UDim2.new(value / 100, 0, currentPos.Y.Scale, currentPos.Y.Offset)
-        end
-    end })
-    uiModule:CreateSlider({ title = "Text Y Position", flag = "_UI_TextY", minimum_value = 0, maximum_value = 100, value = 5.5, round_number = false, callback = function(value)
-        if self.logoText then
-            local currentPos = self.logoText.Position
-            self.logoText.Position = UDim2.new(currentPos.X.Scale, currentPos.X.Offset, value / 100, 0)
-        end
-    end })
     uiModule:CreateButton({ title = "Unload UI", callback = function() self:Unload() end })
     local themeModule = settingsTab:CreateModule({ title = "Themes", description = "Manage themes", section = "left" })
     local themeListDropdown, customThemeListDropdown, customThemeNameInput, autoloadThemeLabel
@@ -2466,15 +2440,29 @@ function Library:ToggleUI()
 end
 function Library:Unload()
     for _, connection in ipairs(self.connections) do
-        if connection and connection.Connected then connection:Disconnect() end
+        if connection and typeof(connection) == "RBXScriptConnection" then
+            pcall(function() connection:Disconnect() end)
+        end
     end
-    if self.uiKeybindConnection then self.uiKeybindConnection:Disconnect() end
-    if self.ui then self.ui:Destroy() end
-    if self.notificationGui then self.notificationGui:Destroy() end
-    if self.watermark then self.watermark:Destroy() end
+    if self.uiKeybindConnection then
+        pcall(function() self.uiKeybindConnection:Disconnect() end)
+    end
+    if self.ui then
+        pcall(function() self.ui:Destroy() end)
+    end
+    if self.notificationGui then
+        pcall(function() self.notificationGui:Destroy() end)
+    end
+    if self.watermark then
+        pcall(function() self.watermark:Destroy() end)
+    end
     for k in pairs(Toggles) do Toggles[k] = nil end
     for k in pairs(Options) do Options[k] = nil end
-    self.Registry = {}
-    self.RegistryMap = {}
+    if self.Registry then
+        for k in pairs(self.Registry) do self.Registry[k] = nil end
+    end
+    if self.RegistryMap then
+        for k in pairs(self.RegistryMap) do self.RegistryMap[k] = nil end
+    end
 end
 return { Library = Library, SaveManager = SaveManager, ThemeManager = ThemeManager, Toggles = Toggles, Options = Options }
