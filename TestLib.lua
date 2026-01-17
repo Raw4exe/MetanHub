@@ -987,10 +987,24 @@ function Library:CreateModule(tab, options)
         toggleCircle.BackgroundTransparency = 0
         toggleCircle.Position = UDim2.fromScale(0.53, 0.5)
     end
-    header.MouseButton1Click:Connect(function() SetState(not module.state) end)
-    header.InputBegan:Connect(function(input, gameProcessed)
+    
+    header.MouseButton1Click:Connect(function()
+        module.state = not module.state
+        local newSize = module.state and (93 + module.elementHeight + module.multiplier) or 93
+        Tween(moduleFrame, {Size = UDim2.new(0, 241, 0, newSize)}, 0.5)
+        Tween(optionsFrame, {Size = UDim2.new(0, 241, 0, module.elementHeight + module.multiplier)}, 0.5)
+    end)
+    
+    toggleFrame.InputBegan:Connect(function(input, gameProcessed)
         if gameProcessed then return end
-        if input.UserInputType ~= Enum.UserInputType.MouseButton3 then return end
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            SetState(not toggleData.Value)
+        end
+    end)
+    
+    keybindFrame.InputBegan:Connect(function(input, gameProcessed)
+        if gameProcessed then return end
+        if input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
         if self.choosingKeybind then return end
         self.choosingKeybind = true
         keybindLabel.Text = "..."
@@ -1014,7 +1028,7 @@ function Library:CreateModule(tab, options)
             keybindFrame.Size = UDim2.new(0, width, 0, 15)
             table.insert(self.connections, UserInputService.InputBegan:Connect(function(input2, gameProcessed2)
                 if gameProcessed2 then return end
-                if tostring(input2.KeyCode) == keycodeStr then SetState(not module.state) end
+                if tostring(input2.KeyCode) == keycodeStr then SetState(not toggleData.Value) end
             end))
         end)
     end)
