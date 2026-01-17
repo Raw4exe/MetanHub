@@ -963,17 +963,19 @@ function Library:CreateModule(tab, options)
     module.toggleCircle = toggleCircle
     local toggleData = { Type = 'Toggle', Value = module.state }
     toggleData.SetValue = function(self2, value)
-        module.state = value
         toggleData.Value = value
         local currentTheme = module.library.currentTheme
         if value then
             Tween(toggleFrame, {BackgroundColor3 = currentTheme.Primary, BackgroundTransparency = 0.2}, 0.5)
             Tween(toggleCircle, {BackgroundColor3 = currentTheme.Text, BackgroundTransparency = 0, Position = UDim2.fromScale(0.53, 0.5)}, 0.5)
+            if not module.state then
+                module.state = true
+            end
         else
             Tween(toggleFrame, {BackgroundColor3 = currentTheme.Accent, BackgroundTransparency = 0.5}, 0.5)
             Tween(toggleCircle, {BackgroundColor3 = currentTheme.Text, BackgroundTransparency = 0.3, Position = UDim2.fromScale(0, 0.5)}, 0.5)
         end
-        local newSize = value and (93 + module.elementHeight + module.multiplier) or 93
+        local newSize = module.state and (93 + module.elementHeight + module.multiplier) or 93
         Tween(moduleFrame, {Size = UDim2.new(0, 241, 0, newSize)}, 0.5)
         Tween(optionsFrame, {Size = UDim2.new(0, 241, 0, module.elementHeight + module.multiplier)}, 0.5)
         task.spawn(function() module.callback(value) end)
@@ -1001,12 +1003,6 @@ function Library:CreateModule(tab, options)
         if gameProcessed then return end
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             SetState(not toggleData.Value)
-            if toggleData.Value and not module.state then
-                module.state = true
-                local newSize = 93 + module.elementHeight + module.multiplier
-                Tween(moduleFrame, {Size = UDim2.new(0, 241, 0, newSize)}, 0.5)
-                Tween(optionsFrame, {Size = UDim2.new(0, 241, 0, module.elementHeight + module.multiplier)}, 0.5)
-            end
         end
     end)
     
@@ -1046,12 +1042,6 @@ function Library:CreateModule(tab, options)
                 if gameProcessed2 then return end
                 if tostring(input2.KeyCode) == keycodeStr then
                     SetState(not toggleData.Value)
-                    if toggleData.Value and not module.state then
-                        module.state = true
-                        local newSize = 93 + module.elementHeight + module.multiplier
-                        Tween(moduleFrame, {Size = UDim2.new(0, 241, 0, newSize)}, 0.5)
-                        Tween(optionsFrame, {Size = UDim2.new(0, 241, 0, module.elementHeight + module.multiplier)}, 0.5)
-                    end
                 end
             end)
             table.insert(self.connections, keybindConnection)
