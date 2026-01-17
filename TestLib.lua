@@ -968,16 +968,14 @@ function Library:CreateModule(tab, options)
         if value then
             Tween(toggleFrame, {BackgroundColor3 = currentTheme.Primary, BackgroundTransparency = 0.2}, 0.5)
             Tween(toggleCircle, {BackgroundColor3 = currentTheme.Text, BackgroundTransparency = 0, Position = UDim2.fromScale(0.53, 0.5)}, 0.5)
-            if not module.state then
-                module.state = true
-            end
+            module.state = true
+            local newSize = 93 + module.elementHeight + module.multiplier
+            Tween(moduleFrame, {Size = UDim2.new(0, 241, 0, newSize)}, 0.5)
+            Tween(optionsFrame, {Size = UDim2.new(0, 241, 0, module.elementHeight + module.multiplier)}, 0.5)
         else
             Tween(toggleFrame, {BackgroundColor3 = currentTheme.Accent, BackgroundTransparency = 0.5}, 0.5)
             Tween(toggleCircle, {BackgroundColor3 = currentTheme.Text, BackgroundTransparency = 0.3, Position = UDim2.fromScale(0, 0.5)}, 0.5)
         end
-        local newSize = module.state and (93 + module.elementHeight + module.multiplier) or 93
-        Tween(moduleFrame, {Size = UDim2.new(0, 241, 0, newSize)}, 0.5)
-        Tween(optionsFrame, {Size = UDim2.new(0, 241, 0, module.elementHeight + module.multiplier)}, 0.5)
         task.spawn(function() module.callback(value) end)
     end
     Toggles[module.flag] = toggleData
@@ -993,10 +991,12 @@ function Library:CreateModule(tab, options)
     local keybindConnection = nil
     
     header.MouseButton1Click:Connect(function()
-        module.state = not module.state
-        local newSize = module.state and (93 + module.elementHeight + module.multiplier) or 93
-        Tween(moduleFrame, {Size = UDim2.new(0, 241, 0, newSize)}, 0.5)
-        Tween(optionsFrame, {Size = UDim2.new(0, 241, 0, module.elementHeight + module.multiplier)}, 0.5)
+        if not toggleData.Value then
+            module.state = not module.state
+            local newSize = module.state and (93 + module.elementHeight + module.multiplier) or 93
+            Tween(moduleFrame, {Size = UDim2.new(0, 241, 0, newSize)}, 0.5)
+            Tween(optionsFrame, {Size = UDim2.new(0, 241, 0, module.elementHeight + module.multiplier)}, 0.5)
+        end
     end)
     
     toggleFrame.InputBegan:Connect(function(input, gameProcessed)
