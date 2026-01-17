@@ -905,30 +905,18 @@ function Library:CreateModule(tab, options)
     moduleDesc.BackgroundTransparency = 1
     moduleDesc.Parent = header
     self:AddToRegistry(moduleDesc, { TextColor3 = 'Primary' })
-    local toggleFrame = Instance.new("Frame")
-    toggleFrame.Name = "Toggle"
-    toggleFrame.Size = UDim2.new(0, 25, 0, 12)
-    toggleFrame.Position = UDim2.new(0.82, 0, 0.757, 0)
-    toggleFrame.BackgroundColor3 = theme.Accent
-    toggleFrame.BackgroundTransparency = 0.5
-    toggleFrame.BorderSizePixel = 0
-    toggleFrame.Parent = header
-    local toggleCorner = Instance.new("UICorner")
-    toggleCorner.CornerRadius = UDim.new(1, 0)
-    toggleCorner.Parent = toggleFrame
-    local toggleCircle = Instance.new("Frame")
-    toggleCircle.Name = "Circle"
-    toggleCircle.Size = UDim2.new(0, 12, 0, 12)
-    toggleCircle.Position = UDim2.new(0, 0, 0.5, 0)
-    toggleCircle.AnchorPoint = Vector2.new(0, 0.5)
-    toggleCircle.BackgroundColor3 = theme.Text
-    toggleCircle.BackgroundTransparency = 0.3
-    toggleCircle.BorderSizePixel = 0
-    toggleCircle.Parent = toggleFrame
-    self:AddToRegistry(toggleCircle, { BackgroundColor3 = 'Text' })
-    local circleCorner = Instance.new("UICorner")
-    circleCorner.CornerRadius = UDim.new(1, 0)
-    circleCorner.Parent = toggleCircle
+    local decorIcon = Instance.new("ImageLabel")
+    decorIcon.Name = "DecorIcon"
+    decorIcon.Image = "rbxassetid://87928148430878"
+    decorIcon.Size = UDim2.new(0, 16, 0, 16)
+    decorIcon.Position = UDim2.new(0.88, 0, 0.757, 0)
+    decorIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+    decorIcon.BackgroundTransparency = 1
+    decorIcon.ImageColor3 = theme.Primary
+    decorIcon.ImageTransparency = 0.3
+    decorIcon.ScaleType = Enum.ScaleType.Fit
+    decorIcon.Parent = header
+    self:AddToRegistry(decorIcon, { ImageColor3 = 'Primary' })
     local keybindFrame = Instance.new("Frame")
     keybindFrame.Name = "Keybind"
     keybindFrame.Size = UDim2.new(0, 33, 0, 15)
@@ -989,50 +977,19 @@ function Library:CreateModule(tab, options)
     optionsLayout.Parent = optionsFrame
     module.frame = moduleFrame
     module.optionsFrame = optionsFrame
-    module.toggleFrame = toggleFrame
-    module.toggleCircle = toggleCircle
-    local toggleData = { Type = 'Toggle', Value = module.state }
-    toggleData.SetValue = function(self2, value)
-        toggleData.Value = value
-        local currentTheme = module.library.currentTheme
-        if value then
-            Tween(toggleFrame, {BackgroundColor3 = currentTheme.Primary, BackgroundTransparency = 0.2}, 0.5)
-            Tween(toggleCircle, {BackgroundColor3 = currentTheme.Text, BackgroundTransparency = 0, Position = UDim2.fromScale(0.53, 0.5)}, 0.5)
-            module.state = true
-            local newSize = 93 + module.elementHeight + module.multiplier
-            Tween(moduleFrame, {Size = UDim2.new(0, 241, 0, newSize)}, 0.5)
-            Tween(optionsFrame, {Size = UDim2.new(0, 241, 0, module.elementHeight + module.multiplier)}, 0.5)
-        else
-            Tween(toggleFrame, {BackgroundColor3 = currentTheme.Accent, BackgroundTransparency = 0.5}, 0.5)
-            Tween(toggleCircle, {BackgroundColor3 = currentTheme.Text, BackgroundTransparency = 0.3, Position = UDim2.fromScale(0, 0.5)}, 0.5)
-        end
-        task.spawn(function() module.callback(value) end)
-    end
-    Toggles[module.flag] = toggleData
-    local function SetState(state) toggleData:SetValue(state) end
-    if module.state then
-        toggleFrame.BackgroundColor3 = theme.Primary
-        toggleFrame.BackgroundTransparency = 0.2
-        toggleCircle.BackgroundColor3 = theme.Text
-        toggleCircle.BackgroundTransparency = 0
-        toggleCircle.Position = UDim2.fromScale(0.53, 0.5)
-    end
+    module.decorIcon = decorIcon
     
     local keybindConnection = nil
     
     header.MouseButton1Click:Connect(function()
-        if not toggleData.Value then
-            module.state = not module.state
-            local newSize = module.state and (93 + module.elementHeight + module.multiplier) or 93
-            Tween(moduleFrame, {Size = UDim2.new(0, 241, 0, newSize)}, 0.5)
-            Tween(optionsFrame, {Size = UDim2.new(0, 241, 0, module.elementHeight + module.multiplier)}, 0.5)
-        end
-    end)
-    
-    toggleFrame.InputBegan:Connect(function(input, gameProcessed)
-        if gameProcessed then return end
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            SetState(not toggleData.Value)
+        module.state = not module.state
+        local newSize = module.state and (93 + module.elementHeight + module.multiplier) or 93
+        Tween(moduleFrame, {Size = UDim2.new(0, 241, 0, newSize)}, 0.5)
+        Tween(optionsFrame, {Size = UDim2.new(0, 241, 0, module.state and (module.elementHeight + module.multiplier) or 0)}, 0.5)
+        if module.state then
+            Tween(decorIcon, {ImageTransparency = 0}, 0.3)
+        else
+            Tween(decorIcon, {ImageTransparency = 0.3}, 0.3)
         end
     end)
     
@@ -1071,13 +1028,20 @@ function Library:CreateModule(tab, options)
             keybindConnection = UserInputService.InputBegan:Connect(function(input2, gameProcessed2)
                 if gameProcessed2 then return end
                 if tostring(input2.KeyCode) == keycodeStr then
-                    SetState(not toggleData.Value)
+                    module.state = not module.state
+                    local newSize = module.state and (93 + module.elementHeight + module.multiplier) or 93
+                    Tween(moduleFrame, {Size = UDim2.new(0, 241, 0, newSize)}, 0.5)
+                    Tween(optionsFrame, {Size = UDim2.new(0, 241, 0, module.state and (module.elementHeight + module.multiplier) or 0)}, 0.5)
+                    if module.state then
+                        Tween(decorIcon, {ImageTransparency = 0}, 0.3)
+                    else
+                        Tween(decorIcon, {ImageTransparency = 0.3}, 0.3)
+                    end
                 end
             end)
             table.insert(self.connections, keybindConnection)
         end)
     end)
-    module.SetState = SetState
     module.UpdateSize = function()
         if module.state then
             local newSize = 93 + module.elementHeight + module.multiplier
