@@ -476,11 +476,11 @@ function Library:CreateUI()
     logo.Name = "Logo"
     logo.Text = "Metan"
     logo.Font = self.currentFont
-    logo.TextSize = 16
+    logo.TextSize = 20
     logo.TextColor3 = theme.Primary
     logo.TextTransparency = 0.2
     logo.TextXAlignment = Enum.TextXAlignment.Left
-    logo.Size = UDim2.new(0, 100, 0, 16)
+    logo.Size = UDim2.new(0, 100, 0, 20)
     logo.Position = UDim2.new(0.056, 0, 0.055, 0)
     logo.AnchorPoint = Vector2.new(0, 0.5)
     logo.BackgroundTransparency = 1
@@ -506,7 +506,7 @@ function Library:CreateUI()
     local logoIconButton = Instance.new("ImageButton")
     logoIconButton.Name = "Icon"
     logoIconButton.Image = "rbxassetid://107819132007001"
-    logoIconButton.Size = UDim2.new(0, 18, 0, 18)
+    logoIconButton.Size = UDim2.new(0, 24, 0, 24)
     logoIconButton.Position = UDim2.new(0.025, 0, 0.055, 0)
     logoIconButton.AnchorPoint = Vector2.new(0, 0.5)
     logoIconButton.BackgroundTransparency = 1
@@ -515,6 +515,22 @@ function Library:CreateUI()
     logoIconButton.AutoButtonColor = false
     logoIconButton.Parent = handler
     self:AddToRegistry(logoIconButton, { ImageColor3 = 'Primary' })
+    local logoIconGradient = Instance.new("UIGradient")
+    logoIconGradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 150, 255)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 100, 200))
+    }
+    logoIconGradient.Parent = logoIconButton
+    task.spawn(function()
+        while true do
+            for i = 0, 360, 2 do
+                if not logoIconButton or not logoIconButton.Parent then break end
+                logoIconGradient.Rotation = i
+                task.wait(0.03)
+            end
+        end
+    end)
     logoIconButton.MouseButton1Click:Connect(function() self:ToggleUI() end)
     local pin = Instance.new("Frame")
     pin.Name = "Pin"
@@ -922,7 +938,7 @@ function Library:CreateModule(tab, options)
     local moduleIcon = Instance.new("ImageLabel")
     moduleIcon.Name = "Icon"
     moduleIcon.Image = "rbxassetid://79095934438045"
-    moduleIcon.Size = UDim2.new(0, 20, 0, 20)
+    moduleIcon.Size = UDim2.new(0, 15, 0, 15)
     moduleIcon.Position = UDim2.new(0.071, 0, 0.82, 0)
     moduleIcon.AnchorPoint = Vector2.new(0, 0.5)
     moduleIcon.BackgroundTransparency = 1
@@ -931,31 +947,15 @@ function Library:CreateModule(tab, options)
     moduleIcon.ScaleType = Enum.ScaleType.Fit
     moduleIcon.Parent = header
     self:AddToRegistry(moduleIcon, { ImageColor3 = 'Primary' })
-    local iconGradient = Instance.new("UIGradient")
-    iconGradient.Color = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 150, 255)),
-        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 100, 200))
-    }
-    iconGradient.Parent = moduleIcon
-    task.spawn(function()
-        while moduleIcon and moduleIcon.Parent do
-            for i = 0, 360, 2 do
-                if not moduleIcon or not moduleIcon.Parent then break end
-                iconGradient.Rotation = i
-                task.wait(0.03)
-            end
-        end
-    end)
     local moduleTitle = Instance.new("TextLabel")
     moduleTitle.Name = "Title"
     moduleTitle.Text = module.title
     moduleTitle.Font = Enum.Font.GothamBold
-    moduleTitle.TextSize = 16
+    moduleTitle.TextSize = 14
     moduleTitle.TextColor3 = theme.Primary
     moduleTitle.TextTransparency = 0.2
     moduleTitle.TextXAlignment = Enum.TextXAlignment.Left
-    moduleTitle.Size = UDim2.new(0, 205, 0, 16)
+    moduleTitle.Size = UDim2.new(0, 205, 0, 13)
     moduleTitle.Position = UDim2.new(0.073, 0, 0.23, 0)
     moduleTitle.AnchorPoint = Vector2.new(0, 0.5)
     moduleTitle.BackgroundTransparency = 1
