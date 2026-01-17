@@ -476,7 +476,7 @@ function Library:CreateUI()
     logoIconButton.Name = "Icon"
     logoIconButton.Image = "rbxassetid://107819132007001"
     logoIconButton.Size = UDim2.new(0, 24, 0, 24)
-    logoIconButton.Position = UDim2.new(0.015, 0, 0.055, 0)
+    logoIconButton.Position = UDim2.new(0.035, 0, 0.055, 0)
     logoIconButton.AnchorPoint = Vector2.new(0, 0.5)
     logoIconButton.BackgroundTransparency = 1
     logoIconButton.ImageColor3 = theme.Primary
