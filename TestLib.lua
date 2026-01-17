@@ -171,6 +171,37 @@ do
         local path = self.Folder .. '/settings/autoload.txt'
         if isfile(path) then delfile(path) end
     end
+    function SaveManager:GetAutosaveEnabled()
+        if isfile(self.Folder .. '/settings/autosave_enabled.txt') then
+            return readfile(self.Folder .. '/settings/autosave_enabled.txt') == 'true'
+        end
+        return false
+    end
+    function SaveManager:SetAutosaveEnabled(enabled)
+        writefile(self.Folder .. '/settings/autosave_enabled.txt', tostring(enabled))
+    end
+    function SaveManager:GetAutosaveConfig()
+        if isfile(self.Folder .. '/settings/autosave_config.txt') then
+            return readfile(self.Folder .. '/settings/autosave_config.txt')
+        end
+        return nil
+    end
+    function SaveManager:SetAutosaveConfig(name)
+        writefile(self.Folder .. '/settings/autosave_config.txt', name)
+    end
+    function SaveManager:LoadAutosaveConfig()
+        if self:GetAutosaveEnabled() then
+            local name = self:GetAutosaveConfig()
+            if name and name ~= "" then
+                local success, err = self:Load(name)
+                if success then
+                    if self.Library then self.Library:SendNotification({ title = 'Config', text = 'Auto loaded: ' .. name, duration = 3 }) end
+                else
+                    if self.Library then self.Library:SendNotification({ title = 'Config', text = 'Failed to auto load: ' .. tostring(err), duration = 3 }) end
+                end
+            end
+        end
+    end
     SaveManager:BuildFolderTree()
 end
 
@@ -560,6 +591,7 @@ end
 function Library:Load()
     self:CreateWatermark()
     SaveManager:LoadAutoloadConfig()
+    SaveManager:LoadAutosaveConfig()
 end
 
 function Library:CreateTab(name, icon)
@@ -738,6 +770,62 @@ function Library:CreateSettingsTab()
         if name and name ~= "" then SaveManager:SetAutoloadConfig(name) self:SendNotification({ title = 'Config', text = 'Set autoload: ' .. name, duration = 3 }) UpdateAutoloadLabel() end
     end })
     configModule:CreateButton({ title = "Delete Autoload", callback = function() SaveManager:DeleteAutoloadConfig() self:SendNotification({ title = 'Config', text = 'Removed autoload', duration = 3 }) UpdateAutoloadLabel() end })
+    local autosaveDebounce = nil
+    local autosaveConnections = {}
+    local autosaveCheckbox = configModule:CreateCheckbox({ title = "Auto Save", flag = "ConfigAutoSave", default = SaveManager:GetAutosaveEnabled(), callback = function(value)
+        SaveManager:SetAutosaveEnabled(value)
+        for _, conn in pairs(autosaveConnections) do
+            if conn and conn.Disconnect then conn:Disconnect() end
+        end
+        autosaveConnections = {}
+        if value then
+            local configName = SaveManager:GetAutosaveConfig()
+            if not configName or configName == "" then
+                local name = Options["SaveManager_ConfigName"] and Options["SaveManager_ConfigName"].Value
+                if name and name ~= "" then
+                    SaveManager:SetAutosaveConfig(name)
+                    self:SendNotification({ title = 'Config', text = 'Autosave enabled: ' .. name, duration = 3 })
+                else
+                    self:SendNotification({ title = 'Config', text = 'Enter config name first', duration = 3 })
+                    Toggles["ConfigAutoSave"]:SetValue(false)
+                    return
+                end
+            else
+                self:SendNotification({ title = 'Config', text = 'Autosave enabled: ' .. configName, duration = 3 })
+            end
+            local function OnSettingChanged()
+                if autosaveDebounce then task.cancel(autosaveDebounce) end
+                autosaveDebounce = task.delay(2, function()
+                    local name = SaveManager:GetAutosaveConfig()
+                    if name and name ~= "" then
+                        SaveManager:Save(name)
+                    end
+                end)
+            end
+            for idx, toggle in pairs(Toggles) do
+                if idx ~= "ConfigAutoSave" then
+                    local oldSetValue = toggle.SetValue
+                    toggle.SetValue = function(self2, val)
+                        oldSetValue(self2, val)
+                        OnSettingChanged()
+                    end
+                end
+            end
+            for idx, option in pairs(Options) do
+                if not idx:match("^SaveManager_") and not idx:match("^ThemeManager_") and not idx:match("^_UI_") then
+                    local oldSetValue = option.SetValue
+                    if oldSetValue then
+                        option.SetValue = function(self2, val)
+                            oldSetValue(self2, val)
+                            OnSettingChanged()
+                        end
+                    end
+                end
+            end
+        else
+            self:SendNotification({ title = 'Config', text = 'Autosave disabled', duration = 3 })
+        end
+    end })
     local uiModule = settingsTab:CreateModule({ title = "UI Settings", description = "Customize your UI", section = "right" })
     uiModule:CreateKeybind({ title = "Toggle UI", flag = "_UI_Toggle", callback = function(key) self:SetUIKeybind(key) end })
     uiModule:CreateDropdown({ title = "Font", flag = "_UI_Font", options = self.Fonts, callback = function(font) self:SetFont(font) end })
