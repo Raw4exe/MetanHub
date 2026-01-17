@@ -771,35 +771,17 @@ function Library:CreateSettingsTab()
     end })
     configModule:CreateButton({ title = "Delete Autoload", callback = function() SaveManager:DeleteAutoloadConfig() self:SendNotification({ title = 'Config', text = 'Removed autoload', duration = 3 }) UpdateAutoloadLabel() end })
     local autosaveDebounce = nil
-    local autosaveConnections = {}
-    local autosaveCheckbox = configModule:CreateCheckbox({ title = "Auto Save", flag = "ConfigAutoSave", default = SaveManager:GetAutosaveEnabled(), callback = function(value)
+    configModule:CreateCheckbox({ title = "Auto Save", flag = "ConfigAutoSave", default = SaveManager:GetAutosaveEnabled(), callback = function(value)
         SaveManager:SetAutosaveEnabled(value)
-        for _, conn in pairs(autosaveConnections) do
-            if conn and conn.Disconnect then conn:Disconnect() end
-        end
-        autosaveConnections = {}
         if value then
-            local configName = SaveManager:GetAutosaveConfig()
-            if not configName or configName == "" then
-                local name = Options["SaveManager_ConfigName"] and Options["SaveManager_ConfigName"].Value
-                if name and name ~= "" then
-                    SaveManager:SetAutosaveConfig(name)
-                    self:SendNotification({ title = 'Config', text = 'Autosave enabled: ' .. name, duration = 3 })
-                else
-                    self:SendNotification({ title = 'Config', text = 'Enter config name first', duration = 3 })
-                    Toggles["ConfigAutoSave"]:SetValue(false)
-                    return
-                end
-            else
-                self:SendNotification({ title = 'Config', text = 'Autosave enabled: ' .. configName, duration = 3 })
-            end
+            local configName = "autosave"
+            SaveManager:SetAutosaveConfig(configName)
+            SaveManager:Save(configName)
+            self:SendNotification({ title = 'Config', text = 'Autosave enabled', duration = 3 })
             local function OnSettingChanged()
                 if autosaveDebounce then task.cancel(autosaveDebounce) end
                 autosaveDebounce = task.delay(2, function()
-                    local name = SaveManager:GetAutosaveConfig()
-                    if name and name ~= "" then
-                        SaveManager:Save(name)
-                    end
+                    SaveManager:Save(configName)
                 end)
             end
             for idx, toggle in pairs(Toggles) do
@@ -940,7 +922,7 @@ function Library:CreateModule(tab, options)
     local moduleIcon = Instance.new("ImageLabel")
     moduleIcon.Name = "Icon"
     moduleIcon.Image = "rbxassetid://79095934438045"
-    moduleIcon.Size = UDim2.new(0, 15, 0, 15)
+    moduleIcon.Size = UDim2.new(0, 20, 0, 20)
     moduleIcon.Position = UDim2.new(0.071, 0, 0.82, 0)
     moduleIcon.AnchorPoint = Vector2.new(0, 0.5)
     moduleIcon.BackgroundTransparency = 1
@@ -949,15 +931,31 @@ function Library:CreateModule(tab, options)
     moduleIcon.ScaleType = Enum.ScaleType.Fit
     moduleIcon.Parent = header
     self:AddToRegistry(moduleIcon, { ImageColor3 = 'Primary' })
+    local iconGradient = Instance.new("UIGradient")
+    iconGradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(100, 150, 255)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 100, 200))
+    }
+    iconGradient.Parent = moduleIcon
+    task.spawn(function()
+        while moduleIcon and moduleIcon.Parent do
+            for i = 0, 360, 2 do
+                if not moduleIcon or not moduleIcon.Parent then break end
+                iconGradient.Rotation = i
+                task.wait(0.03)
+            end
+        end
+    end)
     local moduleTitle = Instance.new("TextLabel")
     moduleTitle.Name = "Title"
     moduleTitle.Text = module.title
     moduleTitle.Font = Enum.Font.GothamBold
-    moduleTitle.TextSize = 14
+    moduleTitle.TextSize = 16
     moduleTitle.TextColor3 = theme.Primary
     moduleTitle.TextTransparency = 0.2
     moduleTitle.TextXAlignment = Enum.TextXAlignment.Left
-    moduleTitle.Size = UDim2.new(0, 205, 0, 13)
+    moduleTitle.Size = UDim2.new(0, 205, 0, 16)
     moduleTitle.Position = UDim2.new(0.073, 0, 0.23, 0)
     moduleTitle.AnchorPoint = Vector2.new(0, 0.5)
     moduleTitle.BackgroundTransparency = 1
