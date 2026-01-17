@@ -464,9 +464,9 @@ function Library:CreateUI()
     logoGradient.Parent = logo
     
     task.spawn(function()
-        while true do
+        while logo and logo.Parent and not self.unloading do
             for i = 0, 360, 2 do
-                if not logo or not logo.Parent then break end
+                if not logo or not logo.Parent or self.unloading then break end
                 logoGradient.Rotation = i
                 task.wait(0.03)
             end
@@ -492,9 +492,9 @@ function Library:CreateUI()
     }
     logoIconGradient.Parent = logoIconButton
     task.spawn(function()
-        while true do
+        while logoIconButton and logoIconButton.Parent and not self.unloading do
             for i = 0, 360, 2 do
-                if not logoIconButton or not logoIconButton.Parent then break end
+                if not logoIconButton or not logoIconButton.Parent or self.unloading then break end
                 logoIconGradient.Rotation = i
                 task.wait(0.03)
             end
@@ -639,9 +639,9 @@ function Library:CreateTab(name, icon)
     }
     labelGradient.Parent = tabLabel
     task.spawn(function()
-        while tabLabel and tabLabel.Parent do
+        while tabLabel and tabLabel.Parent and not self.unloading do
             for i = 0, 360, 2 do
-                if not tabLabel or not tabLabel.Parent then break end
+                if not tabLabel or not tabLabel.Parent or self.unloading then break end
                 labelGradient.Rotation = i
                 task.wait(0.03)
             end
@@ -921,9 +921,9 @@ function Library:CreateModule(tab, options)
     }
     moduleTitleGradient.Parent = moduleTitle
     task.spawn(function()
-        while moduleTitle and moduleTitle.Parent do
+        while moduleTitle and moduleTitle.Parent and not self.unloading do
             for i = 0, 360, 2 do
-                if not moduleTitle or not moduleTitle.Parent then break end
+                if not moduleTitle or not moduleTitle.Parent or self.unloading then break end
                 moduleTitleGradient.Rotation = i
                 task.wait(0.03)
             end
@@ -951,9 +951,9 @@ function Library:CreateModule(tab, options)
     }
     moduleDescGradient.Parent = moduleDesc
     task.spawn(function()
-        while moduleDesc and moduleDesc.Parent do
+        while moduleDesc and moduleDesc.Parent and not self.unloading do
             for i = 0, 360, 2 do
-                if not moduleDesc or not moduleDesc.Parent then break end
+                if not moduleDesc or not moduleDesc.Parent or self.unloading then break end
                 moduleDescGradient.Rotation = i
                 task.wait(0.03)
             end
@@ -2335,6 +2335,8 @@ end
 
 function Library:CreateWatermark()
     if self.watermark then return end
+    local oldWatermark = CoreGui:FindFirstChild("MarchUI_Watermark")
+    if oldWatermark then oldWatermark:Destroy() end
     local theme = self.currentTheme
     local watermarkGui = Instance.new("ScreenGui")
     watermarkGui.Name = "MarchUI_Watermark"
@@ -2373,9 +2375,9 @@ function Library:CreateWatermark()
     }
     iconGradient.Parent = watermark
     task.spawn(function()
-        while watermark and watermark.Parent do
+        while watermark and watermark.Parent and not self.unloading do
             for i = 0, 360, 2 do
-                if not watermark or not watermark.Parent then break end
+                if not watermark or not watermark.Parent or self.unloading then break end
                 iconGradient.Rotation = i
                 task.wait(0.03)
             end
@@ -2419,14 +2421,19 @@ function Library:ToggleUI()
     end
 end
 function Library:Unload()
+    self.unloading = true
+    task.wait(0.1)
     if self.ui then
         self.ui:Destroy()
+        self.ui = nil
     end
     if self.notificationGui then
         self.notificationGui:Destroy()
+        self.notificationGui = nil
     end
     if self.watermark then
         self.watermark:Destroy()
+        self.watermark = nil
     end
 end
 return { Library = Library, SaveManager = SaveManager, ThemeManager = ThemeManager, Toggles = Toggles, Options = Options }
