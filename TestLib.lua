@@ -2254,7 +2254,7 @@ function Library:CreateLabel(module, options)
     label.flag = options.flag or label.title
     label.Type = 'Label'
     
-    module.elementHeight = module.elementHeight + 30
+    module.elementHeight = module.elementHeight + 50
     
     local theme = self.currentTheme
     
