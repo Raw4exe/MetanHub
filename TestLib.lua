@@ -1166,7 +1166,8 @@ function Library:CreateModule(tab, options)
         CreateTextbox = function(m, opts) return self:CreateTextbox(m, opts) end,
         CreateButton = function(m, opts) return self:CreateButton(m, opts) end,
         CreateColorpicker = function(m, opts) return self:CreateColorpicker(m, opts) end,
-        CreateKeybind = function(m, opts) return self:CreateKeybind(m, opts) end
+        CreateKeybind = function(m, opts) return self:CreateKeybind(m, opts) end,
+        CreateLabel = function(m, opts) return self:CreateLabel(m, opts) end
     } })
 end
 
@@ -2244,6 +2245,56 @@ function Library:CreateKeybind(module, options)
     table.insert(module.elements, keybind)
     return keybind
 end
+
+function Library:CreateLabel(module, options)
+    options = options or {}
+    local label = {}
+    label.title = options.title or options.text or "Label"
+    label.flag = options.flag or label.title
+    label.Type = 'Label'
+    
+    module.elementHeight = module.elementHeight + 20
+    
+    local theme = self.currentTheme
+    
+    local labelFrame = Instance.new("Frame")
+    labelFrame.Name = "Label"
+    labelFrame.Size = UDim2.new(0, 207, 0, 16)
+    labelFrame.BackgroundTransparency = 1
+    labelFrame.BorderSizePixel = 0
+    labelFrame.Parent = module.optionsFrame
+    
+    local labelText = Instance.new("TextLabel")
+    labelText.Text = label.title
+    labelText.Font = Enum.Font.GothamBold
+    labelText.TextSize = 11
+    labelText.TextColor3 = theme.Text
+    labelText.TextTransparency = 0.3
+    labelText.TextXAlignment = Enum.TextXAlignment.Left
+    labelText.TextWrapped = true
+    labelText.Size = UDim2.new(1, 0, 1, 0)
+    labelText.BackgroundTransparency = 1
+    labelText.Parent = labelFrame
+    self:AddToRegistry(labelText, { TextColor3 = 'Text' })
+    
+    label.Value = label.title
+    label.SetValue = function(self2, text)
+        label.title = text
+        label.Value = text
+        labelText.Text = text
+    end
+    
+    label.SetText = function(self2, text)
+        label.title = text
+        label.Value = text
+        labelText.Text = text
+    end
+    
+    Options[label.flag] = label
+    table.insert(module.elements, label)
+    return label
+end
+
 function Library:CreateNotificationContainer()
     if self.notificationGui then return end
     local notifGui = Instance.new("ScreenGui")
