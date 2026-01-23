@@ -1178,6 +1178,7 @@ function Library:CreateSlider(module, options)
     slider.min = options.minimum_value or options.min or 0
     slider.max = options.maximum_value or options.max or 100
     slider.round = options.round_number or options.round or false
+    slider.step = options.step or nil
     slider.callback = options.callback or function() end
     slider.Type = 'Slider'
     module.elementHeight = module.elementHeight + 30
@@ -1260,7 +1261,13 @@ function Library:CreateSlider(module, options)
     slider.Value = slider.value
     slider.SetValue = function(self2, value)
         value = math.clamp(value, slider.min, slider.max)
-        if slider.round then value = Round(value, 0) else value = Round(value, 1) end
+        if slider.step then
+            value = math.floor((value - slider.min) / slider.step + 0.5) * slider.step + slider.min
+        elseif slider.round then
+            value = Round(value, 0)
+        else
+            value = Round(value, 1)
+        end
         slider.value = value
         slider.Value = value
         valueLabel.Text = tostring(value)
@@ -1379,7 +1386,7 @@ function Library:CreateDropdown(module, options)
     dropdown.flag = options.flag or dropdown.title
     dropdown.options = options.options or {}
     dropdown.multi = options.multi_dropdown or false
-    dropdown.maxVisible = options.maximum_options or math.min(#dropdown.options, 5)
+    dropdown.maxVisible = options.maximum_options or #dropdown.options
     dropdown.callback = options.callback or function() end
     dropdown.open = false
     dropdown.size = 0
@@ -1561,29 +1568,34 @@ function Library:CreateDropdown(module, options)
             for _, updateFunc in ipairs(dropdown.updateFunctions) do updateFunc() end
             if not dropdown.multi then
                 dropdown.open = false
+                local fullDropdownSize = math.min(dropdown.size, 200)
                 Tween(dropdownFrame, {Size = UDim2.new(0, 207, 0, 42)}, 0.5)
                 Tween(box, {Size = UDim2.new(0, 207, 0, 22)}, 0.5)
                 Tween(arrow, {Rotation = 0}, 0.5)
-                module.multiplier = module.multiplier - dropdown.size
+                module.multiplier = module.multiplier - fullDropdownSize
                 Tween(module.frame, {Size = UDim2.new(0, 241, 0, 93 + module.elementHeight + module.multiplier)}, 0.5)
                 Tween(module.optionsFrame, {Size = UDim2.new(0, 241, 0, module.elementHeight + module.multiplier)}, 0.5)
             end
         end)
-        if index <= dropdown.maxVisible then dropdown.size = dropdown.size + 16 end
+        dropdown.size = dropdown.size + 16
     end
     for index, option in ipairs(dropdown.options) do CreateOptionButton(option, index) end
-    optionsScrollFrame.Size = UDim2.fromOffset(207, dropdown.size)
+    
+    -- Рассчитываем полный размер для всех опций
+    local fullDropdownSize = math.min(dropdown.size, 200) -- Максимум 200px для скролла
+    optionsScrollFrame.Size = UDim2.fromOffset(207, fullDropdownSize)
+    
     dropdownFrame.MouseButton1Click:Connect(function()
         dropdown.open = not dropdown.open
         if dropdown.open then
-            module.multiplier = module.multiplier + dropdown.size
+            module.multiplier = module.multiplier + fullDropdownSize
             Tween(module.frame, {Size = UDim2.new(0, 241, 0, 93 + module.elementHeight + module.multiplier)}, 0.5)
             Tween(module.optionsFrame, {Size = UDim2.new(0, 241, 0, module.elementHeight + module.multiplier)}, 0.5)
-            Tween(dropdownFrame, {Size = UDim2.new(0, 207, 0, 42 + dropdown.size)}, 0.5)
-            Tween(box, {Size = UDim2.new(0, 207, 0, 22 + dropdown.size)}, 0.5)
+            Tween(dropdownFrame, {Size = UDim2.new(0, 207, 0, 42 + fullDropdownSize)}, 0.5)
+            Tween(box, {Size = UDim2.new(0, 207, 0, 22 + fullDropdownSize)}, 0.5)
             Tween(arrow, {Rotation = 180, ImageTransparency = 0}, 0.5)
         else
-            module.multiplier = module.multiplier - dropdown.size
+            module.multiplier = module.multiplier - fullDropdownSize
             Tween(module.frame, {Size = UDim2.new(0, 241, 0, 93 + module.elementHeight + module.multiplier)}, 0.5)
             Tween(module.optionsFrame, {Size = UDim2.new(0, 241, 0, module.elementHeight + module.multiplier)}, 0.5)
             Tween(dropdownFrame, {Size = UDim2.new(0, 207, 0, 42)}, 0.5)
@@ -1603,10 +1615,11 @@ function Library:CreateDropdown(module, options)
         for _, child in ipairs(optionsScrollFrame:GetChildren()) do if child:IsA("TextButton") then child:Destroy() end end
         dropdown.updateFunctions = {}
         dropdown.options = newOptions
-        dropdown.maxVisible = math.min(#newOptions, 5)
+        dropdown.maxVisible = #newOptions
         dropdown.size = 3
         for index, option in ipairs(newOptions) do CreateOptionButton(option, index) end
-        optionsScrollFrame.Size = UDim2.fromOffset(207, dropdown.size)
+        local fullDropdownSize = math.min(dropdown.size, 200)
+        optionsScrollFrame.Size = UDim2.fromOffset(207, fullDropdownSize)
     end
     dropdown.box = box
     Options[dropdown.flag] = dropdown
