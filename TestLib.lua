@@ -2646,6 +2646,152 @@ function Library:ToggleUI()
         self.watermarkFrame.Visible = not self.uiVisible
     end
 end
+function Library:CreateLabel(module, options)
+    options = options or {}
+    local label = {}
+    label.title = options.title or options.text or "Label"
+    label.flag = options.flag or label.title
+    label.Type = 'Label'
+    
+    module.elementHeight = module.elementHeight + 30
+    
+    local theme = self.currentTheme
+    
+    -- Container Frame
+    local TextFrame = Instance.new('Frame')
+    TextFrame.BackgroundColor3 = Color3.fromRGB(32, 38, 51)
+    TextFrame.BackgroundTransparency = 0.1
+    TextFrame.Size = UDim2.new(0, 207, 0, 26)
+    TextFrame.BorderSizePixel = 0
+    TextFrame.Name = "Label"
+    TextFrame.AutomaticSize = Enum.AutomaticSize.Y
+    TextFrame.Parent = module.optionsFrame
+    
+    local UICorner = Instance.new('UICorner')
+    UICorner.CornerRadius = UDim.new(0, 4)
+    UICorner.Parent = TextFrame
+    
+    -- Body Text
+    local Body = Instance.new('TextLabel')
+    Body.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+    Body.TextColor3 = Color3.fromRGB(180, 180, 180)
+    Body.Text = label.title
+    Body.Size = UDim2.new(1, -10, 1, 0)
+    Body.Position = UDim2.new(0, 5, 0, 5)
+    Body.BackgroundTransparency = 1
+    Body.TextXAlignment = Enum.TextXAlignment.Center
+    Body.TextYAlignment = Enum.TextYAlignment.Center
+    Body.TextSize = 11
+    Body.TextWrapped = true
+    Body.AutomaticSize = Enum.AutomaticSize.Y
+    Body.Parent = TextFrame
+    
+    -- Hover effect
+    TextFrame.MouseEnter:Connect(function()
+        Tween(TextFrame, {BackgroundColor3 = Color3.fromRGB(42, 50, 66)}, 0.3)
+    end)
+    
+    TextFrame.MouseLeave:Connect(function()
+        Tween(TextFrame, {BackgroundColor3 = Color3.fromRGB(32, 38, 51)}, 0.3)
+    end)
+    
+    label.Value = label.title
+    label.SetValue = function(self2, text)
+        label.title = text
+        label.Value = text
+        Body.Text = text
+    end
+    
+    label.SetText = function(self2, text)
+        label.title = text
+        label.Value = text
+        Body.Text = text
+    end
+    
+    Options[label.flag] = label
+    table.insert(module.elements, label)
+    return label
+end
+
+function Library:CreateDivider(module, options)
+    options = options or {}
+    local divider = {}
+    divider.title = options.title or ""
+    divider.show_title = options.show_title or false
+    divider.show_line = options.show_line ~= false
+    divider.Type = 'Divider'
+    
+    module.elementHeight = module.elementHeight + 27
+    
+    local theme = self.currentTheme
+    
+    local dividerHeight = 1
+    local dividerWidth = 207
+    
+    -- Create the outer frame to control spacing
+    local OuterFrame = Instance.new('Frame')
+    OuterFrame.Size = UDim2.new(0, dividerWidth, 0, 20)
+    OuterFrame.BackgroundTransparency = 1
+    OuterFrame.Name = 'Divider'
+    OuterFrame.Parent = module.optionsFrame
+    
+    -- Title text if enabled
+    if divider.show_title and divider.title ~= "" then
+        local TextLabel = Instance.new('TextLabel')
+        TextLabel.FontFace = Font.new('rbxasset://fonts/families/GothamSSm.json', Enum.FontWeight.SemiBold, Enum.FontStyle.Normal)
+        TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+        TextLabel.TextTransparency = 0
+        TextLabel.Text = divider.title
+        TextLabel.Size = UDim2.new(0, 153, 0, 13)
+        TextLabel.Position = UDim2.new(0.5, 0, 0.501, 0)
+        TextLabel.BackgroundTransparency = 1
+        TextLabel.TextXAlignment = Enum.TextXAlignment.Center
+        TextLabel.BorderSizePixel = 0
+        TextLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+        TextLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
+        TextLabel.TextSize = 11
+        TextLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        TextLabel.ZIndex = 3
+        TextLabel.TextStrokeTransparency = 0
+        TextLabel.Parent = OuterFrame
+    end
+    
+    -- Divider line if enabled
+    if divider.show_line then
+        local DividerLine = Instance.new('Frame')
+        DividerLine.Size = UDim2.new(1, 0, 0, dividerHeight)
+        DividerLine.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        DividerLine.BorderSizePixel = 0
+        DividerLine.Name = 'DividerLine'
+        DividerLine.Parent = OuterFrame
+        DividerLine.ZIndex = 2
+        DividerLine.Position = UDim2.new(0, 0, 0.5, -dividerHeight / 2)
+        
+        -- Add gradient for transparency on edges
+        local Gradient = Instance.new('UIGradient')
+        Gradient.Parent = DividerLine
+        Gradient.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255))
+        })
+        Gradient.Transparency = NumberSequence.new({
+            NumberSequenceKeypoint.new(0, 1),
+            NumberSequenceKeypoint.new(0.5, 0),
+            NumberSequenceKeypoint.new(1, 1)
+        })
+        Gradient.Rotation = 0
+        
+        -- Corner radius for smooth edges
+        local UICorner = Instance.new('UICorner')
+        UICorner.CornerRadius = UDim.new(0, 2)
+        UICorner.Parent = DividerLine
+    end
+    
+    table.insert(module.elements, divider)
+    return divider
+end
+
 function Library:Unload()
     self.unloading = true
     task.wait(0.1)
