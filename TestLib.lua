@@ -2253,29 +2253,58 @@ function Library:CreateLabel(module, options)
     label.flag = options.flag or label.title
     label.Type = 'Label'
     
-    module.elementHeight = module.elementHeight + 20
+    module.elementHeight = module.elementHeight + 30
     
     local theme = self.currentTheme
     
     local labelFrame = Instance.new("Frame")
     labelFrame.Name = "Label"
-    labelFrame.Size = UDim2.new(0, 207, 0, 16)
-    labelFrame.BackgroundTransparency = 1
+    labelFrame.Size = UDim2.new(0, 207, 0, 26)
+    labelFrame.BackgroundColor3 = theme.Primary
+    labelFrame.BackgroundTransparency = 0.92
     labelFrame.BorderSizePixel = 0
     labelFrame.Parent = module.optionsFrame
+    self:AddToRegistry(labelFrame, { BackgroundColor3 = 'Primary' })
+    
+    local labelCorner = Instance.new("UICorner")
+    labelCorner.CornerRadius = UDim.new(0, 6)
+    labelCorner.Parent = labelFrame
+    
+    local labelStroke = Instance.new("UIStroke")
+    labelStroke.Color = theme.Primary
+    labelStroke.Transparency = 0.7
+    labelStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    labelStroke.Parent = labelFrame
+    self:AddToRegistry(labelStroke, { Color = 'Primary' })
     
     local labelText = Instance.new("TextLabel")
     labelText.Text = label.title
-    labelText.Font = Enum.Font.GothamBold
-    labelText.TextSize = 11
-    labelText.TextColor3 = theme.Text
-    labelText.TextTransparency = 0.3
-    labelText.TextXAlignment = Enum.TextXAlignment.Left
+    labelText.Font = Enum.Font.SourceSansItalic
+    labelText.TextSize = 12
+    labelText.TextColor3 = theme.Primary
+    labelText.TextTransparency = 0.2
+    labelText.TextXAlignment = Enum.TextXAlignment.Center
     labelText.TextWrapped = true
-    labelText.Size = UDim2.new(1, 0, 1, 0)
+    labelText.Size = UDim2.new(1, -12, 1, 0)
+    labelText.Position = UDim2.new(0.5, 0, 0.5, 0)
+    labelText.AnchorPoint = Vector2.new(0.5, 0.5)
     labelText.BackgroundTransparency = 1
     labelText.Parent = labelFrame
-    self:AddToRegistry(labelText, { TextColor3 = 'Text' })
+    self:AddToRegistry(labelText, { TextColor3 = 'Primary' })
+    
+    -- Добавляем иконку информации слева
+    local infoIcon = Instance.new("ImageLabel")
+    infoIcon.Name = "InfoIcon"
+    infoIcon.Image = "rbxassetid://7733955511"
+    infoIcon.Size = UDim2.new(0, 14, 0, 14)
+    infoIcon.Position = UDim2.new(0, 8, 0.5, 0)
+    infoIcon.AnchorPoint = Vector2.new(0, 0.5)
+    infoIcon.BackgroundTransparency = 1
+    infoIcon.ImageColor3 = theme.Primary
+    infoIcon.ImageTransparency = 0.3
+    infoIcon.ScaleType = Enum.ScaleType.Fit
+    infoIcon.Parent = labelFrame
+    self:AddToRegistry(infoIcon, { ImageColor3 = 'Primary' })
     
     label.Value = label.title
     label.SetValue = function(self2, text)
