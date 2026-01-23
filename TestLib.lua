@@ -2653,7 +2653,7 @@ function Library:CreateLabel(module, options)
     label.flag = options.flag or label.title
     label.Type = 'Label'
     
-    module.elementHeight = module.elementHeight + 38
+    module.elementHeight = module.elementHeight + 42
     
     local theme = self.currentTheme
     
@@ -2661,7 +2661,7 @@ function Library:CreateLabel(module, options)
     local TextFrame = Instance.new('Frame')
     TextFrame.BackgroundColor3 = Color3.fromRGB(32, 38, 51)
     TextFrame.BackgroundTransparency = 0.1
-    TextFrame.Size = UDim2.new(0, 207, 0, 32)
+    TextFrame.Size = UDim2.new(0, 207, 0, 36)
     TextFrame.BorderSizePixel = 0
     TextFrame.Name = "Label"
     TextFrame.AutomaticSize = Enum.AutomaticSize.Y
