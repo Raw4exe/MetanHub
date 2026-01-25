@@ -1180,10 +1180,14 @@ function Library:CreateModule(tab, options)
             else Options[element.flag] = nil end
         end
         
-        pcall(function() element.frame:Destroy() end)
         module.elementHeight = module.elementHeight - heightToRemove
-        task.wait(0.05)
-        if module.state then module.UpdateSize() end
+        pcall(function() element.frame:Destroy() end)
+        
+        if module.state then
+            local newSize = 93 + module.elementHeight + module.multiplier
+            moduleFrame.Size = UDim2.new(0, 241, 0, newSize)
+            optionsFrame.Size = UDim2.new(0, 241, 0, module.elementHeight + module.multiplier)
+        end
     end
     if module.state then task.spawn(function() task.wait(0.1) module.UpdateSize() end) end
     table.insert(tab.modules, module)
