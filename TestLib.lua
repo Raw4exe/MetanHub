@@ -1156,123 +1156,48 @@ function Library:CreateModule(tab, options)
     module.RefreshSize = function()
         module.UpdateSize()
     end
-    local function RemoveElementInternal(element)
-        if not element then 
-            warn("RemoveElement: element is nil")
-            return 
-        end
-        if not element.frame then 
-            warn("RemoveElement: element.frame is nil")
-            return 
-        end
-        if not element.frame.Parent then 
-            warn("RemoveElement: element.frame.Parent is nil")
-            return 
-        end
-        
-        warn("RemoveElement: Removing element of type", element.Type, "with name", element.frame.Name)
-        warn("RemoveElement: element.frame.Parent.Name =", element.frame.Parent.Name)
+    module.RemoveElement = function(element)
+        if not element or not element.frame or not element.frame.Parent then return end
         
         local heightToRemove = 0
-        if element.Type == 'Slider' then
-            heightToRemove = 30
-        elseif element.Type == 'Toggle' then
-            heightToRemove = 22
-        elseif element.Type == 'Dropdown' then
-            heightToRemove = 46
-        elseif element.Type == 'Input' then
-            heightToRemove = 44
-        elseif element.Type == 'Button' then
-            heightToRemove = 26
-        elseif element.Type == 'ColorPicker' then
-            heightToRemove = 26
+        if element.Type == 'Slider' then heightToRemove = 30
+        elseif element.Type == 'Toggle' then heightToRemove = 22
+        elseif element.Type == 'Dropdown' then heightToRemove = 46
+        elseif element.Type == 'Input' then heightToRemove = 44
+        elseif element.Type == 'Button' then heightToRemove = 26
+        elseif element.Type == 'ColorPicker' then heightToRemove = 26
         end
         
         for i = #module.elements, 1, -1 do
             if module.elements[i] == element then
                 table.remove(module.elements, i)
-                warn("RemoveElement: Removed from module.elements at index", i)
                 break
             end
         end
         
         if element.flag then
-            if element.Type == 'Toggle' then
-                Toggles[element.flag] = nil
-            else
-                Options[element.flag] = nil
-            end
-            warn("RemoveElement: Removed from Options/Toggles with flag", element.flag)
+            if element.Type == 'Toggle' then Toggles[element.flag] = nil
+            else Options[element.flag] = nil end
         end
         
-        local frameToDestroy = element.frame
-        local success = pcall(function()
-            if frameToDestroy and frameToDestroy.Parent then
-                warn("RemoveElement: About to destroy frame", frameToDestroy.Name)
-                frameToDestroy:Destroy()
-                warn("RemoveElement: Frame destroyed successfully")
-            end
-        end)
-        
-        if success then
-            module.elementHeight = module.elementHeight - heightToRemove
-            warn("RemoveElement: elementHeight reduced by", heightToRemove, "new height:", module.elementHeight)
-            task.wait(0.05)
-            if module.state then
-                module.UpdateSize()
-                warn("RemoveElement: UpdateSize called")
-            end
-        else
-            warn("RemoveElement: Failed to destroy frame")
-        end
+        pcall(function() element.frame:Destroy() end)
+        module.elementHeight = module.elementHeight - heightToRemove
+        task.wait(0.05)
+        if module.state then module.UpdateSize() end
     end
     if module.state then task.spawn(function() task.wait(0.1) module.UpdateSize() end) end
     table.insert(tab.modules, module)
     return setmetatable(module, { __index = {
-        CreateSlider = function(m, opts) 
-            local slider = self:CreateSlider(m, opts)
-            return slider
-        end,
-        CreateCheckbox = function(m, opts) 
-            local checkbox = self:CreateCheckbox(m, opts)
-            return checkbox
-        end,
-        CreateDropdown = function(m, opts) 
-            local dropdown = self:CreateDropdown(m, opts)
-            return dropdown
-        end,
-        CreateMultiDropdown = function(m, opts) 
-            local dropdown = self:CreateMultiDropdown(m, opts)
-            return dropdown
-        end,
-        CreateTextbox = function(m, opts) 
-            local textbox = self:CreateTextbox(m, opts)
-            return textbox
-        end,
-        CreateButton = function(m, opts) 
-            local button = self:CreateButton(m, opts)
-            return button
-        end,
-        CreateColorpicker = function(m, opts) 
-            local colorpicker = self:CreateColorpicker(m, opts)
-            return colorpicker
-        end,
-        CreateKeybind = function(m, opts) 
-            local keybind = self:CreateKeybind(m, opts)
-            return keybind
-        end,
-        CreateLabel = function(m, opts) 
-            local label = self:CreateLabel(m, opts)
-            return label
-        end,
-        CreateDivider = function(m, opts) 
-            local divider = self:CreateDivider(m, opts)
-            return divider
-        end,
-        RemoveElement = function(m, el) 
-            warn("RemoveElement wrapper called: el.Type =", el and el.Type or "nil", "el.title =", el and el.title or "nil")
-            RemoveElementInternal(el)
-        end
+        CreateSlider = function(m, opts) return self:CreateSlider(m, opts) end,
+        CreateCheckbox = function(m, opts) return self:CreateCheckbox(m, opts) end,
+        CreateDropdown = function(m, opts) return self:CreateDropdown(m, opts) end,
+        CreateMultiDropdown = function(m, opts) return self:CreateMultiDropdown(m, opts) end,
+        CreateTextbox = function(m, opts) return self:CreateTextbox(m, opts) end,
+        CreateButton = function(m, opts) return self:CreateButton(m, opts) end,
+        CreateColorpicker = function(m, opts) return self:CreateColorpicker(m, opts) end,
+        CreateKeybind = function(m, opts) return self:CreateKeybind(m, opts) end,
+        CreateLabel = function(m, opts) return self:CreateLabel(m, opts) end,
+        CreateDivider = function(m, opts) return self:CreateDivider(m, opts) end
     } })
 end
 
