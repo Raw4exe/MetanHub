@@ -1156,6 +1156,34 @@ function Library:CreateModule(tab, options)
     module.RefreshSize = function()
         module.UpdateSize()
     end
+    module.RemoveElement = function(element)
+        if not element or not element.frame then return end
+        if element.Type == 'Slider' then
+            module.elementHeight = module.elementHeight - 30
+        elseif element.Type == 'Toggle' then
+            module.elementHeight = module.elementHeight - 22
+        elseif element.Type == 'Dropdown' then
+            module.elementHeight = module.elementHeight - 46
+        elseif element.Type == 'Input' then
+            module.elementHeight = module.elementHeight - 44
+        elseif element.Type == 'Button' then
+            module.elementHeight = module.elementHeight - 26
+        elseif element.Type == 'ColorPicker' then
+            module.elementHeight = module.elementHeight - 26
+        end
+        for i, el in ipairs(module.elements) do
+            if el == element then
+                table.remove(module.elements, i)
+                break
+            end
+        end
+        if element.flag then
+            Options[element.flag] = nil
+            Toggles[element.flag] = nil
+        end
+        element.frame:Destroy()
+        module.UpdateSize()
+    end
     if module.state then task.spawn(function() task.wait(0.1) module.UpdateSize() end) end
     table.insert(tab.modules, module)
     return setmetatable(module, { __index = {
@@ -1168,7 +1196,8 @@ function Library:CreateModule(tab, options)
         CreateColorpicker = function(m, opts) return self:CreateColorpicker(m, opts) end,
         CreateKeybind = function(m, opts) return self:CreateKeybind(m, opts) end,
         CreateLabel = function(m, opts) return self:CreateLabel(m, opts) end,
-        CreateDivider = function(m, opts) return self:CreateDivider(m, opts) end
+        CreateDivider = function(m, opts) return self:CreateDivider(m, opts) end,
+        RemoveElement = function(m, el) return m.RemoveElement(el) end
     } })
 end
 
@@ -1307,6 +1336,7 @@ function Library:CreateSlider(module, options)
             end
         end)
     end)
+    slider.frame = sliderFrame
     table.insert(module.elements, slider)
     return slider
 end
@@ -1384,6 +1414,7 @@ function Library:CreateCheckbox(module, options)
     Toggles[checkbox.flag] = checkbox
     checkbox:SetValue(checkbox.state)
     checkboxFrame.MouseButton1Click:Connect(function() checkbox:SetValue(not checkbox.state) end)
+    checkbox.frame = checkboxFrame
     table.insert(module.elements, checkbox)
     return checkbox
 end
@@ -1612,11 +1643,11 @@ function Library:CreateDropdown(module, options)
     end)
     UpdateText()
     dropdown.SetValue = function(self2, newValue)
-        if type(newValue) == "table" and not dropdown.multi then return end
         dropdown.selected = newValue
         dropdown.Value = newValue
         UpdateText()
         for _, updateFunc in ipairs(dropdown.updateFunctions) do updateFunc() end
+        task.spawn(function() dropdown.callback(dropdown.selected) end)
     end
     dropdown.SetValues = function(self2, newOptions)
         for _, child in ipairs(optionsScrollFrame:GetChildren()) do if child:IsA("TextButton") then child:Destroy() end end
@@ -1628,6 +1659,7 @@ function Library:CreateDropdown(module, options)
         optionsScrollFrame.Size = UDim2.fromOffset(207, dropdown.size)
     end
     dropdown.box = box
+    dropdown.frame = dropdownFrame
     Options[dropdown.flag] = dropdown
     table.insert(module.elements, dropdown)
     return dropdown
@@ -1713,6 +1745,7 @@ function Library:CreateTextbox(module, options)
         task.spawn(function() textbox.callback(textboxInput.Text, enterPressed) end)
     end)
     textbox.textboxFrame = textboxInput
+    textbox.frame = textboxContainer
     Options[textbox.flag] = textbox
     table.insert(module.elements, textbox)
     return textbox
@@ -1755,6 +1788,7 @@ function Library:CreateButton(module, options)
         Tween(buttonFrame, {BackgroundTransparency = 0.9}, 0.1)
         task.spawn(function() button.callback() end)
     end)
+    button.frame = buttonFrame
     table.insert(module.elements, button)
     return button
 end
@@ -2150,6 +2184,7 @@ function Library:CreateColorpicker(module, options)
         end
     end)
     UpdateColor(false)
+    colorpicker.frame = colorpickerFrame
     Options[colorpicker.flag] = colorpicker
     table.insert(module.elements, colorpicker)
     return colorpicker
@@ -2243,6 +2278,7 @@ function Library:CreateKeybind(module, options)
         end)
     end)
     Options[keybind.flag] = keybind
+    keybind.frame = keybindFrame
     table.insert(module.elements, keybind)
     return keybind
 end
