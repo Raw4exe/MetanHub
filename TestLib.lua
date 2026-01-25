@@ -1157,26 +1157,31 @@ function Library:CreateModule(tab, options)
         module.UpdateSize()
     end
     module.RemoveElement = function(element)
-        if not element or not element.frame then return end
+        if not element then return end
+        if not element.frame or not element.frame.Parent then return end
+        
+        local heightToRemove = 0
         if element.Type == 'Slider' then
-            module.elementHeight = module.elementHeight - 30
+            heightToRemove = 30
         elseif element.Type == 'Toggle' then
-            module.elementHeight = module.elementHeight - 22
+            heightToRemove = 22
         elseif element.Type == 'Dropdown' then
-            module.elementHeight = module.elementHeight - 46
+            heightToRemove = 46
         elseif element.Type == 'Input' then
-            module.elementHeight = module.elementHeight - 44
+            heightToRemove = 44
         elseif element.Type == 'Button' then
-            module.elementHeight = module.elementHeight - 26
+            heightToRemove = 26
         elseif element.Type == 'ColorPicker' then
-            module.elementHeight = module.elementHeight - 26
+            heightToRemove = 26
         end
-        for i, el in ipairs(module.elements) do
-            if el == element then
+        
+        for i = #module.elements, 1, -1 do
+            if module.elements[i] == element then
                 table.remove(module.elements, i)
                 break
             end
         end
+        
         if element.flag then
             if element.Type == 'Toggle' then
                 Toggles[element.flag] = nil
@@ -1184,11 +1189,20 @@ function Library:CreateModule(tab, options)
                 Options[element.flag] = nil
             end
         end
-        pcall(function()
-            element.frame:Destroy()
+        
+        local success = pcall(function()
+            if element.frame and element.frame.Parent then
+                element.frame:Destroy()
+            end
         end)
-        task.wait(0.05)
-        module.UpdateSize()
+        
+        if success then
+            module.elementHeight = module.elementHeight - heightToRemove
+            task.wait(0.05)
+            if module.state then
+                module.UpdateSize()
+            end
+        end
     end
     if module.state then task.spawn(function() task.wait(0.1) module.UpdateSize() end) end
     table.insert(tab.modules, module)
