@@ -1156,7 +1156,7 @@ function Library:CreateModule(tab, options)
     module.RefreshSize = function()
         module.UpdateSize()
     end
-    module.RemoveElement = function(element)
+    local function RemoveElementInternal(element)
         if not element then 
             warn("RemoveElement: element is nil")
             return 
@@ -1270,13 +1270,8 @@ function Library:CreateModule(tab, options)
             return divider
         end,
         RemoveElement = function(m, el) 
-            if not el then
-                warn("RemoveElement wrapper: el is nil, m is:", m)
-                warn("RemoveElement wrapper: m.title =", m.title)
-                return
-            end
-            warn("RemoveElement wrapper: Calling with el.Type =", el.Type, "el.title =", el.title)
-            m.RemoveElement(el)
+            warn("RemoveElement wrapper called: el.Type =", el and el.Type or "nil", "el.title =", el and el.title or "nil")
+            RemoveElementInternal(el)
         end
     } })
 end
