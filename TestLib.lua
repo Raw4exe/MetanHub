@@ -1157,8 +1157,21 @@ function Library:CreateModule(tab, options)
         module.UpdateSize()
     end
     module.RemoveElement = function(element)
-        if not element then return end
-        if not element.frame or not element.frame.Parent then return end
+        if not element then 
+            warn("RemoveElement: element is nil")
+            return 
+        end
+        if not element.frame then 
+            warn("RemoveElement: element.frame is nil")
+            return 
+        end
+        if not element.frame.Parent then 
+            warn("RemoveElement: element.frame.Parent is nil")
+            return 
+        end
+        
+        warn("RemoveElement: Removing element of type", element.Type, "with name", element.frame.Name)
+        warn("RemoveElement: element.frame.Parent.Name =", element.frame.Parent.Name)
         
         local heightToRemove = 0
         if element.Type == 'Slider' then
@@ -1178,6 +1191,7 @@ function Library:CreateModule(tab, options)
         for i = #module.elements, 1, -1 do
             if module.elements[i] == element then
                 table.remove(module.elements, i)
+                warn("RemoveElement: Removed from module.elements at index", i)
                 break
             end
         end
@@ -1188,20 +1202,28 @@ function Library:CreateModule(tab, options)
             else
                 Options[element.flag] = nil
             end
+            warn("RemoveElement: Removed from Options/Toggles with flag", element.flag)
         end
         
+        local frameToDestroy = element.frame
         local success = pcall(function()
-            if element.frame and element.frame.Parent then
-                element.frame:Destroy()
+            if frameToDestroy and frameToDestroy.Parent then
+                warn("RemoveElement: About to destroy frame", frameToDestroy.Name)
+                frameToDestroy:Destroy()
+                warn("RemoveElement: Frame destroyed successfully")
             end
         end)
         
         if success then
             module.elementHeight = module.elementHeight - heightToRemove
+            warn("RemoveElement: elementHeight reduced by", heightToRemove, "new height:", module.elementHeight)
             task.wait(0.05)
             if module.state then
                 module.UpdateSize()
+                warn("RemoveElement: UpdateSize called")
             end
+        else
+            warn("RemoveElement: Failed to destroy frame")
         end
     end
     if module.state then task.spawn(function() task.wait(0.1) module.UpdateSize() end) end
