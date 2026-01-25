@@ -1269,7 +1269,14 @@ function Library:CreateModule(tab, options)
             local divider = self:CreateDivider(m, opts)
             return divider
         end,
-        RemoveElement = function(m, el) return m.RemoveElement(el) end
+        RemoveElement = function(m, el) 
+            if not el then
+                warn("RemoveElement wrapper: el is nil, m.Type =", m.Type)
+                return
+            end
+            warn("RemoveElement wrapper: m.Type =", m.Type, "el.Type =", el.Type)
+            return m.RemoveElement(el) 
+        end
     } })
 end
 
