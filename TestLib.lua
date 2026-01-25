@@ -1271,11 +1271,12 @@ function Library:CreateModule(tab, options)
         end,
         RemoveElement = function(m, el) 
             if not el then
-                warn("RemoveElement wrapper: el is nil, m.Type =", m.Type)
+                warn("RemoveElement wrapper: el is nil, m is:", m)
+                warn("RemoveElement wrapper: m.title =", m.title)
                 return
             end
-            warn("RemoveElement wrapper: m.Type =", m.Type, "el.Type =", el.Type)
-            return m.RemoveElement(el) 
+            warn("RemoveElement wrapper: Calling with el.Type =", el.Type, "el.title =", el.title)
+            m.RemoveElement(el)
         end
     } })
 end
