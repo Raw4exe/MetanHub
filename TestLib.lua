@@ -1178,10 +1178,16 @@ function Library:CreateModule(tab, options)
             end
         end
         if element.flag then
-            Options[element.flag] = nil
-            Toggles[element.flag] = nil
+            if element.Type == 'Toggle' then
+                Toggles[element.flag] = nil
+            else
+                Options[element.flag] = nil
+            end
         end
-        element.frame:Destroy()
+        pcall(function()
+            element.frame:Destroy()
+        end)
+        task.wait(0.05)
         module.UpdateSize()
     end
     if module.state then task.spawn(function() task.wait(0.1) module.UpdateSize() end) end
